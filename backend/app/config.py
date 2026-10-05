@@ -1,13 +1,14 @@
 """App-wide configuration via environment variables."""
 
-import os
+from app.deps.settings import get_settings
 
+_settings = get_settings()
 
-SUPABASE_URL = os.getenv("SUPABASE_URL", "")
-SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "")
-SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "")
-REDIS_URL = os.getenv("REDIS_URL", "")
-DEMO_MODE = os.getenv("DEMO_MODE", "false").lower() == "true"
+SUPABASE_URL = _settings.supabase_url
+SUPABASE_ANON_KEY = _settings.supabase_anon_key
+SUPABASE_SERVICE_KEY = _settings.supabase_service_key
+REDIS_URL = _settings.redis_url
+DEMO_MODE = _settings.demo_mode
 
 # Import constraints (A14, FR-1)
 MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
