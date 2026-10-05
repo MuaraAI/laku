@@ -1,7 +1,7 @@
 """Laku API — entry point."""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import os
+from app.deps.settings import get_settings
 
 app = FastAPI(
     title="Laku API",
@@ -16,17 +16,15 @@ from app.routers.recap import router as recap_router  # noqa: E402
 app.include_router(imports_router)
 app.include_router(recap_router)
 
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+settings = get_settings()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-DEMO_MODE = os.getenv("DEMO_MODE", "false").lower() == "true"
 
 
 @app.get("/health")
@@ -35,5 +33,5 @@ def health():
         "status": "ok",
         "service": "laku-api",
         "version": "0.1.0",
-        "demo_mode": DEMO_MODE,
+        "demo_mode": settings.demo_mode,
     }
