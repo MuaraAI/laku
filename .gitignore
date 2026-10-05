@@ -1,0 +1,35 @@
+# dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# env & secrets
+.env
+.env.local
+.env*.local
+
+# next.js
+.next/
+out/
+next-env.d.ts
+
+# build & cache
+dist/
+build/
+*.tsbuildinfo
+.vercel
+
+# raw marketplace files — JANGAN pernah commit export seller (PII!)
+*.xlsx
+!tests/fixtures/*.xlsx
+uploads/
+samples/
+
+# misc
+.DS_Store
+*.log
+.idea/
+.vscode/

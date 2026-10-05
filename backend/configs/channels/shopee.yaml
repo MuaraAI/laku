@@ -1,0 +1,56 @@
+# Shopee export column mapping — SKELETON (verifikasi dgn sample asli Raken sebelum dipakai!)
+# Status: UNVERIFIED — dibangun dari screen-recorded tutorial YouTube (docs/formats/research-notes.md)
+channel: shopee
+source_system: shopee_seller_center
+price_basis: list_price_before_discount
+sold_at_semantics: created_time   # default; konfirmasi dari sample
+skip_empty_columns: true          # TEMUAN RISET: Shopee export punya kolom kosong di tengah
+
+columns:
+  order_id:
+    match: "Nomor Pesanan|No. Pesanan|Order ID"
+    required: true
+    type: id_long                 # 16 digit — rawan notasi ilmiah Excel
+  product_name:
+    match: "Nama Produk|Product Name"
+    required: true
+  variation:
+    match: "Variasi|Variation"
+  sku:
+    match: "SKU|Nomor SKU"
+  qty:
+    match: "Jumlah|Quantity"
+    type: int
+    required: true
+  list_price:
+    match: "Harga Awal|Original Price"
+    type: money
+  paid_price:
+    match: "Harga Setelah Diskon|Selling Price"
+    type: money
+  seller_discount:
+    match: "Diskon Penjual|Seller Discount|Voucher Penjual"
+    type: money
+  status:
+    match: "Status Pesanan|Order Status"
+    map:
+      "SELESAI": completed
+      "PESANAN DIPROSES": in_progress
+      "DIKIRIM": in_progress
+      "PEMBAYARAN DITERIMA": in_progress
+      "DIBATALKAN": cancelled
+      "PENGEMBALIAN": returned
+      "PESANAN DIBATALKAN": cancelled
+  sold_at:
+    match: "Waktu Pesanan Dibuat|Waktu Pesanan Dibayar"
+    type: datetime
+    tz: "Asia/Jakarta"
+  buyer_kabupaten:
+    match: "Kabupaten/Kota|City"
+  buyer_province:
+    match: "Provinsi|State"
+
+pii_drop:                         # diderive dulu (region), lalu kolom asli dibuang
+  - "Nama Penerima|Buyer Name"
+  - "Telepon|Phone"
+  - "Alamat|Address"

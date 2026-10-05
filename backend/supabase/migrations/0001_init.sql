@@ -1,0 +1,5 @@
+-- 0001_init.sql — diisi Task M0-2 (schema per PRD §9 + RLS policies)
+-- TODO(M0-2): sellers, seller_members, platform_admins, consents, channels,
+-- import_batches, import_staging, order_lines (unique 5-col), products,
+-- product_links, stock_items, stock_movements, recommendations,
+-- ai_chat_messages, ai_memories, promo_codes, audit_log
