@@ -9,6 +9,11 @@ app = FastAPI(
     version="0.1.0",
 )
 
+# --- Routers ---
+from app.routers.imports import router as imports_router  # noqa: E402
+
+app.include_router(imports_router)
+
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
 
 app.add_middleware(
