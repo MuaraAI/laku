@@ -1,28 +1,81 @@
-"""Mock server — frontend dev tanpa backend jadi (M0-3 handoff)."""
-from fastapi import FastAPI
+"""Mock server Laku — frontend dev tanpa backend asli (M0-3 / Y2).
 
-app = FastAPI(title="Laku Mock API")
+Jalankan: uvicorn mock.main:app --port 8400
+Semua data dari mock/fixtures/ (docs/seed-narrative.md) — tanpa DB.
+"""
+import json
+from pathlib import Path
 
-# Data dari docs/seed-narrative.md — 10 produk Warung Bu Rina, semua state terwakili
-SEED_RECOMMENDATIONS = [
-    {"sku": "BERAS-RAMOS-5KG",   "name": "Beras Ramos Premium 5kg",   "state": "CRITICAL",        "cover_days": 1.1,  "suggested_qty": 60},
-    {"sku": "MINYAK-SANIA-2L",   "name": "Minyak Goreng Sania 2L",    "state": "REORDER",         "cover_days": 9.0,  "suggested_qty": 24},
-    {"sku": "GULA-GULAKU-1KG",   "name": "Gula Pasir Gulaku 1kg",     "state": "OK",              "cover_days": 32.0, "suggested_qty": 0},
-    {"sku": "TEH-SARIWANGI-50",  "name": "Teh Celup Sariwangi isi 50","state": "OVERSTOCK",       "cover_days": 1575, "suggested_qty": 0, "capital_tied": 630000},
-    {"sku": "LAMPU-LED-AWAN",    "name": "Lampu Tidur LED Awan",      "state": "DEAD",            "cover_days": None, "suggested_qty": 0, "capital_tied": 175000},
-    {"sku": "KOPI-KAPAL-165",    "name": "Kopi Kapal Api Blend 165g", "state": "INSUFFICIENT_DATA","cover_days": None, "suggested_qty": None},
-    {"sku": "AIR-CLUB-1500",     "name": "Air Mineral Club 1500ml",   "state": "OK",              "cover_days": 11.0, "suggested_qty": 0, "overlay": "NEGATIVE"},
-    {"sku": "GALON-ISI",         "name": "Galon Isi Ulang",           "state": "OK",              "cover_days": 6.0,  "suggested_qty": 0, "trend": "rising"},
-    {"sku": "SABUN-COLEK",       "name": "Sabun Colek Batang",        "state": "OK",              "cover_days": 41.0, "suggested_qty": 0, "trend": "declining"},
-    {"sku": "KOPI-SACHS-65",     "name": "Kopi Sachs 65g",            "state": "REORDER",         "cover_days": 8.0,  "suggested_qty": 12, "overlay": "STALE"},
-]
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+
+FIXTURES = Path(__file__).parent / "fixtures"
+
+
+def _load(name: str) -> dict:
+    with open(FIXTURES / f"{name}.json", encoding="utf-8") as f:
+        return json.load(f)
+
+
+app = FastAPI(title="Laku Mock API", version="0.1.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "https://laku.muaraai.com"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "laku-mock"}
+    return {"status": "ok", "service": "laku-mock", "version": "0.1.0"}
 
 
 @app.get("/v1/recommendations")
-def recommendations():
-    return {"items": SEED_RECOMMENDATIONS, "generated_at": "2026-10-05T00:00:00+07:00"}
+def recommendations(state: str | None = None, overlays: str | None = None):
+    data = _load("recommendations")
+    items = data["recommendations"]
+    if state:
+        items = [i for i in items if i["state"] == state.upper()]
+    if overlays:
+        wanted = set(overlays.split(","))
+        items = [i for i in items if wanted & set(i.get("overlays", []))]
+    return {"items": items, "counts": data["counts"], "generated_at": data["generated_at"]}
+
+
+@app.get("/v1/recap")
+def recap(days: int = 30):
+    data = _load("recap")
+    if days != 30:
+        # Mock hanya punya dataset 30 hari — kembalikan apa adanya dengan catatan.
+        data = {**data, "period": {**data["period"], "days": days},
+                "warnings": data["warnings"] + [{"type": "mock", "message": f"Mock: periode {days} hari memakai dataset 30 hari"}]}
+    return data
+
+
+@app.get("/v1/analytics/ranking")
+def ranking(by: str = "units"):
+    recs = _load("recommendations")["recommendations"]
+    items = [
+        {"rank": i + 1, "product_id": r["product_id"], "name": r["name"],
+         "units_30d": [86, 41, 39, 33, 24, 4, 18, 3, 12, 9][i % 10],
+         "state": r["state"]}
+        for i, r in enumerate(recs)
+    ]
+    items.sort(key=lambda x: -x["units_30d"])
+    return {"by": by, "items": [{**it, "rank": i + 1} for i, it in enumerate(items)]}
+
+
+@app.get("/v1/analytics/summary")
+def summary():
+    return {
+        "omzet_30d_rp": 17120000,
+        "sku_aktif": 10,
+        "urgent": 4,
+        "stop_buying": 2,
+        "coverage": [
+            {"channel": "shopee", "data_through": "2026-09-30", "stale": False},
+            {"channel": "tiktok_shop", "data_through": "2026-09-25", "stale": True},
+        ],
+    }
