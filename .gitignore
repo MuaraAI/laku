@@ -33,3 +33,6 @@ samples/
 *.log
 .idea/
 .vscode/
+
+# internal team docs — tidak dipublikasikan
+docs/
