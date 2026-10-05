@@ -1,0 +1,41 @@
+# Caddy block — Laku API (production)
+# Usage on VPS:
+#   1. Copy this file's contents into the Caddyfile that Caddy actually loads
+#      (find it: caddy fmt --overwrite /etc/caddy/Caddyfile  |  systemctl status caddy)
+#   2. caddy validate --config /etc/caddy/Caddyfile
+#   3. systemctl reload caddy
+#
+# Contract: public base URL is https://api.muaraai.com/v1/laku (docs/api.md)
+#   /v1/laku/health      -> proxied as /health
+#   /v1/laku/v1/imports  -> proxied as /v1/imports
+#
+# NOTE: this VPS also serves UBSI-API on :8300 behind its own site block —
+# do not touch that block; this file only ADDS the laku site.
+
+api.muaraai.com {
+	# --- request body cap: layer-1 of the 3-layer upload validation (FR-1) ---
+	request_body {
+		max_size 10MB
+	}
+
+	# --- security headers ---
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	encode gzip
+
+	# strip the /v1/laku public prefix, proxy to FastAPI on loopback
+	handle_path /v1/laku/* {
+		reverse_proxy 127.0.0.1:8400
+	}
+
+	# everything else under the host is a miss
+	handle {
+		respond "Not Found" 404
+	}
+}
