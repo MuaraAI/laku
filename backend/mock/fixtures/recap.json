@@ -1,0 +1,45 @@
+{
+  "period": {"days": 30, "from": "2026-09-01", "through": "2026-09-30"},
+  "totals": {
+    "gross_rp": 18450000,
+    "returns_rp": 425000,
+    "discounts_rp": 905000,
+    "net_rp": 17120000,
+    "orders": 262,
+    "aov_rp": 65343,
+    "cancelled_info_rp": 1150000
+  },
+  "per_channel": [
+    {
+      "channel": "shopee",
+      "gross_rp": 12100000,
+      "net_rp": 11240000,
+      "share": 0.656,
+      "coverage": {"data_from": "2026-09-01", "data_through": "2026-09-30", "imported_at": "2026-09-30T21:10:00+07:00", "stale": false, "partial": false}
+    },
+    {
+      "channel": "tiktok_shop",
+      "gross_rp": 6350000,
+      "net_rp": 5880000,
+      "share": 0.344,
+      "coverage": {"data_from": "2026-09-01", "data_through": "2026-09-25", "imported_at": "2026-09-25T19:42:00+07:00", "stale": true, "partial": true, "note": "terakhir impor 25 Sep — data s/d 25 Sep saja"}
+    }
+  ],
+  "trend": [
+    {"date": "2026-09-26", "net_rp": 512000},
+    {"date": "2026-09-27", "net_rp": 488000},
+    {"date": "2026-09-28", "net_rp": 534000},
+    {"date": "2026-09-29", "net_rp": 601000},
+    {"date": "2026-09-30", "net_rp": 577000}
+  ],
+  "warnings": [
+    {"channel": "tiktok_shop", "type": "stale", "message": "TikTok Shop: terakhir impor 25 Sep — impor ulang untuk angka terkini"},
+    {"type": "partial", "message": "Periode 30 hari tidak sepenuhnya tertutup data TikTok Shop (data s/d 25 Sep)"}
+  ],
+  "sementara_last_days": 7,
+  "metric_help": {
+    "gross": "Omzet kotor = harga list × qty untuk pesanan selesai/diproses/dikembalikan",
+    "net": "Penjualan bersih = omzet kotor − retur − diskon penjual",
+    "cancelled": "Dibatalkan ditampilkan terpisah, tidak masuk total"
+  }
+}
