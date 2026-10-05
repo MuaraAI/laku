@@ -60,7 +60,7 @@ npm run build      # HARUS lulus sebelum commit frontend
    npm run build                          # (frontend) harus sukses
    ```
    PR yang test-nya merah tidak direview.
-3. **Open PR ke `main`** dengan judul conventional (`feat: shopee parser`) + deskripsi singkat apa/kenapa + screenshot/video kalau mengubah UI.
+3. **Open PR ke `main`** dengan judul conventional (`feat: shopee parser`) + deskripsi singkat apa/kenapa.
 4. **PR direview + merge oleh Yuken** (atau orang yang ditunjuk). Merge = squash, hapus branch setelah merge.
 5. Pengecualian: perubahan dokumen kecil (typo, link) boleh langsung `main` dengan kabarin di grup.
 
