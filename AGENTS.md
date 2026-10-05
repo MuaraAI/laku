@@ -48,6 +48,22 @@ npm run build      # HARUS lulus sebelum commit frontend
 9. **Commit:** conventional commits (`feat:`, `fix:`, `test:`, `docs:`), commit kecil per deliverable. Jangan commit `.env`, fixture berisi PII, atau file mentah marketplace.
 10. **Freeze:** 7 Okt 18:00 WIB tag `submission-v1`. Setelah itu hanya blocking-bug dengan approval Yuken.
 
+## Git Workflow (WAJIB — melanggar = PR ditolak)
+
+1. **DILARANG commit/push langsung ke `main`.** Semua pekerjaan di branch baru:
+   ```bash
+   git checkout -b feat/<topik>     # contoh: feat/shopee-parser, fix/recap-total, docs/proposal
+   ```
+2. **Branch harus lulus semua test sebelum open PR:**
+   ```bash
+   cd backend && pytest tests/ -v        # semua PASS
+   npm run build                          # (frontend) harus sukses
+   ```
+   PR yang test-nya merah tidak direview.
+3. **Open PR ke `main`** dengan judul conventional (`feat: shopee parser`) + deskripsi singkat apa/kenapa + screenshot/video kalau mengubah UI.
+4. **PR direview + merge oleh Yuken** (atau orang yang ditunjuk). Merge = squash, hapus branch setelah merge.
+5. Pengecualian: perubahan dokumen kecil (typo, link) boleh langsung `main` dengan kabarin di grup.
+
 ## Workflow Tim
 
 - **Contract-first:** backend expose OpenAPI + mock server (M0-3) SEBELUM frontend ngoding integrasi; frontend boleh mulai dari mock kapan saja.
