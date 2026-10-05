@@ -1,16 +1,18 @@
-# Shopee export column mapping — SKELETON (verifikasi dgn sample asli Raken sebelum dipakai!)
-# Status: UNVERIFIED — dibangun dari screen-recorded tutorial YouTube (docs/formats/research-notes.md)
+# Shopee export column mapping — status: UNVERIFIED (screen-recorded YouTube, docs/formats/research-notes.md)
+# WAJIB diverifikasi dengan sample asli Raken. Kalau ada kolom beda → ubah file ini saja, JANGAN kode parser.
 channel: shopee
 source_system: shopee_seller_center
+display_name: Shopee
 price_basis: list_price_before_discount
-sold_at_semantics: created_time   # default; konfirmasi dari sample
+sold_at_semantics: paid           # default: paid kalau ada, else created — konfirmasi dari sample
+voucher_level: line
 skip_empty_columns: true          # TEMUAN RISET: Shopee export punya kolom kosong di tengah
 
 columns:
   order_id:
-    match: "Nomor Pesanan|No. Pesanan|Order ID"
+    match: "Nomor Pesanan|No\\.? Pesanan|Order ID|Invoice"
     required: true
-    type: id_long                 # 16 digit — rawan notasi ilmiah Excel
+    type: id_long                 # 16 digit — rawan notasi ilmiah Excel (FR-7)
   product_name:
     match: "Nama Produk|Product Name"
     required: true
