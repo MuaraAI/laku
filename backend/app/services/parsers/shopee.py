@@ -64,32 +64,31 @@ def _parse_dt(raw: str, tz: str) -> datetime | None:
     return None
 
 
-def parse_shopee(raw_bytes: bytes, config: dict) -> ParseResult:
-    """Parse export Shopee (CSV) → rows canonical + problems. In-memory, PII dibuang."""
+def parse_rows(
+    rows: list[dict],
+    config: dict,
+    *,
+    start_row: int = 2,
+    row_flags: dict[int, set[str]] | None = None,
+    headers: list[str] | None = None,
+) -> ParseResult:
+    """Map raw string rows → canonical rows + problems (dipakai CSV & XLSX).
+
+    row_flags: {index_dalam_rows: {"numeric_order_id"|"numeric_sku"}} — guard
+    Excel yang menyimpan ID/SKU sebagai angka (notasi ilmiah / leading-zero hilang).
+    headers: daftar kolom eksplisit (wajib kalau rows bisa kosong, mis. file
+    header-only — kolom wajib tetap divalidasi).
+    """
     result = ParseResult()
-
-    # deteksi encoding
-    text = None
-    for enc in ("utf-8-sig", "utf-8", "cp1252"):
-        try:
-            text = raw_bytes.decode(enc)
-            break
-        except (UnicodeDecodeError, LookupError):
-            continue
-    if text is None:
-        result.problems.append({"row": 0, "column": "-", "reason": "encoding tidak dikenali"})
-        return result
-
-    # XLSX gak lewat sini (ditangani openpyxl di import_pipeline); CSV dulu untuk B1.
-    delimiter = detect_delimiter(text[:2000])
-    reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
+    flags = row_flags or {}
 
     # --- mapping header → field via config (skip kolom kosong) ---
+    headers = headers if headers is not None else (list(rows[0].keys()) if rows else [])
     colmap: dict[str, str] = {}
     for field_name, spec in config["columns"].items():
         pattern = re.compile(f"^{spec['match']}$", re.IGNORECASE)
-        for header in reader.fieldnames or []:
-            if not header.strip():
+        for header in headers:
+            if not header or not header.strip():
                 continue
             if pattern.match(header.strip()):
                 colmap[field_name] = header
@@ -100,14 +99,14 @@ def parse_shopee(raw_bytes: bytes, config: dict) -> ParseResult:
         raise ValueError(f"MISSING_COLUMNS: {missing}")
 
     result.skipped_columns = [
-        h for h in (reader.fieldnames or [])
-        if h.strip() and h not in colmap.values()
+        h for h in headers
+        if h and h.strip() and h not in colmap.values()
     ]
 
     status_map = config["columns"]["status"].get("map", {})
     tz = config["columns"]["sold_at"].get("tz", "Asia/Jakarta")
 
-    for i, raw_row in enumerate(reader, start=2):  # baris Excel: header = 1
+    for i, raw_row in enumerate(rows, start=start_row):
         result.rows_read += 1
         row_problems: list[str] = []
 
@@ -121,6 +120,18 @@ def parse_shopee(raw_bytes: bytes, config: dict) -> ParseResult:
             row_problems.append("order_id kosong")
         elif SCIENTIFIC_ID.match(order_id):
             row_problems.append(f"order_id dalam notasi ilmiah Excel ({order_id}) — export ulang dengan format teks")
+        elif "numeric_order_id" in flags.get(i, set()):
+            row_problems.append(
+                f"order_id tersimpan sebagai angka di Excel ({order_id}) — berisiko notasi ilmiah / digit hilang; "
+                "export ulang dengan format teks"
+            )
+
+        sku_raw = val("sku")
+        if sku_raw and "numeric_sku" in flags.get(i, set()):
+            row_problems.append(
+                f"SKU tersimpan sebagai angka di Excel ({sku_raw}) — leading-zero kemungkinan hilang; "
+                "export ulang dengan format teks"
+            )
 
         qty = _parse_int(val("qty"))
         if qty is None or qty <= 0:
@@ -154,6 +165,7 @@ def parse_shopee(raw_bytes: bytes, config: dict) -> ParseResult:
             "sales_channel": config["channel"],
             "order_id": order_id,
             "line_key": f"{order_id}:{(val('sku') or val('product_name'))[:80]}",
+            "sku": val("sku") or None,
             "status": status,
             "qty": qty,
             "list_price": list_price,
@@ -165,4 +177,75 @@ def parse_shopee(raw_bytes: bytes, config: dict) -> ParseResult:
             # Tidak ada: buyer_name, phone, address (FR-29)
         })
 
+    return result
+
+
+def parse_shopee(raw_bytes: bytes, config: dict) -> ParseResult:
+    """Parse export Shopee CSV → rows canonical + problems. In-memory, PII dibuang."""
+    # decode dulu untuk ambil fieldnames (header) — DictReader perlu untuk rows
+    text = None
+    for enc in ("utf-8-sig", "utf-8", "cp1252"):
+        try:
+            text = raw_bytes.decode(enc)
+            break
+        except (UnicodeDecodeError, LookupError):
+            continue
+    if text is None:
+        result = ParseResult()
+        result.problems.append({"row": 0, "column": "-", "reason": "encoding tidak dikenali"})
+        return result
+    delimiter = detect_delimiter(text[:2000])
+    reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
+    fieldnames = list(reader.fieldnames or [])
+    rows = list(reader)
+    return parse_rows(rows, config, start_row=2, headers=fieldnames)
+
+
+def parse_shopee_xlsx(raw_bytes: bytes, config: dict) -> ParseResult:
+    """Parse export Shopee XLSX → rows canonical + problems.
+
+    Guard Excel (FR-7): cell ID/SKU yang tersimpan sebagai angka → problem-row
+    (rawan notasi ilmiah 1.23E+15 / leading-zero hilang).
+    """
+    import openpyxl
+
+    result = ParseResult()
+    try:
+        wb = openpyxl.load_workbook(io.BytesIO(raw_bytes), read_only=True, data_only=True)
+    except Exception as e:
+        result.problems.append({"row": 0, "column": "-", "reason": f"file XLSX rusak/tidak terbaca: {e}"})
+        return result
+
+    ws = wb.active
+    if ws is None:
+        wb.close()
+        result.problems.append({"row": 0, "column": "-", "reason": "file XLSX tidak memiliki sheet"})
+        return result
+
+    raw_rows: list[dict] = []
+    row_flags: dict[int, set[str]] = {}
+    headers: list[str] = []
+    for i, row in enumerate(ws.iter_rows(values_only=True)):
+        if i == 0:
+            headers = [str(c).strip() if c is not None else "" for c in row]
+            continue
+        if all(c is None or (isinstance(c, str) and c.strip() == "") for c in row):
+            continue  # baris kosong — bukan data, bukan problem
+        cells = {headers[j]: c for j, c in enumerate(row) if j < len(headers)}
+        flags: set[str] = set()
+        for col in ("Nomor Pesanan", "Nomor SKU"):
+            v = cells.get(col)
+            if isinstance(v, (int, float)) and not isinstance(v, bool):
+                flags.add("numeric_order_id" if "Pesanan" in col else "numeric_sku")
+        if flags:
+            row_flags[len(raw_rows)] = flags
+        raw_rows.append({k: ("" if v is None else str(v).strip()) for k, v in cells.items()})
+    wb.close()
+
+    parsed = parse_rows(raw_rows, config, start_row=2, row_flags=row_flags,
+                        headers=headers)
+    result.rows = parsed.rows
+    result.problems = parsed.problems
+    result.rows_read = parsed.rows_read
+    result.skipped_columns = parsed.skipped_columns
     return result
