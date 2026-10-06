@@ -1,21 +1,54 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import LoginCard from "@/components/auth/LoginCard";
-import { Icon, LakuMark } from "@/components/landing/primitives";
-import { login, nav, routes } from "@/constants/id";
+import { Headline, Icon, LakuMark, StatusBadge } from "@/components/landing/primitives";
+import { footer, hero, login, nav, routes } from "@/constants/id";
 
 export const metadata: Metadata = { title: login.metaTitle };
 
 type ErrorKey = keyof typeof login.errors;
 
+const previewRows = hero.rows.filter((r) => login.aside.previewRows.includes(r.name));
+
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error } = await searchParams;
   const initialError = error && error in login.errors ? login.errors[error as ErrorKey] : null;
   return (
-    <main className="auth">
-      <div>
-        <div className="auth-card">
-          <Link className="auth-brand" href={routes.home} aria-label={nav.home}>
+    <div className="auth">
+      <aside className="auth-aside" aria-hidden="true">
+        <div className="auth-aside-top">
+          <span className="auth-brand on-dark">
+            <LakuMark />
+            <span className="logo-name">{nav.brandName}</span>
+          </span>
+          <Headline as="p" className="auth-tagline" parts={hero.headline} />
+          <p className="auth-aside-sub">{login.aside.sub}</p>
+        </div>
+        <div className="auth-preview">
+          <div className="auth-preview-head">
+            <span>{login.aside.previewTitle}</span>
+            <span className="demo-chip">{hero.demoChip}</span>
+          </div>
+          <ul>
+            {previewRows.map((r) => (
+              <li key={r.name}>
+                <span className="name">{r.name}</span>
+                <span className="days">{r.days}</span>
+                <StatusBadge kind={r.status} />
+              </li>
+            ))}
+          </ul>
+        </div>
+        <p className="auth-aside-foot">{footer.copyright}</p>
+      </aside>
+
+      <main className="auth-main">
+        <Link className="auth-back" href={routes.home}>
+          <Icon name="arrow_back" />
+          {login.back}
+        </Link>
+        <div className="auth-form">
+          <Link className="auth-brand auth-brand-mobile" href={routes.home} aria-label={nav.home}>
             <LakuMark />
             <span className="logo-name">{nav.brandName}</span>
           </Link>
@@ -40,11 +73,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             {login.consentEnd}
           </p>
         </div>
-        <Link className="auth-back" href={routes.home}>
-          <Icon name="arrow_back" />
-          {login.back}
-        </Link>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }

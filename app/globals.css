@@ -103,3 +103,5 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .b-dead { background: var(--dead-bg); color: var(--dead); }
 .b-insufficient { background: var(--insufficient-bg); color: var(--insufficient); }
 .b-asumsi { font-family: var(--mono); font-weight: 400; border-radius: var(--r-sm); background: var(--subtle); color: var(--text-secondary); font-size: .625rem; letter-spacing: .04em; text-transform: uppercase; padding: 2px 6px; }
+/* label for illustrative data (PRD: demo data is always labelled) */
+.demo-chip { flex: none; font-family: var(--mono); font-size: .625rem; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: var(--r-full); background: var(--subtle); color: var(--text-muted); }
