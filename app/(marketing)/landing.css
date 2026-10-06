@@ -37,12 +37,12 @@
    Hero — one column: headline, pitch, actions, the supplier route
    ========================================================== */
 .hero { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; padding: clamp(40px, 7vw, 96px) var(--pad) clamp(40px, 6vw, 72px); }
-.hero > .chart-card, .hero > .route, .hero > .route-cap, .hero > .hero-note { justify-self: stretch; }
+.hero > .hero-visual, .hero > .route, .hero > .route-cap, .hero > .hero-note { justify-self: stretch; }
 /* desktop: copy left, chart right, route + notes across the bottom */
 @media (min-width: 1000px) {
   .hero { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); column-gap: clamp(40px, 4vw, 64px); align-items: start; }
-  .hero > :not(.chart-card):not(.route):not(.route-cap):not(.hero-note) { grid-column: 1; }
-  .hero > .chart-card { grid-column: 2; grid-row: 1 / span 4; align-self: center; margin-top: 0; }
+  .hero > :not(.hero-visual):not(.route):not(.route-cap):not(.hero-note) { grid-column: 1; }
+  .hero > .hero-visual { grid-column: 2; grid-row: 1 / span 4; align-self: center; margin-top: 0; }
   .hero > .route, .hero > .route-cap, .hero > .hero-note { grid-column: 1 / -1; }
 }
 .hero h1 { margin-top: 20px; max-width: 18ch; font-size: clamp(2.25rem, .9rem + 5vw, 4.75rem); line-height: 1.02; letter-spacing: -.025em; }
@@ -57,8 +57,13 @@
 .hero-cta .btn-outline { justify-content: space-between; padding-right: 14px; }
 @media (min-width: 560px) { .hero-cta .btn { flex: 0 0 auto; } .hero-cta .btn-primary { min-width: 200px; } .hero-cta .btn-outline { gap: 24px; } }
 
-/* stock chart card */
-.chart-card { position: relative; margin-top: 40px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-raise); padding: clamp(16px, 2vw, 22px); }
+/* stock chart card, with the crate pile tucked behind it (top-right on mobile, bottom-left on desktop) */
+.hero-visual { position: relative; isolation: isolate; margin-top: 88px; }
+.hero-crates { position: absolute; z-index: 0; top: -76px; right: 16px; width: 104px; height: auto; image-rendering: pixelated; pointer-events: none; }
+@media (min-width: 1000px) { .hero-crates { top: auto; right: auto; left: -52px; bottom: -40px; width: 116px; } }
+@media (min-width: 1240px) { .hero-crates { left: -120px; bottom: -48px; width: 164px; } }
+.hero .hero-crates { transition-delay: .3s; }
+.chart-card { position: relative; z-index: 1; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-raise); padding: clamp(16px, 2vw, 22px); }
 .chart-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .chart-title { font-family: var(--font-display); font-weight: 600; font-size: 1.125rem; line-height: 1.25; }
 .chart-sub { margin-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: .8125rem; color: var(--text-muted); }
