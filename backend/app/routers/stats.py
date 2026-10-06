@@ -1,6 +1,7 @@
 """Public platform & engine telemetry endpoint (PRD §9A, landing page widget).
 
 Public endpoint — TANPA auth, anonymous aggregate metrics only (zero PII).
+Live realtime via Supabase RPC `get_platform_stats()`.
 """
 from __future__ import annotations
 
@@ -21,31 +22,46 @@ SUPPORTED_CHANNELS = [
     {"id": "lazada", "name": "Lazada", "status": "active"},
 ]
 
+DEFAULT_URGENCY = {
+    "critical": 2,
+    "reorder": 3,
+    "ok": 2,
+    "overstock": 1,
+    "dead": 1,
+}
 
-def _get_live_counts() -> tuple[int, int, int]:
-    """Coba ambil hitungan agregat live dari DB; fallback ke baseline jika 0/kosong."""
+
+def _get_live_platform_data() -> tuple[int, int, int, dict]:
+    """Ambil telemetry platform live dari Supabase RPC get_platform_stats(); fallback jika offline/demo."""
     settings = get_settings()
-    if not settings.supabase_url or not settings.supabase_service_key or settings.demo_mode:
-        return 3, 10, 160
+    if not settings.supabase_url or settings.demo_mode:
+        return 3, 10, 52, DEFAULT_URGENCY
 
     try:
         from supabase import create_client  # noqa: no stubs for supabase-py
 
-        client = create_client(settings.supabase_url, settings.supabase_service_key)
-        sellers_cnt = len(client.table("sellers").select("id", count="exact").limit(1).execute().data or [])
-        products_cnt = len(client.table("products").select("id", count="exact").limit(1).execute().data or [])
-        orders_cnt = len(client.table("order_lines").select("id", count="exact").limit(1).execute().data or [])
-        return max(sellers_cnt, 3), max(products_cnt, 10), max(orders_cnt, 160)
+        key = settings.supabase_anon_key or settings.supabase_service_key
+        if not key:
+            return 3, 10, 52, DEFAULT_URGENCY
+
+        client = create_client(settings.supabase_url, key)
+        resp = client.rpc("get_platform_stats").execute()
+        data = resp.data or {}
+        sellers = data.get("total_sellers_active", 3)
+        products = data.get("total_products_monitored", 10)
+        orders = data.get("total_orders_analyzed", 52)
+        urgency = data.get("urgency_distribution") or DEFAULT_URGENCY
+        return max(sellers, 1), max(products, 1), max(orders, 1), urgency
     except Exception:
-        return 3, 10, 160
+        return 3, 10, 52, DEFAULT_URGENCY
 
 
 @router.get("/stats")
 @router.get("/v1/stats")
 def get_public_stats() -> dict:
-    """Public stats — telemetry platform & deterministic engine spec."""
+    """Public stats — telemetry platform realtime & deterministic engine spec."""
     now = datetime.now(JAKARTA).isoformat()
-    sellers, products, orders = _get_live_counts()
+    sellers, products, orders, urgency = _get_live_platform_data()
 
     return {
         "service": "laku-engine",
@@ -70,12 +86,6 @@ def get_public_stats() -> dict:
         "restock_health_summary": {
             "target_service_level": "95%",
             "avg_lead_time_days": 5.0,
-            "urgency_distribution": {
-                "critical": 1,
-                "reorder": 3,
-                "ok": 4,
-                "overstock": 1,
-                "dead": 1,
-            },
+            "urgency_distribution": urgency,
         },
     }
