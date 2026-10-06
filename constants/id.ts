@@ -36,36 +36,6 @@ export const nav = {
   menuClose: "Tutup menu",
 };
 
-/** Label for illustrative data; always shown next to demo numbers. */
-export const demo = {
-  label: "Data demo",
-};
-
-/** Hero chart: the §9A worked example over time (μ 10/hari, stok 40, lead time 5, saran 173). */
-export const stockChart = {
-  title: "Stok Kopi Robusta 200 g",
-  sub: "7 hari terakhir dan proyeksi",
-  aria: "Grafik data demo: stok Kopi Robusta turun dari 110 ke 40 unit dalam 7 hari, diproyeksikan habis di hari ke-4, rak kosong 1 hari, lalu pesanan 173 unit tiba di hari ke-5.",
-  legendActual: "Stok",
-  legendProjected: "Proyeksi kalau pesan hari ini",
-  today: "Hari ini",
-  todayValue: "40 unit",
-  empty: "Rak kosong",
-  arrival: "Kiriman 173 unit tiba",
-  unit: "unit",
-  dayLabel: (d: number) => (d === 0 ? "Hari ini" : d < 0 ? `${-d} hari lalu` : `+${d} hari`),
-  tickLabel: (d: number) => (d === 0 ? "Hari ini" : d < 0 ? `${d} hr` : `+${d} hr`),
-  tableCaption: "Stok per hari (data demo)",
-  tableDay: "Hari",
-  tableStock: "Stok (unit)",
-  tableKind: "Jenis",
-  kindActual: "Tercatat",
-  kindProjected: "Proyeksi",
-  // day → units; day 5 has two values: 0 just before the delivery, 173 right after
-  actual: [[-7, 110], [-6, 101], [-5, 93], [-4, 80], [-3, 72], [-2, 61], [-1, 50], [0, 40]] as [number, number][],
-  projected: [[0, 40], [1, 30], [2, 20], [3, 10], [4, 0], [5, 0], [5, 173], [6, 163], [7, 153]] as [number, number][],
-};
-
 export const hero = {
   tag: "Restock engine · MuaraAI",
   headline: ["Tau apa yang bakal laku, ", { text: "sebelum stokmu habis.", className: "soft" }] as SplitPart[],

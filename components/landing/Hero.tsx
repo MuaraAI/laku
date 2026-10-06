@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { hero, routes } from "@/constants/id";
 import { AssumptionBadge, Headline, Icon } from "./primitives";
-import StockChart from "./StockChart";
 
 export default function Hero() {
   return (
@@ -27,10 +26,9 @@ export default function Hero() {
           </a>
         </div>
 
-        {/* incoming stock: the crate pile peeks out from behind the chart */}
-        <div className="hero-visual">
-          <Image className="hero-crates" src="/illustrations/stock-crates.svg" alt="" aria-hidden="true" width={357} height={394} priority unoptimized data-reveal="" />
-          <StockChart />
+        {/* the stock pile: same illustration as the login panel */}
+        <div className="hero-visual" data-reveal="" aria-hidden="true">
+          <Image className="hero-crates" src="/illustrations/stock-crates.svg" alt="" width={357} height={394} priority unoptimized />
         </div>
 
         {/* supplier → warehouse: the line draws, then one parcel makes the trip */}
