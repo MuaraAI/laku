@@ -29,7 +29,6 @@ export default function Features() {
         {items.map((f, i) => (
           <div className={`feat-row${i === cur ? " open" : ""}`} key={f.title}>
             <button className="feat-btn" aria-expanded={i === cur} onClick={() => setCur(i)}>
-              <span className="no">{String(i + 1).padStart(2, "0")}</span>
               <h3>{f.title}</h3>
               <span className="tog">
                 <Icon name="add" />

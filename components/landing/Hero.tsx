@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { hero, routes } from "@/constants/id";
 import { AssumptionBadge, Headline, Icon } from "./primitives";
+import StockChart from "./StockChart";
 
 export default function Hero() {
   return (
     <div className="rail">
       <section className="hero" aria-labelledby="hero-title">
         <span className="tag" data-reveal="fade">
-          <b>00</b> {hero.tag}
+          {hero.tag}
         </span>
         <Headline as="h1" id="hero-title" parts={hero.headline} split />
         <p className="sub" data-reveal="">
@@ -24,6 +25,8 @@ export default function Hero() {
             </span>
           </a>
         </div>
+
+        <StockChart />
 
         {/* supplier → warehouse: the line draws, then one parcel makes the trip */}
         <div className="route" data-reveal="route" aria-hidden="true">
