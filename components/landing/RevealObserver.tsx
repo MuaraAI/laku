@@ -1,28 +1,22 @@
 "use client";
 
 import { useEffect } from "react";
-import { countUp, hasMotion, REVEAL_EVENT } from "@/lib/motion";
+import { hasMotion } from "@/lib/motion";
 
-function reveal(el: HTMLElement) {
-  el.classList.add("in");
-  const counters = el.matches("[data-count]") ? [el] : Array.from(el.querySelectorAll<HTMLElement>("[data-count]"));
-  counters.forEach((c) => countUp(c, Number(c.dataset.count), c.dataset.fmt === "id"));
-  el.dispatchEvent(new CustomEvent(REVEAL_EVENT));
-}
-
-/** Adds `.in` to [data-reveal], [data-split] and crosshairs as they scroll into view. Mount once per page. */
+/** Adds `.in` to [data-reveal] blocks as they scroll into view (one quiet fade). Mount once per page. */
 export default function RevealObserver() {
   useEffect(() => {
-    const targets = Array.from(document.querySelectorAll<HTMLElement>("[data-reveal], [data-split], .x"));
+    const targets = Array.from(document.querySelectorAll<HTMLElement>("[data-reveal]"));
+    const show = (el: Element) => el.classList.add("in");
     if (!hasMotion() || !("IntersectionObserver" in window)) {
-      targets.forEach(reveal);
+      targets.forEach(show);
       return;
     }
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           if (!e.isIntersecting) return;
-          reveal(e.target as HTMLElement);
+          show(e.target);
           io.unobserve(e.target);
         });
       },

@@ -1,0 +1,18 @@
+/* Auth pages — one card on bone, same ink + highlighter language as the landing */
+.auth { min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; background: var(--canvas); }
+.auth-card { width: min(440px, 100%); background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-raise); padding: clamp(24px, 5vw, 40px); display: grid; gap: 20px; }
+.auth-brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; justify-self: start; }
+.auth-card h1 { font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.25rem); line-height: 1.05; letter-spacing: -.015em; }
+.auth-sub { margin-top: 8px; color: var(--text-secondary); }
+.auth-google { width: 100%; min-height: 52px; font-size: 1rem; color: var(--text-primary); }
+.auth-google:disabled { cursor: progress; opacity: .7; }
+.auth-google img { flex: none; }
+.auth-error { padding: 10px 12px; border-radius: var(--r-sm); background: var(--critical-bg); color: var(--critical); font-size: .875rem; display: flex; gap: 8px; align-items: flex-start; }
+.auth-error .ms { font-size: 18px; margin-top: 1px; }
+.auth-notes { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-family: var(--mono); font-size: .6875rem; letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted); }
+.auth-notes li { display: flex; align-items: center; gap: 8px; }
+.auth-notes .ms { font-size: 16px; color: var(--ok); }
+.auth-consent { font-size: .8125rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 16px; }
+.auth-consent a { color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
+.auth-back { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-top: 12px; font-size: .875rem; color: var(--text-secondary); }
+.auth-back:hover { color: var(--text-primary); }

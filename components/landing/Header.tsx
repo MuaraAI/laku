@@ -1,74 +1,57 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { nav } from "@/constants/id";
-import { clamp, useScrollFrame } from "@/lib/motion";
-import { BrandButton } from "./BrandDialog";
+import Link from "next/link";
+import { useState } from "react";
+import { nav, routes } from "@/constants/id";
 import { Icon, LakuMark } from "./primitives";
 
 export default function Header() {
-  const progressRef = useRef<HTMLSpanElement>(null);
-  const [current, setCurrent] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
-
-  useScrollFrame(() => {
-    const vh = innerHeight;
-    const max = document.documentElement.scrollHeight - vh;
-    progressRef.current?.style.setProperty("--p", String(max > 0 ? clamp(scrollY / max, 0, 1) : 0));
-    let cur: string | null = null;
-    nav.links.forEach(({ spy }) => {
-      const s = document.getElementById(spy);
-      if (s && s.getBoundingClientRect().top < vh * 0.4) cur = spy;
-    });
-    setCurrent(cur);
-  });
+  const close = () => setSheetOpen(false);
 
   return (
     <>
-      <header className="hdr">
-        <div className="rail">
-          <BrandButton className="cell logo">
+      <header className="site-hdr">
+        <div className="site-hdr-in">
+          <Link className="brandlink" href={routes.home} aria-label={nav.home} onClick={close}>
             <LakuMark />
             <span className="logo-name">{nav.brandName}</span>
-            <span className="sr-only">{nav.brandHintSr}</span>
-          </BrandButton>
-          <nav className="nav" aria-label={nav.ariaMain}>
+          </Link>
+          <nav className="site-nav" aria-label={nav.ariaMain}>
             {nav.links.map((l) => (
-              <a key={l.spy} className="cell" href={l.href} aria-current={current === l.spy ? "true" : undefined}>
+              <a key={l.href} href={l.href}>
                 {l.label}
-                <sup>{l.no}</sup>
               </a>
             ))}
           </nav>
-          <span className="grow" aria-hidden="true" />
-          <a className="cell login" href="#masuk">
-            {nav.login}
-          </a>
-          <a className="cell cta" href="#coba">
-            {nav.cta}
-            <Icon name="arrow_forward" />
-          </a>
-          <button
-            className="cell menu"
-            aria-expanded={sheetOpen}
-            aria-controls="sheet"
-            aria-label={sheetOpen ? nav.menuClose : nav.menuOpen}
-            onClick={() => setSheetOpen((o) => !o)}
-          >
-            <Icon name={sheetOpen ? "close" : "menu"} />
-          </button>
+          <div className="site-actions">
+            <Link className="site-login" href={routes.login}>
+              {nav.login}
+            </Link>
+            <Link className="btn btn-primary" href={routes.login}>
+              {nav.cta}
+            </Link>
+            <button
+              className="site-menu"
+              aria-expanded={sheetOpen}
+              aria-controls="sheet"
+              aria-label={sheetOpen ? nav.menuClose : nav.menuOpen}
+              onClick={() => setSheetOpen((o) => !o)}
+            >
+              <Icon name={sheetOpen ? "close" : "menu"} />
+            </button>
+          </div>
         </div>
-        <span className="progress" aria-hidden="true" ref={progressRef} />
       </header>
       <div className={`sheet${sheetOpen ? " open" : ""}`} id="sheet">
         {nav.links.map((l) => (
-          <a key={l.spy} className="row" href={l.href} onClick={() => setSheetOpen(false)}>
-            {l.label} <sup>{l.no}</sup>
+          <a key={l.href} className="row" href={l.href} onClick={close}>
+            {l.label}
           </a>
         ))}
-        <a className="btn btn-outline" href="#masuk" onClick={() => setSheetOpen(false)}>
+        <Link className="btn btn-outline" href={routes.login} onClick={close}>
           {nav.loginGoogle}
-        </a>
+        </Link>
       </div>
     </>
   );
