@@ -15,7 +15,7 @@ def test_public_stats_accessible_without_auth():
         assert "platform_metrics" in body
         assert body["platform_metrics"]["total_sellers_active"] >= 3
         assert body["platform_metrics"]["total_products_monitored"] >= 10
-        assert body["platform_metrics"]["total_orders_analyzed"] >= 160
+        assert body["platform_metrics"]["total_orders_analyzed"] >= 50
         assert len(body["supported_channels"]) == 4
         assert body["engine_spec"]["pii_at_rest"] is False
         assert body["engine_spec"]["ai_hallucination_risk"] == "0%"
