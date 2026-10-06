@@ -9,8 +9,12 @@ export const metadata: Metadata = { title: login.metaTitle };
 
 type ErrorKey = keyof typeof login.errors;
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
-  const { error } = await searchParams;
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; next?: string }>;
+}) {
+  const { error, next } = await searchParams;
   const initialError = error && error in login.errors ? login.errors[error as ErrorKey] : null;
   return (
     <div className="auth">
@@ -51,7 +55,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             <h1>{login.title}</h1>
             <p className="auth-sub">{login.sub}</p>
           </div>
-          <LoginCard initialError={initialError} />
+          <LoginCard initialError={initialError} nextDestination={next} />
           <ul className="auth-notes">
             {login.notes.map((n) => (
               <li key={n}>
