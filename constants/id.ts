@@ -38,9 +38,7 @@ export const nav = {
 
 export const hero = {
   panelAria: "Contoh daftar restock Tokopi, data demo",
-  panelLive: "Data demo",
-  panelLiveLong: " · Tokopi, Pontianak",
-  panelSource: "Shopee s/d 3 Okt",
+  demoChip: "Data demo",
   title: "Restock minggu ini",
   hint: "Kiriman dari Jawa butuh 5 hari. Stok yang cukup 5 hari atau kurang harus dipesan hari ini.",
   cols: ["Produk", "Stok", "Cukup", "Status"],
@@ -355,6 +353,11 @@ export const login = {
   google: "Lanjut dengan Google",
   loading: "Mengalihkan ke Google…",
   notes: ["Data pembeli tidak disimpan", "File mentah tidak pernah disimpan", "Gratis selama uji coba"],
+  aside: {
+    sub: "Upload export marketplace seminggu sekali. Laku menyusun daftar restock dari yang paling mendesak.",
+    previewTitle: "Restock minggu ini",
+    previewRows: ["Kopi Robusta 200 g", "Kopi Arabika Gayo 200 g", "French Press 600 ml"],
+  },
   consentLead: "Dengan masuk, Anda menyetujui ",
   consentTos: "Syarat & Ketentuan",
   consentAnd: " dan ",

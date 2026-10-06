@@ -7,15 +7,11 @@ export default function Hero() {
     <div className="rail">
       <section className="hero" aria-labelledby="hero-title">
         <article className="panel" aria-label={hero.panelAria} data-reveal="">
-          <div className="panel-bar">
-            <span className="live">
-              {hero.panelLive}
-              <span className="long">{hero.panelLiveLong}</span>
-            </span>
-            <span>{hero.panelSource}</span>
-          </div>
           <div className="panel-body">
-            <div className="sc-title">{hero.title}</div>
+            <div className="sc-head">
+              <div className="sc-title">{hero.title}</div>
+              <span className="demo-chip">{hero.demoChip}</span>
+            </div>
             <p className="tb-hint">{hero.hint}</p>
             <div className="tb">
               <div className="tb-head" aria-hidden="true">

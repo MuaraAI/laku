@@ -1,8 +1,41 @@
-/* Auth pages — one card on bone, same ink + highlighter language as the landing */
-.auth { min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; background: var(--canvas); }
-.auth-card { width: min(440px, 100%); background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-raise); padding: clamp(24px, 5vw, 40px); display: grid; gap: 20px; }
+/* Auth — brand panel on the left (desktop), form centred on the right */
+.auth { min-height: 100dvh; display: grid; grid-template-columns: 1fr; background: var(--surface); }
+@media (min-width: 960px) { .auth { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+
+/* left: Deep Riverbed panel */
+.auth-aside { display: none; }
+@media (min-width: 960px) {
+  .auth-aside {
+    position: sticky; top: 0; height: 100dvh; display: flex; flex-direction: column; justify-content: space-between; gap: 40px;
+    padding: clamp(32px, 4vw, 56px); background: var(--secondary); color: var(--on-primary); overflow: hidden;
+  }
+}
 .auth-brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; justify-self: start; }
-.auth-card h1 { font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.25rem); line-height: 1.05; letter-spacing: -.015em; }
+.auth-brand.on-dark .logo-name { color: var(--on-primary); }
+.auth-aside-top { display: grid; gap: 20px; max-width: 30rem; }
+.auth-tagline { margin-top: clamp(24px, 6vh, 64px); font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 1rem + 2.2vw, 3rem); line-height: 1.05; letter-spacing: -.02em; }
+.auth-tagline .soft { color: var(--on-dark-accent); }
+.auth-aside-sub { color: var(--on-dark-text); font-size: 1.0625rem; line-height: 1.55; }
+
+.auth-preview { max-width: 28rem; width: 100%; background: var(--surface); color: var(--text-primary); border-radius: var(--r-lg); padding: 16px; box-shadow: var(--shadow-raise); }
+.auth-preview-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 4px 10px; border-bottom: 1px solid var(--border); font-family: var(--font-display); font-weight: 600; }
+.auth-preview ul { list-style: none; margin: 0; padding: 0; }
+.auth-preview li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px; min-height: 48px; padding: 0 4px; border-bottom: 1px solid var(--border); font-size: .9375rem; }
+.auth-preview li:last-child { border-bottom: 0; }
+.auth-preview .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.auth-preview .days { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: .875rem; color: var(--text-secondary); text-align: right; }
+.auth-aside-foot { font-family: var(--mono); font-size: .75rem; color: var(--on-dark-muted); }
+
+/* right: the form */
+.auth-main { position: relative; min-height: 100dvh; display: grid; place-items: center; padding: 72px 16px 40px; background: var(--canvas); }
+@media (min-width: 960px) { .auth-main { background: var(--surface); padding: 72px clamp(32px, 6vw, 96px); } }
+.auth-back { position: absolute; top: 16px; left: 16px; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 10px; border-radius: var(--r-sm); font-size: .875rem; color: var(--text-secondary); }
+.auth-back:hover { color: var(--primary); background: var(--primary-soft); }
+@media (min-width: 960px) { .auth-back { top: 24px; left: clamp(24px, 3vw, 40px); } }
+.auth-form { width: min(400px, 100%); display: grid; gap: 22px; }
+@media (max-width: 959px) { .auth-form { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-card); padding: clamp(24px, 6vw, 36px); } }
+@media (min-width: 960px) { .auth-brand-mobile { display: none; } }
+.auth-form h1 { font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem); line-height: 1.05; letter-spacing: -.02em; }
 .auth-sub { margin-top: 8px; color: var(--text-secondary); }
 .auth-google { width: 100%; min-height: 52px; font-size: 1rem; color: var(--text-primary); }
 .auth-google:disabled { cursor: progress; opacity: .7; }
@@ -14,5 +47,3 @@
 .auth-notes .ms { font-size: 16px; color: var(--ok); }
 .auth-consent { font-size: .8125rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 16px; }
 .auth-consent a { color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
-.auth-back { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-top: 12px; font-size: .875rem; color: var(--text-secondary); }
-.auth-back:hover { color: var(--text-primary); }
