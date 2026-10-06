@@ -27,9 +27,8 @@ def _to_date(v) -> date | None:
         return None
 
 
-def _stale(store, seller_id: str, today: date) -> bool:
+def _stale(sales: list[dict], today: date) -> bool:
     """Kanal dianggap STALE kalau sale eligible terakhir > 7 hari (A12/overlay)."""
-    sales = store.fetch_eligible_sales(seller_id)
     dates = [d for s in sales if (d := _to_date(s.get("sold_at"))) is not None]
     newest = max(dates, default=None)
     return newest is None or (today - newest).days > STALE_DAYS
@@ -39,16 +38,16 @@ def build_recommendations(store, seller_id: str, today: date | None = None) -> d
     """Semua produk seller → list rekomendasi sorted urgensi (api.md MVP)."""
     # "hari ini" = WIB: kalau UTC, sale jam 00:00-06:59 WIB dapat age=-1 → hilang dari demand (M13)
     today = today or datetime.now(JAKARTA).date()
-    stale = _stale(store, seller_id, today)
-    sales = store.fetch_eligible_sales(seller_id)  # H6: sudah 1x di sini — pass ke compute_stock
+    sales = store.fetch_eligible_sales(seller_id)
+    stale = _stale(sales, today)
 
     items: list[dict] = []
     counts: dict[str, int] = {}
     for p in store.list_products(seller_id):
         stock = compute_stock(store, seller_id, p, sales=sales)
 
-        # daily units 30 hari terakhir (index 0 = hari ini mundur)
-        daily = [0] * 30
+        # daily units 60 hari terakhir (evaluasi DEAD & window restock)
+        daily = [0] * 60
         first_sale: date | None = None
         newest_sale: date | None = None
         for s in sales:
@@ -60,7 +59,7 @@ def build_recommendations(store, seller_id: str, today: date | None = None) -> d
             first_sale = d if first_sale is None or d < first_sale else first_sale
             newest_sale = d if newest_sale is None or d > newest_sale else newest_sale
             age = (today - d).days
-            if 0 <= age < 30:
+            if 0 <= age < 60:
                 daily[age] += int(s.get("qty", 0))
 
         history_days = (

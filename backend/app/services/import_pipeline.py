@@ -180,6 +180,17 @@ def get_preview(store: ImportsStore, seller_id: str, batch_id: str) -> dict:
     batch = store.get_batch(seller_id, batch_id)
     if batch is None:
         raise ImportPipelineError("BATCH_NOT_FOUND", "Batch tidak ditemukan.")
+    if batch.get("status") == "preview":
+        rows, _ = store.get_staging(seller_id, batch_id)
+        if rows:
+            preview = _compute_preview(store, seller_id, batch_id)
+            return {
+                "batch_id": batch["id"],
+                "status": batch["status"],
+                "channel": batch["channel"],
+                "rows_read": batch.get("rows_read", preview.get("rows_read", 0)),
+                **preview,
+            }
     return {
         "batch_id": batch["id"],
         "status": batch["status"],

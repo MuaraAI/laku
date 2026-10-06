@@ -47,10 +47,11 @@ class Recommendation:
 
 
 def _z(service_level: float) -> float:
-    if service_level not in Z_TABLE:
-        # interpolasi kasar cukup: bulatkan ke bawah kandidat terdekat
-        raise ValueError(f"service_level {service_level} gak ada di Z_TABLE {sorted(Z_TABLE)}")
-    return Z_TABLE[service_level]
+    if service_level in Z_TABLE:
+        return Z_TABLE[service_level]
+    # Fallback ke service level terdekat yang tersedia di Z_TABLE
+    closest = min(Z_TABLE.keys(), key=lambda sl: abs(sl - service_level))
+    return Z_TABLE[closest]
 
 
 def compute(inp: EngineInput) -> Recommendation:
@@ -60,7 +61,6 @@ def compute(inp: EngineInput) -> Recommendation:
         overlays.append("STALE")
 
     units_30d = sum(inp.daily_units[:30]) if inp.daily_units else 0
-    n_days = min(len(inp.daily_units), 30) or 30
 
     # ---- on_hand negatif → NEGATIVE overlay, no qty sampai stok dikonfirmasi ----
     if inp.on_hand < 0:
@@ -97,14 +97,11 @@ def compute(inp: EngineInput) -> Recommendation:
 
     # ---- 1. DEAD: stok > 0, 0 unit 60 hari, history >= 60 ----
     if inp.on_hand > 0 and units_30d == 0 and units_30d == sum(series[:60]) and history_days >= 60:
-        out = Recommendation(
+        return Recommendation(
             state="DEAD", overlays=overlays,
             days_of_cover=None,
             inputs={"history_days": history_days, "units_sold_60d": 0, "on_hand": inp.on_hand},
         )
-        if history_days < 60:
-            out.state = "INSUFFICIENT_DATA"
-        return out
 
     # ---- 2. OVERSTOCK: history >= 30 hari & cover > O (pakai μ_obs; rough jika <5 unit/30d) ----
     if history_days >= 30 and mu_obs > 0:
@@ -144,7 +141,6 @@ def compute(inp: EngineInput) -> Recommendation:
 
     # ---- 4/5. CRITICAL (cover <= LT) / REORDER (IP <= ROP) / OK ----
     cover = (inp.on_hand / mu) if mu > 0 else float("inf")
-    stockout_eta_days = cover
 
     if cover <= LT:
         state = "CRITICAL"

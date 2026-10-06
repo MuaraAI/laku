@@ -164,8 +164,6 @@ def compute_recap(
         day_key = dt_str[:10]
         if l.status in active_statuses:
             daily_net[day_key] = daily_net.get(day_key, 0.0) + (l.line_gross - l.total_discount)
-        elif l.status == "returned":
-            daily_net[day_key] = daily_net.get(day_key, 0.0) - l.line_gross
 
     trend = [
         {"date": d, "net_rp": round(val)}
