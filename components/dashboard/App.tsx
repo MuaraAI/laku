@@ -24,6 +24,8 @@ export default function App() {
   const [onboarded, setOnboarded] = useState<boolean>(false);
   const [page, setPage] = useState<PageKey>('restock');
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const [mode, setMode] = useState<'demo' | 'live'>('demo');
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -35,7 +37,42 @@ export default function App() {
     }
   }, []);
 
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const { supabaseBrowser } = await import('@/lib/supabase/client');
+        const supabase = supabaseBrowser();
+        if (supabase) {
+          const { data } = await supabase.auth.getSession();
+          if (data.session?.user?.email) {
+            setUserEmail(data.session.user.email);
+          }
+          supabase.auth.onAuthStateChange((_event, session) => {
+            setUserEmail(session?.user?.email ?? null);
+          });
+        }
+      } catch {
+        /* abaikan */
+      }
+    }
+    loadUser();
+  }, []);
+
   useEffect(() => { window.scrollTo({ top: 0 }); }, [page]);
+
+  async function handleLogout() {
+    try {
+      const { supabaseBrowser } = await import('@/lib/supabase/client');
+      const supabase = supabaseBrowser();
+      if (supabase) {
+        await supabase.auth.signOut();
+      }
+      setMode('demo');
+      window.location.href = '/';
+    } catch {
+      window.location.href = '/';
+    }
+  }
 
   function finishOnboarding() {
     try {
@@ -47,14 +84,20 @@ export default function App() {
     setPage('restock');
   }
 
+  const storeName = mode === 'demo'
+    ? 'Warung Bu Rina'
+    : userEmail
+    ? `Toko ${userEmail.split('@')[0]}`
+    : 'Toko Saya';
+
   const body = !onboarded || page === 'setup' ? (
     <OnboardingPage onFinish={finishOnboarding} />
   ) : page === 'penjualan' ? (
-    <PenjualanPage />
+    <PenjualanPage mode={mode} />
   ) : page === 'upload' ? (
-    <UploadPage />
+    <UploadPage mode={mode} onUploaded={() => setPage('restock')} />
   ) : (
-    <RestockPage />
+    <RestockPage mode={mode} onGoUpload={() => setPage('upload')} />
   );
 
   return (
@@ -73,6 +116,42 @@ export default function App() {
           </svg>
           <span className="wordmark-text">LAKU<small>Restock Engine</small></span>
         </a>
+
+        {/* Store & Mode Switcher (Option A) */}
+        <div className="store-selector">
+          <div className="store-selector-header">
+            <span className={`store-badge ${mode === 'live' ? 'live' : ''}`}>
+              {mode === 'demo' ? 'DEMO' : 'LIVE'}
+            </span>
+            <span className="store-name" title={storeName}>
+              {storeName}
+            </span>
+          </div>
+          <div className="mode-toggle-group">
+            <button
+              className={`mode-btn ${mode === 'demo' ? 'active' : ''}`}
+              onClick={() => setMode('demo')}
+              type="button"
+            >
+              Demo
+            </button>
+            <button
+              className={`mode-btn ${mode === 'live' ? 'active' : ''}`}
+              onClick={() => {
+                if (!userEmail) {
+                  window.location.href = '/login';
+                } else {
+                  setMode('live');
+                }
+              }}
+              title={!userEmail ? 'Login untuk buka Toko Saya' : 'Beralih ke Toko Saya'}
+              type="button"
+            >
+              Toko Saya
+            </button>
+          </div>
+        </div>
+
         <nav className="side-nav" aria-label="Navigasi utama" onMouseLeave={() => setHoverIdx(null)}>
           {hoverIdx !== null && (
             <span className="side-pill" style={{ transform: `translateY(${hoverIdx * 46}px)` }} aria-hidden="true" />
@@ -88,7 +167,28 @@ export default function App() {
           ))}
         </nav>
         <div className="side-foot">
-          <p className="side-note"><span className="demo-chip">Toko Demo</span> Warung Sembako Bu Rina</p>
+          {userEmail ? (
+            <div className="side-user">
+              <span className="user-email" title={userEmail}>
+                {userEmail}
+              </span>
+              <button className="user-logout" onClick={handleLogout}>
+                Keluar
+              </button>
+            </div>
+          ) : (
+            <div className="side-user demo-user">
+              <span className="user-email">Mode Demo (Tamu)</span>
+              <a className="user-logout user-login-link" href="/login">
+                Masuk
+              </a>
+            </div>
+          )}
+          <p className="side-note">
+            {mode === 'demo'
+              ? 'Data demo simulasi Warung Bu Rina.'
+              : 'Terhubung ke database Toko Saya.'}
+          </p>
           <p className="side-note num num-left">v1.0.0 · MuaraAI</p>
         </div>
       </aside>
