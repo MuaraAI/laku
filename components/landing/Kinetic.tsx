@@ -1,30 +1,13 @@
 "use client";
 
-import { Fragment, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { kinetic } from "@/constants/id";
-import { clamp, hasMotion, replayClass, useScrollFrame } from "@/lib/motion";
-
-// characters live inside word wrappers so words never break across lines
-function Chars({ text }: { text: string }) {
-  return text.split(" ").map((w, wi) => (
-    <Fragment key={wi}>
-      {wi > 0 && " "}
-      <span className="kw">
-        {w.split("").map((c, ci) => (
-          <span className="ch" key={ci}>
-            {c}
-          </span>
-        ))}
-      </span>
-    </Fragment>
-  ));
-}
+import { clamp } from "@/lib/motion";
 
 export default function Kinetic() {
   const wrapRef = useRef<HTMLParagraphElement>(null);
-  const smileRef = useRef<HTMLSpanElement>(null);
 
-  // fit the font so the longest line spans the container exactly
+  // fit the font so the longest line spans the container exactly (layout only, no motion)
   useEffect(() => {
     const wrap = wrapRef.current;
     if (!wrap) return;
@@ -48,44 +31,16 @@ export default function Kinetic() {
     return () => removeEventListener("resize", fit);
   }, []);
 
-  // letters rise in one by one while the band enters; fully readable by mid-screen
-  useScrollFrame(() => {
-    const wrap = wrapRef.current, smile = smileRef.current;
-    if (!wrap || !smile || !hasMotion()) return;
-    const vh = innerHeight;
-    const kp = clamp((vh - wrap.getBoundingClientRect().top) / (vh * 0.6), 0, 1);
-    const off = Math.pow(1 - kp, 2) * Math.min(innerWidth * 0.08, 90);
-    wrap.querySelectorAll<HTMLElement>("[data-kinetic]").forEach((el) => {
-      el.style.transform = `translate3d(${(Number(el.dataset.kinetic) * off).toFixed(1)}px,0,0)`;
-    });
-    wrap.querySelectorAll<HTMLElement>("[data-chars]").forEach((line, li) => {
-      const chars = line.querySelectorAll<HTMLElement>(".ch");
-      const n = chars.length, base = li ? 0.3 : 0, span = li ? 0.45 : 0.55;
-      chars.forEach((ch, i) => {
-        const l = clamp((kp - base - (i / n) * span) / 0.3, 0, 1);
-        const e = 1 - Math.pow(1 - l, 3);
-        ch.style.opacity = e.toFixed(3);
-        ch.style.transform = e >= 1 ? "" : `translate3d(0,${((1 - e) * 60).toFixed(1)}%,0) rotate(${((1 - e) * -12).toFixed(1)}deg)`;
-      });
-    });
-    if (kp > 0.97) smile.classList.add("in");
-    else if (kp < 0.2) smile.classList.remove("in");
-  });
-
   return (
     <div className="kinetic">
       <p className="k-wrap" aria-label={kinetic.aria} ref={wrapRef}>
-        <span className="k-line" data-kinetic="-1" aria-hidden="true">
-          <span className="k-text" data-chars="">
-            <Chars text={kinetic.line1} />
-          </span>
+        <span className="k-line" aria-hidden="true">
+          <span className="k-text">{kinetic.line1}</span>
         </span>
-        <span className="k-line r" data-kinetic="1" aria-hidden="true">
+        <span className="k-line r" aria-hidden="true">
           <span className="k-text">
-            <span data-chars="">
-              <Chars text={kinetic.line2} />
-            </span>
-            <span className="smile" ref={smileRef} onClick={(e) => replayClass(e.currentTarget, "in")}>
+            {kinetic.line2}
+            <span className="smile">
               <svg viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="45" />
                 <ellipse className="eye" cx="35" cy="40" rx="5.5" ry="8" />

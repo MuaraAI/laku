@@ -1,5 +1,5 @@
 import { problem } from "@/constants/id";
-import { Block, SectionTag, SplitText } from "./primitives";
+import { Block, SectionTag, Headline } from "./primitives";
 
 export default function Problem() {
   return (
@@ -7,7 +7,7 @@ export default function Problem() {
       <section className="inner" id="masalah" aria-labelledby="masalah-title">
         <div className="sec-head">
           <SectionTag no="01">{problem.tag}</SectionTag>
-          <SplitText id="masalah-title" parts={problem.title} />
+          <Headline id="masalah-title" parts={problem.title} />
           <p data-reveal="">{problem.body}</p>
         </div>
         <div className="ledger" data-reveal="">

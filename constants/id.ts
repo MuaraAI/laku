@@ -4,6 +4,14 @@ export type StatusKey = "critical" | "reorder" | "ok" | "overstock" | "dead" | "
 
 export type SplitPart = string | { text: string; className: string };
 
+export const routes = {
+  home: "/",
+  login: "/login",
+  afterLogin: "/dashboard",
+  tos: "/tos",
+  privacy: "/privacy",
+};
+
 export const meta = {
   title: "Laku — Restock Engine",
   description:
@@ -15,10 +23,11 @@ export const nav = {
   brandHint: "Lihat makna logo",
   brandHintSr: ", lihat makna logo",
   ariaMain: "Navigasi utama",
+  home: "Laku, ke beranda",
   links: [
-    { href: "#fitur", spy: "fitur", label: "Fitur", no: "01" },
-    { href: "#cara-kerja", spy: "cara-kerja", label: "Cara kerja", no: "02" },
-    { href: "#harga", spy: "harga", label: "Harga", no: "03" },
+    { href: "/#fitur", label: "Fitur" },
+    { href: "/#cara-kerja", label: "Cara kerja" },
+    { href: "/#harga", label: "Harga" },
   ],
   login: "Masuk",
   loginGoogle: "Masuk dengan Google",
@@ -33,7 +42,7 @@ export const hero = {
   panelLiveLong: " · Tokopi, Pontianak",
   panelSource: "Shopee s/d 3 Okt",
   title: "Restock minggu ini",
-  hint: "Kiriman dari Jawa butuh 5 hari. Stok yang cukup kurang dari 5 hari harus dipesan hari ini.",
+  hint: "Kiriman dari Jawa butuh 5 hari. Stok yang cukup 5 hari atau kurang harus dipesan hari ini.",
   cols: ["Produk", "Stok", "Cukup", "Status"],
   rows: [
     { name: "Kopi Robusta 200 g", stock: "40", days: "4 hari", status: "critical", hot: true },
@@ -147,8 +156,8 @@ export const features = {
     { value: 3, label: "Marketplace dalam satu tampilan" },
     { value: 6, label: "Status stok, dari “Segera pesan” sampai “Tidak laku”" },
     { value: 20000, label: "Baris per file dalam sekali upload", locale: true },
-    { value: 0, label: "Nama & nomor HP pembeli yang disimpan", static: true },
-  ] as { value: number; label: string; locale?: boolean; static?: boolean }[],
+    { value: 0, label: "Nama & nomor HP pembeli yang disimpan" },
+  ] as { value: number; label: string; locale?: boolean }[],
 };
 
 export const why = {
@@ -242,18 +251,17 @@ export const footer = {
     {
       title: "Produk",
       links: [
-        { href: "#fitur", label: "Fitur" },
-        { href: "#cara-kerja", label: "Cara kerja" },
-        { href: "#harga", label: "Harga" },
+        { href: "/#fitur", label: "Fitur" },
+        { href: "/#cara-kerja", label: "Cara kerja" },
+        { href: "/#harga", label: "Harga" },
       ],
     },
     {
       title: "MuaraAI",
       links: [
-        { href: "#", label: "Syarat & Ketentuan" },
-        { href: "#", label: "Kebijakan Privasi" },
+        { href: "/tos", label: "Syarat & Ketentuan" },
+        { href: "/privacy", label: "Kebijakan Privasi" },
         { href: "https://github.com/MuaraAI/laku", label: "GitHub" },
-        { href: "#", label: "Instagram MuaraAI" },
       ],
     },
   ],
@@ -284,7 +292,7 @@ export const brand = {
       kicker: "Bingkai",
       title: "Segi delapan",
       body: "Bentuk rambu STOP. Laku tidak hanya memberi tahu kapan harus beli, tapi juga kapan harus berhenti beli.",
-      spec: [{ text: "Sudut terpotong 30%" }, { text: "Garis tinta #0C0A08", chip: "ink" }],
+      spec: [{ text: "Sudut terpotong 30%" }, { text: "Garis tinta #072033", chip: "text-primary" }],
     },
     {
       dot: "Siku rak",
@@ -295,12 +303,12 @@ export const brand = {
       spec: [{ text: "Huruf L" }, { text: "Garis 6 satuan, ujung bulat" }],
     },
     {
-      dot: "Kotak kuning",
+      dot: "Kotak biru",
       no: "03",
       kicker: "Isi rak",
-      title: "Kotak kuning",
-      body: "Stok yang ada di rak hari ini. Kuning adalah satu-satunya warna sinyal Laku: di mana pun kuning muncul, ada yang perlu diperhatikan.",
-      spec: [{ text: "Kuning #E4F222", chip: "accent" }, { text: "Stok saat ini" }],
+      title: "Kotak biru",
+      body: "Stok yang ada di rak hari ini. Birunya River Current Blue, warisan MuaraAI dan satu-satunya warna aksen Laku: di mana pun biru muncul, di situ ada yang bisa Anda lakukan.",
+      spec: [{ text: "Biru #0369A1", chip: "primary" }, { text: "Stok saat ini" }],
     },
     {
       dot: "Kotak putus-putus",
@@ -333,8 +341,178 @@ export const brand = {
     title: string;
     body: string;
     hint?: string;
-    spec?: { text: string; chip?: "ink" | "accent" }[];
+    spec?: { text: string; chip?: "text-primary" | "primary" }[];
     back?: string;
     replay?: string;
   }[],
+};
+
+export const login = {
+  metaTitle: "Masuk — Laku",
+  back: "Kembali ke beranda",
+  title: "Masuk ke Laku",
+  sub: "Pakai akun Google Anda. Tidak perlu password marketplace.",
+  google: "Lanjut dengan Google",
+  loading: "Mengalihkan ke Google…",
+  notes: ["Data pembeli tidak disimpan", "File mentah tidak pernah disimpan", "Gratis selama uji coba"],
+  consentLead: "Dengan masuk, Anda menyetujui ",
+  consentTos: "Syarat & Ketentuan",
+  consentAnd: " dan ",
+  consentPrivacy: "Kebijakan Privasi",
+  consentEnd: " Laku.",
+  errors: {
+    config: "Login belum dikonfigurasi di server ini. Hubungi tim Laku.",
+    oauth: "Login dengan Google gagal. Coba lagi.",
+    callback: "Sesi login tidak bisa dibuat. Coba masuk lagi.",
+  },
+};
+
+export type LegalDoc = {
+  metaTitle: string;
+  title: string;
+  updated: string;
+  sections: { heading: string; body: string[] }[];
+};
+
+export const legalCommon = {
+  draft: "Draf untuk masa uji coba. Teks final menyusul setelah review tim dan review hukum sebelum peluncuran komersial.",
+  updatedLabel: "Terakhir diperbarui",
+  other: { tos: "Baca juga Kebijakan Privasi", privacy: "Baca juga Syarat & Ketentuan" },
+};
+
+export const tos: LegalDoc = {
+  metaTitle: "Syarat & Ketentuan — Laku",
+  title: "Syarat & Ketentuan",
+  updated: "6 Oktober 2026",
+  sections: [
+    {
+      heading: "1. Tentang Laku",
+      body: [
+        "Laku adalah layanan MuaraAI yang membaca file export penjualan marketplace yang Anda upload, lalu menghitung saran restock, status stok, dan rekap penjualan gabungan.",
+        "Laku tidak berafiliasi dengan, atau didukung oleh, Shopee, TikTok Shop, maupun Tokopedia. Nama marketplace hanya dipakai untuk menyebut format file export.",
+      ],
+    },
+    {
+      heading: "2. Akun",
+      body: [
+        "Anda masuk dengan akun Google. Laku tidak pernah meminta atau menyimpan password marketplace Anda.",
+        "Anda bertanggung jawab atas aktivitas di akun Anda dan wajib menjaga akses akun Google Anda.",
+      ],
+    },
+    {
+      heading: "3. Data yang Anda upload",
+      body: [
+        "Data penjualan dan stok tetap milik Anda. Anda menjamin berhak memakai file yang Anda upload.",
+        "Laku memproses data itu hanya untuk menjalankan layanan bagi Anda. Rincian pemrosesan ada di Kebijakan Privasi.",
+      ],
+    },
+    {
+      heading: "4. Saran restock adalah estimasi",
+      body: [
+        "Angka di Laku dihitung dari file yang Anda upload dan dari nilai default yang ditandai “asumsi” sampai Anda mengonfirmasinya. Saran restock adalah estimasi, bukan jaminan penjualan.",
+        "Keputusan membeli stok tetap ada di tangan Anda. Angka Laku bisa berbeda dari Seller Center, misalnya karena rentang tanggal file atau pesanan yang berubah status.",
+      ],
+    },
+    {
+      heading: "5. Masa uji coba",
+      body: [
+        "Selama uji coba, Laku gratis dan disediakan apa adanya, tanpa jaminan ketersediaan. Fitur dan batas pemakaian bisa berubah.",
+        "Paket berbayar belum tersedia. Harga akan diumumkan sebelum berlaku, dan tidak ada tagihan tanpa persetujuan Anda.",
+      ],
+    },
+    {
+      heading: "6. Larangan",
+      body: [
+        "Jangan memakai Laku untuk mengakses data seller lain, mengganggu layanan, atau mengupload file yang bukan hak Anda atau berisi perangkat lunak berbahaya.",
+      ],
+    },
+    {
+      heading: "7. Merek dan kode",
+      body: [
+        "Kode Laku dirilis dengan lisensi Apache 2.0. Nama “Laku” dan logo MuaraAI adalah merek MuaraAI dan tidak ikut dilisensikan.",
+      ],
+    },
+    {
+      heading: "8. Menghentikan layanan",
+      body: [
+        "Anda bisa berhenti kapan saja dan meminta akun dihapus. Kami bisa menangguhkan akun yang melanggar syarat ini.",
+      ],
+    },
+    {
+      heading: "9. Perubahan dan hukum yang berlaku",
+      body: [
+        "Kami akan memberi tahu perubahan penting pada syarat ini sebelum berlaku. Syarat ini tunduk pada hukum Republik Indonesia.",
+        "Pertanyaan bisa disampaikan ke tim MuaraAI lewat repositori GitHub Laku.",
+      ],
+    },
+  ],
+};
+
+export const privacy: LegalDoc = {
+  metaTitle: "Kebijakan Privasi — Laku",
+  title: "Kebijakan Privasi",
+  updated: "6 Oktober 2026",
+  sections: [
+    {
+      heading: "1. Peran kami",
+      body: [
+        "Untuk data penjualan yang Anda upload, Anda adalah pengendali data dan Laku (MuaraAI) adalah pemroses data yang bekerja atas instruksi Anda.",
+      ],
+    },
+    {
+      heading: "2. Data yang kami simpan",
+      body: [
+        "Akun: nama, email, dan ID dari login Google.",
+        "Penjualan: nomor pesanan, produk, SKU, jumlah, harga, diskon, status, waktu, dan wilayah pembeli sampai tingkat provinsi, kabupaten, atau kecamatan.",
+        "Stok dan pengaturan: stok awal, barang masuk, penyesuaian, harga modal (opsional), lead time, dan pengaturan restock Anda.",
+      ],
+    },
+    {
+      heading: "3. Data yang tidak pernah kami simpan",
+      body: [
+        "Nama, nomor HP, email, dan alamat jalan pembeli dibuang saat file dibaca di memori. Data itu tidak masuk ke database, tabel sementara, log, maupun laporan error.",
+        "File export mentah tidak pernah disimpan. Baris yang sudah dibersihkan disimpan sementara untuk pratinjau, lalu dihapus setelah Anda konfirmasi atau paling lambat 24 jam. Kami hanya mencatat sidik file (hash) dan jumlah baris.",
+        "Laku tidak pernah meminta password marketplace.",
+      ],
+    },
+    {
+      heading: "4. Cara kami memakai data",
+      body: [
+        "Untuk menghitung saran restock, status stok, dan rekap penjualan bagi Anda sendiri. Data seller dipisahkan per akun, sehingga seller lain tidak bisa melihat data Anda.",
+      ],
+    },
+    {
+      heading: "5. Insight regional (opsional)",
+      body: [
+        "Berbagi data ke insight regional mati secara bawaan. Jika Anda mengaktifkannya, kami mencatat persetujuan Anda, dan Anda bisa mencabutnya kapan saja dengan efek langsung.",
+        "Insight hanya menampilkan peringkat kategori per wilayah, dari minimal 3 seller dan 30 baris pesanan, dengan kontributor terbesar tidak lebih dari 60%. Nama produk, nama toko, dan angka mentah tidak pernah ditampilkan ke seller lain.",
+      ],
+    },
+    {
+      heading: "6. Asisten AI",
+      body: [
+        "Asisten AI (segera hadir) diproses oleh Muara V1 Flash melalui gateway MuaraAI. AI hanya menerima hasil perhitungan dari data Anda, tidak pernah data pembeli, dan semua angka ditampilkan langsung dari data, bukan dikarang AI.",
+        "Riwayat chat disimpan 30 hari. Ringkasan yang diingat AI bisa Anda lihat dan hapus kapan saja.",
+      ],
+    },
+    {
+      heading: "7. Penyedia layanan",
+      body: [
+        "Kami memakai Supabase (database dan login, wilayah Singapura), Vercel (hosting web), server VPS MuaraAI (API), dan gateway MuaraAI (AI). Mereka memproses data hanya untuk menjalankan Laku.",
+      ],
+    },
+    {
+      heading: "8. Berapa lama data disimpan",
+      body: [
+        "Data penjualan disimpan selama akun aktif. Jika akun dihapus, data dihapus permanen paling lambat 30 hari. Catatan audit admin disimpan 1 tahun.",
+      ],
+    },
+    {
+      heading: "9. Hak Anda",
+      body: [
+        "Sesuai UU Pelindungan Data Pribadi, Anda bisa meminta akses, koreksi, atau penghapusan data, dan mencabut persetujuan insight kapan saja.",
+        "Hubungi tim MuaraAI lewat repositori GitHub Laku.",
+      ],
+    },
+  ],
 };

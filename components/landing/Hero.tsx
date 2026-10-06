@@ -1,45 +1,12 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-import { hero } from "@/constants/id";
-import { cssVars } from "@/lib/css";
-import { hasMotion, REVEAL_EVENT, replayClass } from "@/lib/motion";
-import { AssumptionBadge, Icon, SplitText, StatusBadge } from "./primitives";
+import Link from "next/link";
+import { hero, routes } from "@/constants/id";
+import { AssumptionBadge, Headline, Icon, StatusBadge } from "./primitives";
 
 export default function Hero() {
-  const panelRef = useRef<HTMLElement>(null);
-  const routeRef = useRef<HTMLDivElement>(null);
-  const fromRef = useRef<HTMLSpanElement>(null);
-  const toRef = useRef<HTMLSpanElement>(null);
-
-  // the yellow box travels from supplier to warehouse
-  const ship = () => {
-    const route = routeRef.current, from = fromRef.current, to = toRef.current;
-    if (!hasMotion() || !route || !from || !to) return;
-    route.style.setProperty("--from", `${from.offsetLeft + from.offsetWidth + 6}px`);
-    route.style.setProperty("--to", `${to.offsetLeft - 18}px`);
-    replayClass(route, "run");
-  };
-
-  useEffect(() => {
-    const panel = panelRef.current;
-    if (!panel) return;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const onReveal = () => {
-      routeRef.current?.classList.add("drawn");
-      if (hasMotion()) timer = setTimeout(ship, 1100);
-    };
-    panel.addEventListener(REVEAL_EVENT, onReveal);
-    return () => {
-      panel.removeEventListener(REVEAL_EVENT, onReveal);
-      clearTimeout(timer);
-    };
-  }, []);
-
   return (
     <div className="rail">
       <section className="hero" aria-labelledby="hero-title">
-        <article className="panel" aria-label={hero.panelAria} data-reveal="" ref={panelRef}>
+        <article className="panel" aria-label={hero.panelAria} data-reveal="">
           <div className="panel-bar">
             <span className="live">
               {hero.panelLive}
@@ -57,13 +24,8 @@ export default function Hero() {
                 ))}
               </div>
               <ul className="tb-list">
-                {hero.rows.map((r, i) => (
-                  <li
-                    key={r.name}
-                    className={`tb-row${r.hot ? " hot" : ""}`}
-                    style={cssVars({ "--r": i })}
-                    onMouseEnter={r.hot ? ship : undefined}
-                  >
+                {hero.rows.map((r) => (
+                  <li key={r.name} className={`tb-row${r.hot ? " hot" : ""}`}>
                     <span className="tb-name">{r.name}</span>
                     <span className="tb-num">{r.stock}</span>
                     <span className="tb-num tb-days">{r.days}</span>
@@ -93,12 +55,12 @@ export default function Hero() {
           <span className="tag" data-reveal="fade">
             <b>00</b> {hero.tag}
           </span>
-          <SplitText as="h1" id="hero-title" parts={hero.headline} />
-          <p className="sub" data-reveal="" style={cssVars({ "--d": "350ms" })}>
+          <Headline as="h1" id="hero-title" parts={hero.headline} />
+          <p className="sub" data-reveal="">
             {hero.sub}
           </p>
-          <div className="route" aria-hidden="true" ref={routeRef}>
-            <span className="pin from" ref={fromRef}>
+          <div className="route" aria-hidden="true">
+            <span className="pin from">
               <span className="ms">factory</span>
               <span>
                 {hero.routeFrom}
@@ -112,24 +74,23 @@ export default function Hero() {
               </span>{" "}
               <AssumptionBadge />
             </span>
-            <span className="pin to" ref={toRef}>
+            <span className="pin to">
               <span className="ms fill">warehouse</span>
               <span>
                 {hero.routeTo}
                 <span className="long">{hero.routeToLong}</span>
               </span>
             </span>
-            <span className="packet" />
           </div>
-          <p className="route-cap" data-reveal="" style={cssVars({ "--d": "600ms" })}>
+          <p className="route-cap" data-reveal="">
             {hero.routeCap}
           </p>
         </div>
 
-        <div className="hero-cta" data-reveal="" style={cssVars({ "--d": "200ms" })}>
-          <a className="btn btn-primary" href="#coba">
+        <div className="hero-cta" data-reveal="">
+          <Link className="btn btn-primary" href={routes.login}>
             {hero.ctaPrimary}
-          </a>
+          </Link>
           <a className="btn btn-outline" href="#cara-kerja">
             {hero.ctaSecondary}
             <span className="go">
@@ -137,7 +98,7 @@ export default function Hero() {
             </span>
           </a>
         </div>
-        <div className="hero-note" data-reveal="fade" style={cssVars({ "--d": "300ms" })}>
+        <div className="hero-note" data-reveal="fade">
           {hero.notes.map((n) => (
             <span key={n}>
               <Icon name="check" />
