@@ -14,7 +14,8 @@
    Header — logo, links, one action
    ========================================================== */
 /* floating capsule: full width at the top, tightens + lifts once the page scrolls (Linear / Vercel style) */
-.site-hdr { position: sticky; top: 0; z-index: 50; height: var(--hdr-h); padding: 8px var(--pad) 0; pointer-events: none; }
+.site-hdr { position: sticky; top: 0; z-index: 50; height: var(--hdr-h); padding: 8px var(--pad) 0; pointer-events: none; transition: transform .4s var(--ease-emph); }
+@media (max-width: 899px) { .site-hdr.away { transform: translateY(-110%); } }
 .site-hdr-in {
   pointer-events: auto; max-width: var(--maxw); margin-inline: auto; height: 52px; padding: 0 6px 0 14px; display: flex; align-items: center; gap: 24px;
   border-radius: var(--r-full); background: transparent; box-shadow: inset 0 0 0 1px transparent;
@@ -46,13 +47,16 @@
 @media (min-width: 900px) { .site-nav { display: flex; } .site-login { display: inline-flex; } .site-menu { display: none; } }
 @media (max-width: 559px) { .site-cta .ms { display: none; } }
 
-/* mobile sheet: a card that drops out of the capsule */
-.sheet { position: fixed; top: calc(var(--hdr-h) + 6px); left: var(--pad); right: var(--pad); z-index: 49; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-raise); overflow: hidden; display: none; }
-.sheet.open { display: block; }
-.sheet a.row { display: flex; align-items: center; justify-content: space-between; min-height: 56px; padding: 0 20px; border-bottom: 1px solid var(--border); font-size: 1.125rem; }
+/* mobile sheet: a card that drops out of the capsule over a dimmed page; tap outside, Esc or a link closes it */
+.sheet-scrim { position: fixed; inset: 0; z-index: 48; background: rgba(7, 32, 51, .28); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity .25s var(--ease); }
+.sheet-scrim.open { opacity: 1; pointer-events: auto; }
+.sheet { position: fixed; top: calc(var(--hdr-h) + 6px); left: var(--pad); right: var(--pad); z-index: 49; padding: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow-raise); opacity: 0; transform: translateY(-8px) scale(.98); transform-origin: top center; pointer-events: none; transition: opacity .2s var(--ease), transform .3s var(--ease-emph); }
+.sheet.open { opacity: 1; transform: none; pointer-events: auto; }
+.sheet a.row { display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding: 0 14px; border-radius: var(--r-md); font-size: 1.0625rem; font-weight: 500; }
+.sheet a.row:hover, .sheet a.row:active { background: var(--primary-soft); color: var(--primary); }
 .sheet a.row .ms { font-size: 20px; color: var(--text-muted); }
-.sheet .btn { margin: 16px 20px 20px; width: calc(100% - 40px); min-height: 48px; }
-@media (min-width: 900px) { .sheet { display: none !important; } }
+.sheet .btn { margin: 8px 0 0; width: 100%; min-height: 48px; border-radius: var(--r-md); }
+@media (min-width: 900px) { .sheet, .sheet-scrim { display: none !important; } }
 
 /* ==========================================================
    Hero — one column: headline, pitch, actions, the supplier route
@@ -167,6 +171,22 @@
 .feat-body p { padding: 0 52px 4px 0; color: var(--text-secondary); font-size: .9375rem; max-width: 46rem; }
 .feat-body ul { list-style: none; margin: 12px 0 0; padding: 0 52px 22px 0; display: flex; flex-wrap: wrap; gap: 6px; }
 .feat-body li { font-family: var(--mono); font-size: .6875rem; padding: 4px 10px; border-radius: var(--r-full); background: var(--primary-soft); color: var(--primary); }
+/* index number: muted, turns into a filled chip on the open row */
+.feat-btn .no { flex: none; min-width: 30px; height: 22px; display: inline-grid; place-items: center; border-radius: 6px; font-family: var(--mono); font-size: .6875rem; color: var(--text-muted); box-shadow: inset 0 0 0 1px var(--border); transition: background-color .3s var(--ease), color .3s var(--ease), box-shadow .3s var(--ease); }
+.feat-row.open .feat-btn .no { background: var(--primary); color: var(--on-primary); box-shadow: none; }
+.feat-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: var(--r-sm); }
+/* mobile: the open row lifts into a card, full-width text, no side rail */
+@media (max-width: 959px) {
+  .feat-list { border-top: 0; display: grid; gap: 8px; }
+  .feat-row { border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--surface); padding-inline: 16px; transition: box-shadow .3s var(--ease), border-color .3s var(--ease); }
+  .feat-row::before { display: none; }
+  .feat-row.open { border-color: var(--primary-tint); box-shadow: var(--shadow-card); }
+  .feat-btn { gap: 12px; padding: 16px 0; min-height: 56px; }
+  .feat-btn h3 { font-size: 1.0625rem; }
+  .feat-btn .tog { width: 32px; height: 32px; border-radius: 50%; }
+  .feat-body p { padding: 0 0 4px; }
+  .feat-body ul { padding: 0 0 18px; }
+}
 
 /* diagram: SVG draws the wires, HTML draws the nodes (text never collides) */
 .diagram { container: dg / inline-size; position: relative; border: 1px solid var(--border); border-radius: var(--r-lg); aspect-ratio: 520 / 440; overflow: hidden; background: radial-gradient(circle, var(--border) 1px, transparent 1.2px) 0 0 / 18px 18px, var(--surface); box-shadow: var(--shadow-card); }

@@ -12,17 +12,40 @@ import { Icon, LakuMark } from "./primitives";
 export default function Header() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const [active, setActive] = useState<string | null>(null);
   const [pill, setPill] = useState<{ x: number; w: number } | null>(null);
   const navRef = useRef<HTMLElement>(null);
   const close = () => setSheetOpen(false);
 
+  // capsule lifts after 8px; on small screens it slips away while reading down and returns on scroll up
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    let last = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      setScrolled(y > 8);
+      if (Math.abs(y - last) > 6) {
+        setHidden(y > last && y > 120);
+        last = y;
+      }
+    };
     onScroll();
     addEventListener("scroll", onScroll, { passive: true });
     return () => removeEventListener("scroll", onScroll);
   }, []);
+
+  // open sheet: lock page scroll, close on Escape
+  useEffect(() => {
+    if (!sheetOpen) return;
+    const root = document.documentElement;
+    root.classList.add("lock");
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setSheetOpen(false);
+    addEventListener("keydown", onKey);
+    return () => {
+      root.classList.remove("lock");
+      removeEventListener("keydown", onKey);
+    };
+  }, [sheetOpen]);
 
   // scroll spy: the section crossing the upper third of the viewport owns the marker
   useEffect(() => {
@@ -50,7 +73,7 @@ export default function Header() {
 
   return (
     <>
-      <header className={`site-hdr${scrolled ? " scrolled" : ""}${sheetOpen ? " open" : ""}`}>
+      <header className={`site-hdr${scrolled ? " scrolled" : ""}${sheetOpen ? " open" : ""}${hidden && !sheetOpen ? " away" : ""}`}>
         <div className="site-hdr-in">
           <Link className="brandlink" href={routes.home} aria-label={nav.home} onClick={close}>
             <LakuMark />
@@ -99,7 +122,8 @@ export default function Header() {
           </div>
         </div>
       </header>
-      <div className={`sheet${sheetOpen ? " open" : ""}`} id="sheet">
+      <div className={`sheet-scrim${sheetOpen ? " open" : ""}`} onClick={close} aria-hidden="true" />
+      <div className={`sheet${sheetOpen ? " open" : ""}`} id="sheet" inert={!sheetOpen}>
         {nav.links.map((l) => (
           <a key={l.href} className="row" href={l.href} onClick={close}>
             {l.label}
