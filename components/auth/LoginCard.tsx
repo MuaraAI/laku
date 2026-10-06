@@ -175,6 +175,12 @@ export default function LoginCard({ initialError }: { initialError: string | nul
         <Image src="/google-g.svg" alt="" width={20} height={20} unoptimized />
         {loading ? login.loading : login.google}
       </button>
+
+      <div style={{ marginTop: "8px", paddingTop: "14px", borderTop: "1px dashed var(--border)", textAlign: "center" }}>
+        <a href={routes.afterLogin} className="btn btn-outline" style={{ width: "100%", justifyContent: "center", minHeight: "44px", fontSize: "0.875rem" }}>
+          Mode Demo (Buka Dashboard Langsung) →
+        </a>
+      </div>
     </>
   );
 }
