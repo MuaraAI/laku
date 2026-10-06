@@ -21,7 +21,6 @@ const NAV: { key: PageKey; label: string; icon: (p: { size?: number }) => React.
 const ONBOARDED_KEY = 'laku-onboarded';
 
 export default function App() {
-  const [onboarded, setOnboarded] = useState<boolean>(false);
   const [page, setPage] = useState<PageKey>('restock');
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
   const [mode, setMode] = useState<'demo' | 'live'>('demo');
@@ -30,9 +29,6 @@ export default function App() {
   useEffect(() => {
     try {
       if (typeof window !== 'undefined') {
-        if (localStorage.getItem(ONBOARDED_KEY) === '1') {
-          setOnboarded(true);
-        }
         const urlParams = new URLSearchParams(window.location.search);
         const urlMode = urlParams.get('mode');
         if (urlMode === 'live' || urlMode === 'demo') {
@@ -97,7 +93,6 @@ export default function App() {
     } catch {
       /* abaikan */
     }
-    setOnboarded(true);
     setPage('restock');
   }
 
@@ -107,7 +102,7 @@ export default function App() {
     ? `Toko ${userEmail.split('@')[0]}`
     : 'Toko Saya';
 
-  const body = !onboarded || page === 'setup' ? (
+  const body = page === 'setup' ? (
     <OnboardingPage onFinish={finishOnboarding} />
   ) : page === 'penjualan' ? (
     <PenjualanPage mode={mode} />
@@ -121,9 +116,9 @@ export default function App() {
     <div className="app-shell">
       {/* observer reveal ala landing — key berganti per halaman supaya elemen
           halaman aktif yang dipindai ulang (elemen baru tidak diamati observer lama) */}
-      <RevealObserver key={`${onboarded}-${page}`} />
+      <RevealObserver key={`${page}`} />
       <aside className="sidebar">
-        <a className="wordmark" href="#top" onClick={(e) => { e.preventDefault(); if (onboarded) setPage('restock'); }}>
+        <a className="wordmark" href="#top" onClick={(e) => { e.preventDefault(); setPage('restock'); }}>
           {/* Mark Laku (oktagon, L rak, kotak stok) — salinan dari components/landing/primitives.tsx */}
           <svg className="mark" viewBox="0 0 64 64" aria-hidden="true">
             <path className="m-oct" d="M19.8 2H44.2L62 19.8V44.2L44.2 62H19.8L2 44.2V19.8Z" />
@@ -140,7 +135,7 @@ export default function App() {
           )}
           {NAV.map((n, i) => (
             <button key={n.key}
-              className={`side-link${(!onboarded ? n.key === 'setup' : page === n.key) ? ' active' : ''}`}
+              className={`side-link${page === n.key ? ' active' : ''}`}
               onClick={() => setPage(n.key)}
               onMouseEnter={() => setHoverIdx(i)}>
               {n.icon({ size: 19 })}
@@ -215,7 +210,7 @@ export default function App() {
       <nav className="bottom-tabs" aria-label="Navigasi utama mobile">
         {NAV.map((n) => (
           <button key={n.key}
-            className={`tab${(!onboarded ? n.key === 'setup' : page === n.key) ? ' active' : ''}`}
+            className={`tab${page === n.key ? ' active' : ''}`}
             onClick={() => setPage(n.key)} aria-label={n.label}>
             {n.icon({ size: 21 })}
             <span>{n.label}</span>
