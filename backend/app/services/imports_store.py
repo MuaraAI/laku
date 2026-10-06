@@ -243,6 +243,19 @@ class ImportsSupabaseStore(ImportsStore):
     def get_staging(self, seller_id: str, batch_id: str) -> tuple[list[dict], list[dict]]:
         rows: list[dict] = []
         problems: list[dict] = []
+        # Defence-in-depth: batch HARUS milik seller ini (RLS bisa salah/berubah).
+        owned = (
+            self.client.table("import_batches")
+            .select("id")
+            .eq("seller_id", seller_id)
+            .eq("id", batch_id)
+            .limit(1)
+            .execute()
+            .data
+            or []
+        )
+        if not owned:
+            return rows, problems
         resp = (
             self.client.table("import_staging")
             .select("payload")
@@ -259,6 +272,18 @@ class ImportsSupabaseStore(ImportsStore):
         return rows, problems
 
     def purge_staging(self, seller_id: str, batch_id: str) -> None:
+        owned = (
+            self.client.table("import_batches")
+            .select("id")
+            .eq("seller_id", seller_id)
+            .eq("id", batch_id)
+            .limit(1)
+            .execute()
+            .data
+            or []
+        )
+        if not owned:
+            return
         self.client.table("import_staging").delete().eq("batch_id", batch_id).execute()
 
     def purge_expired(self, max_age_hours: int = STAGING_TTL_HOURS) -> int:
@@ -328,9 +353,12 @@ def get_imports_store(identity=None) -> ImportsStore:
 
     s = get_settings()
     if s.supabase_service_key or s.supabase_url:
-        from supabase import create_client
+        from supabase import create_client  # noqa: no stubs for supabase-py
 
-        client = create_client(s.supabase_url, s.supabase_service_key or s.supabase_url)
+        if not s.supabase_service_key:
+            # L4: jangan pakai URL sebagai key (error samar) — fail loud.
+            raise RuntimeError("SUPABASE_URL terisi tapi SUPABASE_SERVICE_KEY kosong — config rusak")
+        client = create_client(s.supabase_url, s.supabase_service_key)
         return ImportsSupabaseStore(client)
     return ImportsMemoryStore()
 

@@ -56,7 +56,7 @@ def _get_seller_row(seller_id: str) -> dict | None:
 async def onboarding_status(identity: Identity = Depends(get_identity)):
     """Status langkah onboarding untuk wizard FR-30."""
     settings = get_settings()
-    if settings.demo_mode or not settings.supabase_service_key:
+    if settings.demo_mode:
         s = _demo_seller()
         return {
             "seller_id": identity.seller_id or s["id"],
@@ -119,7 +119,7 @@ async def update_settings(
     if not updates:
         raise HTTPException(422, "Tidak ada field yang diubah")
     settings = get_settings()
-    if settings.demo_mode or not settings.supabase_service_key:
+    if settings.demo_mode:
         return {"ok": True, "demo": True, "applied": updates}
 
     updates["updated_at"] = "now()"
@@ -154,7 +154,7 @@ async def set_channels(
         raise HTTPException(422, f"Channel tidak dikenal: {sorted(unknown)}")
 
     settings = get_settings()
-    if settings.demo_mode or not settings.supabase_service_key:
+    if settings.demo_mode:
         return {"ok": True, "demo": True, "channels": body.channels}
 
     # channel pilihan disimpan sebagai metadata batch pertama; tabel sellers

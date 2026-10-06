@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from pathlib import PurePosixPath
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile, File, Form, status
 
 from app.config import (
     ALLOWED_EXTENSIONS,
@@ -53,6 +53,7 @@ def _batch_not_found() -> HTTPException:
 # ---------------------------------------------------------------------------
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def upload_import(
+    request: Request,
     file: UploadFile = File(...),
     channel: str = Form(...),
     source_system: str | None = Form(None),
@@ -60,6 +61,17 @@ async def upload_import(
 ):
     seller_id = require_owner(identity).seller_id or ""
     store = _get_store()
+
+    # --- Layer 0: content-length pre-check (M4) — tolak SEBELUM baca body ke RAM
+    declared = request.headers.get("content-length")
+    if declared and declared.isdigit() and int(declared) > MAX_UPLOAD_SIZE_BYTES + 64 * 1024:
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail={
+            "error": {
+                "code": "FILE_TOO_LARGE",
+                "message": f"Ukuran file melebihi batas {MAX_UPLOAD_SIZE_BYTES // (1024*1024)} MB.",
+                "max_bytes": MAX_UPLOAD_SIZE_BYTES,
+            }
+        })
 
     # --- Layer 1: extension + MIME ---
     filename = file.filename or ""
@@ -123,7 +135,7 @@ async def upload_import(
 # GET /v1/imports — riwayat import
 # ---------------------------------------------------------------------------
 @router.get("")
-async def list_imports(limit: int = 50, identity: Identity = Depends(get_identity)):
+async def list_imports(limit: int = Query(50, ge=1, le=200), identity: Identity = Depends(get_identity)):
     seller_id = require_owner(identity).seller_id or ""
     return {"items": import_pipeline.list_imports(_get_store(), seller_id, limit)}
 

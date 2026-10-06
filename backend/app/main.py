@@ -41,9 +41,5 @@ app.add_middleware(
 
 @app.get("/health")
 def health():
-    return {
-        "status": "ok",
-        "service": "laku-api",
-        "version": "0.1.0",
-        "demo_mode": settings.demo_mode,
-    }
+    # Tanpa detail internal (demo_mode dll) — cukup liveness untuk uptime monitor.
+    return {"status": "ok", "service": "laku-api", "version": "0.1.0"}
