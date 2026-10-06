@@ -4,7 +4,7 @@ import { useState } from "react";
 import { features } from "@/constants/id";
 import { Icon } from "./primitives";
 
-const { items, diagram } = features;
+const { items, diagram, hubIdle } = features;
 
 // wires (SVG) and which feature lights each one up
 const EDGES = [
@@ -20,6 +20,7 @@ const INPUT_ON = [0, 3, 4];
 const GATE_ON = [0, 4];
 
 export default function Features() {
+  // -1 = every row closed; tapping the open row closes it
   const [cur, setCur] = useState(0);
   const on = (list: number[]) => (list.includes(cur) ? " on" : "");
 
@@ -28,13 +29,19 @@ export default function Features() {
       <div className="feat-list">
         {items.map((f, i) => (
           <div className={`feat-row${i === cur ? " open" : ""}`} key={f.title}>
-            <button className="feat-btn" aria-expanded={i === cur} onClick={() => setCur(i)}>
+            <button
+              className="feat-btn"
+              aria-expanded={i === cur}
+              aria-controls={`feat-body-${i}`}
+              onClick={() => setCur((c) => (c === i ? -1 : i))}
+            >
+              <span className="no">{String(i + 1).padStart(2, "0")}</span>
               <h3>{f.title}</h3>
               <span className="tog">
                 <Icon name="add" />
               </span>
             </button>
-            <div className="feat-body">
+            <div className="feat-body" id={`feat-body-${i}`}>
               <div>
                 <p>{f.body}</p>
                 <ul>
@@ -72,7 +79,7 @@ export default function Features() {
             </svg>
             <b>{diagram.hub}</b>
           </div>
-          <div className="hub-msg">{items[cur].hub}</div>
+          <div className="hub-msg">{cur < 0 ? hubIdle : items[cur].hub}</div>
         </div>
         <div className={`node out crit r1${on([1])}`}>
           <span className="ms fill">error</span>
