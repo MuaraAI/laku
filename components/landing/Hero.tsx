@@ -15,7 +15,7 @@ export default function Hero() {
           {hero.sub}
         </p>
         <div className="hero-cta" data-reveal="">
-          <Link className="btn btn-primary" href={routes.login}>
+          <Link className="btn btn-primary" href={routes.afterLogin}>
             {hero.ctaPrimary}
           </Link>
           {/* the round badge floods the button on hover; its arrow drops out and a new one drops in */}

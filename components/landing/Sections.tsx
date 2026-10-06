@@ -53,7 +53,7 @@ export function Pricing() {
                 </li>
               ))}
             </ul>
-            <Link className="btn btn-primary" href={routes.login}>
+            <Link className="btn btn-primary" href={routes.afterLogin}>
               {free.cta}
             </Link>
           </article>
