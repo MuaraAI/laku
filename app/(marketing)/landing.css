@@ -195,6 +195,8 @@
 .diagram .cap { position: absolute; left: 16px; bottom: 12px; font-family: var(--mono); font-size: .625rem; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
 .d-edge { fill: none; stroke: var(--border-strong); stroke-width: 1.2; transition: stroke .5s var(--ease), stroke-width .5s var(--ease); }
 .d-edge.on { stroke: var(--primary); stroke-width: 1.6; }
+/* data packet riding the lit wires (SMIL in Features.tsx; only mounted when motion is allowed) */
+.d-packet { fill: var(--primary); stroke: var(--surface); stroke-width: 1.5; filter: drop-shadow(0 0 3px var(--primary-tint)); }
 .d-gate { fill: var(--surface); stroke: var(--border-strong); stroke-width: 1.4; transition: fill .5s var(--ease), stroke .5s var(--ease); }
 .d-gate.on { fill: var(--primary); stroke: var(--primary); }
 .d-gate-x { fill: none; stroke: var(--text-muted); stroke-width: 1.6; stroke-linecap: round; transition: stroke .5s var(--ease); }
