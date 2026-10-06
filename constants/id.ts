@@ -331,6 +331,15 @@ export const brand = {
   }[],
 };
 
+/** Supply map (login panel + landing hero): illustrative routes from other islands into one warehouse. */
+export const supplyMap = {
+  aria: "Peta Indonesia: kiriman dari Sumatra, Jawa, Bali, Sulawesi, dan Papua mengalir ke gudang di Pontianak.",
+  hub: "Gudang Pontianak",
+  hubSub: "stok dipantau Laku",
+  sources: { sumatra: "Sumatra", jawa: "Jawa", bali: "Bali", sulawesi: "Sulawesi", papua: "Papua" },
+  caption: "Ilustrasi rute kiriman supplier",
+};
+
 export const login = {
   metaTitle: "Masuk — Laku",
   back: "Kembali ke beranda",
@@ -343,11 +352,30 @@ export const login = {
     placeholder: "nama@contoh.com",
     send: "Kirim tautan masuk",
     sending: "Mengirim tautan…",
-    sent: (email: string) => `Tautan masuk terkirim ke ${email}. Cek inbox dan folder spam.`,
-    divider: "atau",
-    invalid: "Alamat email tidak valid.",
-    failed: "Gagal mengirim tautan. Coba lagi.",
+    divider: "atau pakai email",
+    empty: "Isi alamat email dulu.",
+    invalid: "Format email belum benar, contoh: nama@contoh.com",
+    failed: "Gagal mengirim tautan. Coba lagi sebentar lagi.",
+    hint: "Kami kirim tautan masuk dan kode 6 digit. Tanpa password.",
   },
+  otp: {
+    title: "Cek email Anda",
+    sentLead: "Tautan masuk dan kode 6 digit sudah dikirim ke",
+    spam: "Belum masuk? Cek folder spam atau promosi.",
+    label: "Atau ketik kode 6 digit",
+    verify: "Masuk dengan kode",
+    verifying: "Memeriksa kode…",
+    invalid: "Kode salah atau sudah kedaluwarsa. Pakai kode dari email terbaru.",
+    resend: "Kirim ulang kode",
+    resendIn: (s: number) => `Kirim ulang dalam ${s} dtk`,
+    resent: "Kode baru sudah dikirim.",
+    change: "Ganti email",
+  },
+  demo: {
+    title: "Lihat demo dulu",
+    sub: "Tanpa daftar, pakai data contoh toko",
+  },
+  help: "Butuh bantuan?",
   notes: ["Data pembeli tidak disimpan", "File mentah tidak pernah disimpan", "Gratis selama uji coba"],
   aside: {
     sub: "Upload export marketplace seminggu sekali. Laku menyusun daftar restock dari yang paling mendesak.",
