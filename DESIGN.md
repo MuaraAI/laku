@@ -1,23 +1,34 @@
 ---
-version: alpha
+version: 1.0.0
 name: Laku
-description: MuaraAI Laku — light-first restock engine untuk seller UMKM. Keluarga warna sungai MuaraAI (River Current Blue di Estuary Canvas), angka tabular JetBrains Mono, state berwarna selalu bersama ikon dan label. Dark-ready via semantic tokens, dark values menyusul pasca Grand Final.
+description: MuaraAI Laku — light-first restock engine untuk seller UMKM. Keluarga warna sungai MuaraAI (River Current Blue di Estuary Canvas), arsitektur ledger rail & crosshairs, angka tabular JetBrains Mono, state berwarna selalu berpasangan ikon dan label. Dark-ready via semantic tokens.
 colors:
   primary: "#0369A1"
+  primary-hover: "#075E85"
+  primary-soft: "#F0F9FF"
+  primary-tint: "#E0F2FE"
   secondary: "#072033"
-  tertiary: "#DC2626"
   neutral: "#F7FAFC"
+  subtle: "#EEF3F7"
   surface: "#FFFFFF"
+  surface-glass: "rgba(255, 255, 255, 0.88)"
   text-primary: "#072033"
   text-secondary: "#42586E"
   text-muted: "#64748B"
   border: "#E2E8F0"
+  border-strong: "#CBD5E1"
   state-critical: "#B91C1C"
+  state-critical-bg: "#FEF2F2"
   state-reorder: "#B45309"
+  state-reorder-bg: "#FFFBEB"
   state-ok: "#047857"
+  state-ok-bg: "#ECFDF5"
   state-overstock: "#C2410C"
+  state-overstock-bg: "#FFF7ED"
   state-dead: "#475569"
+  state-dead-bg: "#F1F5F9"
   state-insufficient: "#0369A1"
+  state-insufficient-bg: "#F0F9FF"
 typography:
   h1:
     fontFamily: Space Grotesk
@@ -73,134 +84,156 @@ components:
     backgroundColor: "{colors.primary}"
     textColor: "#FFFFFF"
     rounded: "{rounded.md}"
-    padding: 12px
+    padding: 12px 18px
   button-primary-hover:
-    backgroundColor: "#075E85"
+    backgroundColor: "{colors.primary-hover}"
     textColor: "#FFFFFF"
     rounded: "{rounded.md}"
-    padding: 12px
+    padding: 12px 18px
   button-secondary:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.primary}"
     rounded: "{rounded.md}"
-    padding: 12px
+    padding: 12px 18px
   badge-critical:
-    backgroundColor: "#FEF2F2"
+    backgroundColor: "{colors.state-critical-bg}"
     textColor: "{colors.state-critical}"
     rounded: "{rounded.full}"
-    padding: 8px
+    padding: 4px 10px
   badge-reorder:
-    backgroundColor: "#FFFBEB"
+    backgroundColor: "{colors.state-reorder-bg}"
     textColor: "{colors.state-reorder}"
     rounded: "{rounded.full}"
-    padding: 8px
+    padding: 4px 10px
   badge-ok:
-    backgroundColor: "#ECFDF5"
+    backgroundColor: "{colors.state-ok-bg}"
     textColor: "{colors.state-ok}"
     rounded: "{rounded.full}"
-    padding: 8px
+    padding: 4px 10px
   badge-overstock:
-    backgroundColor: "#FFF7ED"
+    backgroundColor: "{colors.state-overstock-bg}"
     textColor: "{colors.state-overstock}"
     rounded: "{rounded.full}"
-    padding: 8px
+    padding: 4px 10px
   badge-dead:
-    backgroundColor: "#F1F5F9"
+    backgroundColor: "{colors.state-dead-bg}"
     textColor: "{colors.state-dead}"
     rounded: "{rounded.full}"
-    padding: 8px
+    padding: 4px 10px
   badge-insufficient:
-    backgroundColor: "#F0F9FF"
+    backgroundColor: "{colors.state-insufficient-bg}"
     textColor: "{colors.state-insufficient}"
     rounded: "{rounded.full}"
-    padding: 8px
+    padding: 4px 10px
   card:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.text-primary}"
     rounded: "{rounded.lg}"
     padding: 24px
-  card-secondary:
-    backgroundColor: "{colors.surface}"
-    textColor: "{colors.text-secondary}"
-    rounded: "{rounded.lg}"
-    padding: 24px
-  caption-muted:
-    backgroundColor: "{colors.neutral}"
-    textColor: "{colors.text-muted}"
-    rounded: "{rounded.sm}"
-    padding: 8px
-  divider:
-    backgroundColor: "{colors.border}"
-    textColor: "{colors.text-primary}"
-    rounded: "{rounded.sm}"
-    padding: 1px
   input:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.text-primary}"
     rounded: "{rounded.sm}"
-    padding: 12px
+    padding: 12px 14px
 ---
 
-## Overview
+# Laku Design System Specification
 
-Laku (`laku.muaraai.com`) adalah restock engine untuk seller UMKM: mayoritas pemakai membuka dashboard dari HP di ruang terang (rumah, warung, gudang), dan isinya dominan angka serta tabel padat. Karena itu identitas visualnya **light-first** — dan karena tim frontend hanya punya 4 hari, dark mode sengaja tidak dibuat sekarang. Sebagai gantinya seluruh komponen memakai **semantic tokens** (tiga lapis: primitive → semantic → component), sehingga dark mode kelak cukup menambah satu set nilai, tanpa refactor komponen.
+## 1. Overview & Filosofi Desain
+Laku (`laku.muaraai.com`) adalah restock engine untuk seller multi-marketplace (Shopee, TikTok Shop, Tokopedia). Sistem ini menggabungkan presisi operasional logistik dengan antarmuka modern bernuansa **Ledger-Grid Industrial & Anti-Slop**.
 
-Keluarga warna mewarisi identitas MuaraAI: Estuary Canvas sebagai kanvas terang, River Current Blue sebagai satu-satunya accent, Deep Riverbed Ink untuk teks. Satu accent per halaman, tanpa gradien dekoratif.
+- **Light-First**: Mayoritas seller membuka dashboard dari layar HP di lingkungan kerja terang (warung, ruko, gudang).
+- **Zero Hex di Komponen**: Komponen antarmuka 100% wajib memakai semantic CSS variable (`var(--surface)`, `var(--primary)`).
+- **MuaraAI River Family**: Kanvas lembut *Estuary Canvas*, teks pekat *Deep Riverbed Ink*, dan satu aksen fungsional *River Current Blue*.
+- **No AI Hallucination Slop**: Angka bisnis hanya berasal dari formula deterministik PRD §9A; antarmuka mencerminkan presisi kalkulasi tanpa grafik dekoratif palsu.
 
-## Colors
+---
 
-- **Primary (#0369A1, River Current Blue):** satu-satunya warna interaksi — tombol utama, link, item aktif, focus ring. Warisan brand MuaraAI.
-- **Secondary (#072033, Deep Riverbed Ink):** teks utama dan heading. Off-black, bukan `#000000`.
-- **Neutral (#F7FAFC, Estuary Canvas):** latar halaman. Off-white, bukan `#FFFFFF`.
-- **Surface (#FFFFFF):** kartu dan panel. Hierarki permukaan: canvas → surface → border `#E2E8F0`.
-- **Warna status (semantic, bukan accent):** CRITICAL `#DC2626` · REORDER `#D97706` · OK `#059669` · OVERSTOCK `#EA580C` · DEAD `#64748B` · INSUFFICIENT_DATA `#0284C7`.
+## 2. Color Palette & Semantics
 
-Aturan status (FR-8, mengikat): warna status **tidak pernah berdiri sendiri** — selalu berpasangan ikon + label Indonesia ("Segera pesan", "Aman", dst). Warna adalah penguat, bukan pembawa informasi.
+### Base Surfaces & Ink
+- **Canvas (`#F7FAFC`, Estuary Canvas)**: Latar belakang seluruh halaman, sejuk dan tidak menyilaukan.
+- **Subtle (`#EEF3F7`)**: Permukaan recessed untuk pemisah section atau latar sekunder.
+- **Surface (`#FFFFFF`)**: Kartu, modal dialog, dan panel formulir.
+- **Surface Glass (`rgba(255, 255, 255, 0.88)`)**: Efek glassmorphism pada floating capsule header dengan `backdrop-filter: blur(14px)`.
+- **Text Primary / Secondary (`#072033` / `#42586E`)**: Deep Riverbed Ink. Kontras tinggi WCAG AAA (>15:1).
+- **Text Muted (`#64748B`)**: Keterangan sekunder, metadata baris, atau unit satuan.
+- **Border (`#E2E8F0` / `#CBD5E1`)**: Garis batas kartu dan pemisah ledger rail.
 
-## Typography
+### Interaction Accent
+- **Primary (`#0369A1`, River Current Blue)**: Satu-satunya warna interaksi utama untuk CTA, tombol submit, link hover, focus ring, dan status aktif.
+- **Primary Hover (`#075E85`)**: State hover tombol primer.
+- **Primary Soft (`#F0F9FF`) & Tint (`#E0F2FE`)**: Latar belakang hover menu dan border pill navigasi.
 
-Tiga keluarga, self-hosted (liar dari font CDN):
+### Status Deterministik Engine (§9A / FR-8)
+Warna status tidak pernah berdiri sendiri — **wajib berpasangan: Warna + Ikon Material Symbols + Label Teks**:
+- **CRITICAL** (`#B91C1C` / bg `#FEF2F2` / ikon `error`): Stok habis atau di bawah safety stock.
+- **REORDER** (`#B45309` / bg `#FFFBEB` / ikon `warning`): Capai Reorder Point (ROP).
+- **OK** (`#047857` / bg `#ECFDF5` / ikon `check_circle`): Kuantitas stok aman.
+- **OVERSTOCK** (`#C2410C` / bg `#FFF7ED` / ikon `inventory_2`): Stok berlebih > 60 hari.
+- **DEAD** (`#475569` / bg `#F1F5F9` / ikon `hourglass_disabled`): Tidak ada penjualan > 60 hari.
+- **INSUFFICIENT** (`#0369A1` / bg `#F0F9FF` / ikon `help`): Riwayat penjualan < 30 hari.
 
-- **Space Grotesk** — heading dan angka display (H1–H3). Karakter geometris ringan, nyambung ke identitas MuaraAI.
-- **Inter** — body, label, UI text. `text-secondary #42586E` untuk body, `text-muted #64748B` hanya untuk caption.
-- **JetBrains Mono** — semua angka bisnis (omzet, qty, ROP, persen) dengan `font-variant-numeric: tabular-nums`. Angka uang rata kanan.
+---
 
-Batas: tidak ada serif, tidak ada gradien text, heading tidak melebihi 2.25rem di dalam dashboard (landing page boleh lebih besar).
+## 3. Tipografi & Hierarki
+Pemuatan font self-hosted via `next/font` (zero external font CDN request):
+1. **Space Grotesk** (`--font-display`): Digunakan untuk Heading (`h1`, `h2`, `h3`), wordmark, dan judul fitur. Berkarakter geometris, modern, dan operasional.
+2. **Inter** (`--font`): Digunakan untuk body copy, label input, dialog explanation, dan navigasi.
+3. **JetBrains Mono** (`--mono`): Wajib untuk semua angka bisnis, rupiah, kuantitas, rumus ROP, dan tanggal dengan atribut `tabular-nums` dan rata kanan (`text-right`).
 
-## Layout
+---
 
-- Spacing scale kelipatan 4: `4 / 8 / 16 / 24 / 32 / 48`. Jarak antar-section dashboard 24–32px.
-- Konten dashboard dalam kontainer `max-w-[1400px]`, padding halaman 16px (mobile) / 24px (desktop).
-- Radius konsisten: input & badge kecil 8px, tombol & kartu 12–16px, pill status full. Satu sistem, tanpa campuran.
-- Desktop: sidebar kiri (±240px). Mobile <768px: bottom tab bar maksimal 5 tab, target sentuh minimal 44px.
-- Kartu hanya untuk elevasi yang bermakna; kalau bisa, kelompokkan dengan `border-t` / spasi, bukan kotak di dalam kotak.
+## 4. Sistem Layout: Ledger Rail & Crosshairs
 
-## Elevation
+- **Ledger Rail (`.rail`)**:
+  - Kontainer utama dengan batas maksimal `max-width: 1280px` diapit garis vertikal kiri dan kanan (`border-inline: 1px solid var(--border)`).
+  - Memberi kesan lembar pembukuan atau continuous receipt fisik.
+- **Technical Crosshairs (`.x`)**:
+  - Tanda silang teknis ukuran 11×11px (`.x.tl`, `.x.tr`) di setiap perpotongan sudut section untuk estetika blueprint teknik presisi.
+- **Fluid Spacing Scale**:
+  - `--pad: clamp(16px, 3.6vw, 48px)`: Padding fleksibel yang menyesuaikan proporsional dari mobile 360px ke layar lebar.
 
-Shadow di-tint ke warna kanvas, tidak pernah hitam murni: `0 1px 2px rgba(7,32,51,0.06), 0 8px 24px rgba(7,32,51,0.08)` untuk kartu terangkat. Level: flat (border saja) → card (shadow di atas) → overlay/modal (shadow lebih dalam + `backdrop` `rgba(7,32,51,0.4)`).
+---
 
-## Components
+## 5. Komponen Khas (Component Patterns)
 
-- `button-primary` — satu aksi utama per layar. Hover: `#075E85`. `:active` turun 1px (`translate-y-[1px]`).
-- `button-secondary` — outline biru di atas surface putih.
-- `badge-*` — enam status engine, masing-masing bg tint + teks warna status + ikon + label. Label teks WAJIB, warna opsional bagi yang buta warna.
-- `card` — surface putih, radius 16, padding 24. Isi angka memakai `number-tabular`.
-- `input` — label DI ATAS input (bukan placeholder-sebagai-label), helper text di bawah, error merah `#DC2626` di bawahnya. Focus ring: 2px `#0369A1` offset 2px.
+### Floating Capsule Header (`Header.tsx`)
+- Tampil lebar penuh di posisi atas layar (`scrollY = 0`).
+- Saat di-scroll > 8px, mengecil menjadi kapsul mengambang (`max-width: 980px`) dengan `backdrop-filter: blur(14px)`.
+- Dilengkapi **gliding hover pill** (`.nav-pill`) yang meluncur mengikuti posisi kursor antar menu navigasi.
+- Mobile: Kapsul auto-hide saat di-scroll ke bawah dan muncul kembali saat di-scroll ke atas.
 
-## Motion
+### Interactive Button Flood (`.btn-flood`)
+- Tombol sekunder interaktif: memiliki badge lingkaran berpanah di sisi kanan.
+- Saat di-hover, lingkaran membesar eksponensial (`transform: scale(24)`) membanjiri seluruh tombol dengan warna primer, sementara panah berputar/bergulir vertikal (`.go-win`).
 
-Sprint 4 hari → motion fungsional minimal: transisi state (badge berganti) 150–200ms ease-out, `:active` push 1px, skeleton loader saat import berjalan. Tanpa animasi loop dekoratif. Semua animasi hormati `prefers-reduced-motion` (mati total).
+### Data Pipeline Visualizer (`Features.tsx`)
+- Menggunakan diagram alur SVG real-time yang memvisualisasikan bagaimana file Shopee, TikTok, dan Tokopedia masuk, dibersihkan dari PII, dan diproses oleh core deterministik.
+- Paket data bergerak dinamis menggunakan animasi SMIL sinkron, nonaktif otomatis jika OS mengaktifkan `prefers-reduced-motion`.
 
-## Voice and Tone
+### Brand Anatomy Exploder (`BrandDialog.tsx`)
+- Dialog interaktif yang membedah simbol Laku: sudut oktagonal luar, bracket rak huruf L, kotak stok gudang, dan kotak bayangan incoming supply.
 
-Bahasa Indonesia lugas khas seller: "Restock 40 unit", bukan "Optimalkan inventory pipeline". Angka selalu bisa dijelaskan asalnya (panel "mengapa"). Istilah teknis dilarang menggantikan istilah pasar: "stok" bukan "inventory", "laku" bukan "terjual dengan performa baik". Error message menyebut solusi, bukan hanya kode.
+---
 
-## Dos and Don'ts
+## 6. Elevasi & Shadow
+- Shadow selalu diwarnai rona tinta kanvas, bukan hitam pekat:
+  - Card Shadow: `0 1px 2px rgba(7, 32, 51, 0.06), 0 8px 24px rgba(7, 32, 51, 0.08)`
+  - Raised / Modal Shadow: `0 2px 4px rgba(7, 32, 51, 0.06), 0 16px 40px rgba(7, 32, 51, 0.12)`
+  - Scrim Backdrop: `rgba(7, 32, 51, 0.4)`
 
-- **Do:** komponen selalu pakai semantic token (`var(--surface)`), bukan hex langsung.
-- **Do:** angka bisnis dalam JetBrains Mono tabular, rata kanan.
-- **Do:** badge status = warna + ikon + label, tiga-tiganya.
-- **Don't:** dark mode ad-hoc sebelum set nilai dark resmi ditulis (P1).
-- **Don't:** accent kedua, gradien dekoratif, glow, `#000`/`#FFF` murni.
-- **Don't:** emoji sebagai ikon UI — pakai Material Symbols Rounded (self-hosted), `aria-hidden` untuk dekoratif.
-- **Don't:** placeholder tanpa label di atasnya; placeholder bukan label.
+---
+
+## 7. Motion & Accessibility Standards
+
+- **Motion Curves**:
+  - Standard ease: `cubic-bezier(.2, 0, 0, 1)`
+  - Out deceleration: `cubic-bezier(.16, 1, .3, 1)`
+  - Emphasized entrance: `cubic-bezier(.05, .7, .1, 1)`
+- **Reduced Motion First**:
+  - Skrip inline `motionFlag` dieksekusi sebelum first-paint di `app/layout.tsx`. Jika pengguna mengaktifkan preferensi reduced motion di sistem operasi, seluruh animasi transisi dinonaktifkan tanpa visual flash.
+- **Anti-Emoji Rule**:
+  - Dilarang keras menggunakan emoji sebagai ikon UI. Seluruh ikon menggunakan font *Material Symbols Rounded* (`.ms`).
+- **Touch Target**:
+  - Target sentuh tombol dan baris menu interaktif minimal 44×44px di mobile viewport.
