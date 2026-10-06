@@ -42,6 +42,13 @@ def _sold_at_to_date(sold_at) -> date | None:
 # Errors (router translate ke HTTP)
 # ---------------------------------------------------------------------------
 
+def _safe_cell(s: str | None) -> str | None:
+    """Neutralize formula injection (=,+,-,@ di awal sel) — lihat parsers/shopee.py."""
+    if s and s[:1] in ("=", "+", "-", "@"):
+        return "'" + s
+    return s
+
+
 class StockError(Exception):
     def __init__(self, code: str, message: str):
         super().__init__(message)
@@ -437,8 +444,8 @@ def import_template(store: StockStore, seller_id: str, raw: bytes, ext: str) -> 
 
     created = updated = 0
     for i, row in enumerate(rows, start=2):
-        name = (row.get("name") or "").strip()
-        sku = (row.get("sku") or "").strip()
+        name = _safe_cell((row.get("name") or "").strip())
+        sku = _safe_cell((row.get("sku") or "").strip())
         qty_raw = (row.get("qty") or "").strip()
         if not name or not sku or not qty_raw.isdigit():
             problems.append({"row": i, "reason": "nama/sku/qty wajib & valid"})
@@ -577,6 +584,8 @@ def get_stock_store(imports_memory_store=None):
     if s.supabase_url:
         from supabase import create_client
 
-        client = create_client(s.supabase_url, s.supabase_service_key or s.supabase_url)
+        if not s.supabase_service_key:
+            raise RuntimeError("SUPABASE_URL terisi tapi SUPABASE_SERVICE_KEY kosong — config rusak")
+        client = create_client(s.supabase_url, s.supabase_service_key)
         return StockSupabaseStore(client)
     return StockMemoryStore(sales_source=imports_memory_store)

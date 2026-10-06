@@ -27,8 +27,8 @@ async def get_recap(
     require_owner(identity)
     settings = get_settings()
 
-    # In DEMO_MODE or dev fallback when DB has no lines, serve seeded recap fixture
-    if settings.demo_mode or not settings.supabase_service_key:
+    # Fixture seed HANYA di demo mode — prod misconfig harus fail, bukan serve angka karangan
+    if settings.demo_mode:
         fixture_path = FIXTURES / "recap.json"
         if fixture_path.exists():
             with open(fixture_path, encoding="utf-8") as f:

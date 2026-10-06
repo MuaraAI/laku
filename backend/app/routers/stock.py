@@ -134,6 +134,12 @@ async def set_opening_endpoint(
                 "error": {"code": "INVALID_EXTENSION",
                           "message": "Ekstensi tidak didukung. Gunakan .csv atau .xlsx"}
             })
+        declared = request.headers.get("content-length")
+        if declared and declared.isdigit() and int(declared) > MAX_UPLOAD_SIZE_BYTES + 64 * 1024:
+            raise HTTPException(status_code=413, detail={
+                "error": {"code": "FILE_TOO_LARGE",
+                          "message": f"Ukuran file melebihi {MAX_UPLOAD_SIZE_BYTES // (1024*1024)} MB."}
+            })
         raw = await file.read()
         if len(raw) > MAX_UPLOAD_SIZE_BYTES:
             raise HTTPException(status_code=413, detail={
