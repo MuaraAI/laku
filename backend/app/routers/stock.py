@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 
 from app.config import ALLOWED_EXTENSIONS, MAX_UPLOAD_SIZE_BYTES
-from app.deps.auth import Identity, get_identity, require_owner
+from app.deps.auth import Identity, get_identity, require_owner, require_seller_member
 from app.services import stock_ledger
 from app.services.stock_ledger import StockError, StockMemoryStore
 
@@ -70,7 +70,7 @@ class MovementIn(BaseModel):
 @router.get("")
 def list_stock(identity: Identity = Depends(get_identity)):
     """Stok semua produk: on_hand, opening, mismatch indicator (api.md MVP)."""
-    seller_id = require_owner(identity).seller_id or ""
+    seller_id = require_seller_member(identity).seller_id or ""
     store = _get_store()
     items = stock_ledger.list_stock(store, seller_id)
     return {
@@ -83,7 +83,7 @@ def list_stock(identity: Identity = Depends(get_identity)):
 @router.get("/{product_id}")
 def stock_detail(product_id: str, identity: Identity = Depends(get_identity)):
     """Riwayat mutasi + breakdown on_hand 1 produk."""
-    seller_id = require_owner(identity).seller_id or ""
+    seller_id = require_seller_member(identity).seller_id or ""
     detail = stock_ledger.get_stock_detail(_get_store(), seller_id, product_id)
     if detail is None:
         raise HTTPException(status_code=404, detail={
@@ -95,7 +95,7 @@ def stock_detail(product_id: str, identity: Identity = Depends(get_identity)):
 @router.post("/movements")
 async def record_movement(body: MovementIn, identity: Identity = Depends(get_identity)):
     """Catat mutasi: receipt (+), writeoff (−), adjustment (±). on_hand recompute."""
-    seller_id = require_owner(identity).seller_id or ""
+    seller_id = require_seller_member(identity).seller_id or ""
     try:
         stock = stock_ledger.record_movement(
             _get_store(), seller_id, body.product_id,

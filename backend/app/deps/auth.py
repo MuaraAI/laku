@@ -52,9 +52,10 @@ def verify_token(token: str) -> dict:
             key = next((k for k in jwks["keys"] if k["kid"] == header["kid"]), None)
         if key is None:
             raise HTTPException(401, "Unknown token key")
+        public_key = jwt.PyJWK.from_dict(key).key
         payload = jwt.decode(
             token,
-            key,
+            public_key,
             algorithms=["RS256"],  # pinned — JANGAN ambil alg dari header token
             audience="authenticated",
             options={"require": ["exp", "sub"]},
@@ -64,7 +65,7 @@ def verify_token(token: str) -> dict:
         raise
     except jwt.ExpiredSignatureError:
         raise HTTPException(401, "Token expired")
-    except httpx.RequestError:
+    except (httpx.RequestError, httpx.HTTPStatusError):
         # JWKS/Supabase down bukan salah token — jangan bilang "invalid" (H7)
         raise HTTPException(503, "Auth upstream unavailable")
     except Exception:
@@ -120,4 +121,11 @@ def require_owner(identity: Identity) -> Identity:
     """Guard: hanya owner (operator → 403)."""
     if identity.role != "owner":
         raise HTTPException(403, "Owner role required")
+    return identity
+
+
+def require_seller_member(identity: Identity) -> Identity:
+    """Guard: owner atau operator dengan seller_id aktif."""
+    if not identity.seller_id or identity.role not in ("owner", "operator"):
+        raise HTTPException(403, "Seller membership required")
     return identity

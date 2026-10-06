@@ -60,7 +60,7 @@ def build_recommendations(store, seller_id: str, today: date | None = None) -> d
             newest_sale = d if newest_sale is None or d > newest_sale else newest_sale
             age = (today - d).days
             if 0 <= age < 60:
-                daily[age] += int(s.get("qty", 0))
+                daily[age] += int(s.get("qty") or 0)
 
         history_days = (
             max((today - first_sale).days + 1, 1)
