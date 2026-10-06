@@ -30,7 +30,7 @@ export function OnboardingPage({ onFinish }: { onFinish: () => void }) {
   return (
     <div className="page onboarding">
       <header className="page-head" data-reveal>
-        <p className="kicker">Setup awal</p>
+        <p className="kicker"><b>Setup awal</b></p>
         <h1 className="page-title">Kenalkan, ini Laku</h1>
         <p className="page-sub">Lima langkah singkat supaya Laku bisa mulai menyarankan restock dari data penjualanmu.</p>
       </header>

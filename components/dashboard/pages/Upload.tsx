@@ -44,7 +44,7 @@ export function UploadPage() {
   return (
     <div className="page">
       <header className="page-head" data-reveal>
-        <p className="kicker">Sinkron data</p>
+        <p className="kicker"><b>Sinkron data</b></p>
         <h1 className="page-title">Upload</h1>
         <p className="page-sub">Unggah laporan penjualan per channel. Data pembeli (nama, HP, alamat) tidak pernah disimpan Laku.</p>
       </header>

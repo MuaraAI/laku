@@ -89,7 +89,7 @@ export default function App() {
           ))}
         </nav>
         <div className="side-foot">
-          <p className="side-note">Data demo hackathon — disimpan hanya di browser ini.</p>
+          <p className="side-note"><span className="demo-chip">Data demo</span> Disimpan hanya di browser ini.</p>
           <p className="side-note num num-left">Deadline MVP · 08 Okt 2026</p>
         </div>
       </aside>

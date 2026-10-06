@@ -64,7 +64,7 @@ export function RestockPage() {
   return (
     <div className="page">
       <header className="page-head" data-reveal>
-        <p className="kicker">Dashboard · Selasa, 6 Oktober 2026</p>
+        <p className="kicker"><b>Dashboard</b> · Selasa, 6 Oktober 2026</p>
         <h1 className="page-title">Restock</h1>
         <p className="page-sub">Barang yang perlu dipesan dulu ada di atas. Angka dihitung dari laju laku tiap SKU.</p>
       </header>

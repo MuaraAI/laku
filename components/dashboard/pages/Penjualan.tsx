@@ -91,7 +91,7 @@ export function PenjualanPage() {
   return (
     <div className="page">
       <header className="page-head" data-reveal>
-        <p className="kicker">Recap penjualan</p>
+        <p className="kicker"><b>Recap penjualan</b></p>
         <h1 className="page-title">Penjualan</h1>
         <div className="period-selector" role="tablist" aria-label="Pilih periode">
           {PERIODS.map((p) => (

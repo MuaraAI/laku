@@ -149,12 +149,16 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 }
 .side-no { margin-left: auto; font-size: 11px; color: var(--text-muted); }
 .side-link.active .side-no { color: var(--primary); }
-.side-foot { margin-top: auto; padding: 8px; display: grid; gap: 4px; }
-.side-note { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
+.side-foot { margin-top: auto; padding: 8px; display: grid; gap: 6px; }
+.side-note { font-size: 11.5px; color: var(--text-muted); line-height: 1.5; }
+/* baris metadata ala .hero-note landing: mono uppercase letterspaced */
+.side-foot .side-note:last-child { font-size: .625rem; letter-spacing: .06em; text-transform: uppercase; }
+.side-foot .demo-chip { margin-right: 2px; }
 
 .content { flex: 1; min-width: 0; }
 .content-inner {
-  max-width: 1400px; margin: 0 auto;
+  max-width: var(--maxw);      /* sama dengan landing — ritme satu produk */
+  margin: 0 auto;
   padding: 24px;              /* desktop 24px */
   padding-bottom: 48px;
 }
@@ -198,14 +202,15 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .page-head::after { right: -6px; }
 .kicker {
   font-family: var(--mono); font-size: 11px; font-weight: 500;
-  letter-spacing: 0.16em; text-transform: uppercase; color: var(--primary);
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-muted);
 }
+.kicker b { font-weight: 500; color: var(--text-primary); }
 .page-title {
   font-size: clamp(1.75rem, 1.2rem + 2vw, 2.25rem); /* maks 2.25rem di dashboard */
   font-weight: 700; letter-spacing: -0.02em; line-height: 1.1;
   text-wrap: balance;
 }
-.page-sub { color: var(--text-secondary); max-width: 56ch; }
+.page-sub { color: var(--text-secondary); max-width: 36rem; line-height: 1.5; text-wrap: pretty; }
 .section-title { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 12px; }
 
 /* ── KPI strip ──────────────────────────────────────────────────────────── */
@@ -250,8 +255,8 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   padding: 3px 8px; border-radius: var(--r-sm);
   font-size: 11px; font-weight: 600; white-space: nowrap;
 }
-.chip-asumsi { background: var(--canvas); color: var(--text-secondary); border: 1px dashed var(--border-strong); }
-.chip-sementara { background: var(--insufficient-bg); color: var(--insufficient); }
+.chip-asumsi { font-family: var(--mono); font-weight: 400; font-size: .625rem; letter-spacing: .04em; text-transform: uppercase; background: var(--subtle); color: var(--text-secondary); padding: 2px 6px; border-radius: var(--r-sm); border: 0; }
+.chip-sementara { font-family: var(--mono); font-weight: 400; font-size: .625rem; letter-spacing: .04em; text-transform: uppercase; background: var(--insufficient-bg); color: var(--insufficient); padding: 2px 6px; }
 .chip-stale { background: var(--reorder-bg); color: var(--reorder); }
 .chip-negative { background: var(--critical-bg); color: var(--critical); }
 .chip-opsional { background: var(--canvas); color: var(--text-muted); border: 1px solid var(--border); }
@@ -485,8 +490,8 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .btn-primary { background: var(--primary); color: var(--surface); }
 .btn-primary:hover { background: var(--primary-hover); }
 .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
-.btn-ghost { background: var(--surface); border-color: var(--border); color: var(--text-secondary); }
-.btn-ghost:hover { background: var(--canvas); }
+.btn-ghost { background: var(--surface); border-color: transparent; box-shadow: inset 0 0 0 1px var(--border-strong); color: var(--text-secondary); }
+.btn-ghost:hover { background: var(--primary-soft); box-shadow: inset 0 0 0 1px var(--primary); color: var(--primary); }
 .btn-lg { min-height: 52px; padding: 0 32px; font-size: 15px; border-radius: var(--r-lg); }
 
 /* ── Onboarding wizard ──────────────────────────────────────────────────── */
