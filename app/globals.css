@@ -102,3 +102,29 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .b-asumsi { font-family: var(--mono); font-weight: 400; border-radius: var(--r-sm); background: var(--subtle); color: var(--text-secondary); font-size: .625rem; letter-spacing: .04em; text-transform: uppercase; padding: 2px 6px; }
 /* label for illustrative data (PRD: demo data is always labelled) */
 .demo-chip { flex: none; font-family: var(--mono); font-size: .625rem; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: var(--r-full); background: var(--subtle); color: var(--text-muted); }
+
+/* ---------- Supply map (components/landing/SupplyMap.tsx): login panel + landing hero ---------- */
+.smap { position: relative; margin: 0; width: 100%; aspect-ratio: 640 / 290; container-type: inline-size; }
+.smap svg { position: absolute; inset: 0 0 auto; width: 100%; height: auto; aspect-ratio: 640 / 260; overflow: hidden; }
+.smap-light { --m-land: color-mix(in srgb, var(--primary) 14%, var(--surface)); --m-edge: color-mix(in srgb, var(--primary) 32%, transparent); --m-ctx: color-mix(in srgb, var(--text-muted) 12%, transparent); --m-route: var(--primary); --m-dot: var(--primary); --m-text: var(--text-secondary); --m-chip: var(--surface); --m-chip-edge: var(--border); --m-hub: var(--primary); --m-hub-text: var(--on-primary); --m-muted: var(--text-muted); }
+.smap-dark { --m-land: color-mix(in srgb, var(--on-dark-accent) 13%, transparent); --m-edge: color-mix(in srgb, var(--on-dark-accent) 38%, transparent); --m-ctx: color-mix(in srgb, var(--on-primary) 5%, transparent); --m-route: var(--on-dark-accent); --m-dot: var(--on-dark-accent); --m-text: var(--on-dark-text); --m-chip: color-mix(in srgb, var(--secondary) 70%, transparent); --m-chip-edge: var(--on-dark-rule); --m-hub: var(--on-dark-accent); --m-hub-text: var(--secondary); --m-muted: var(--on-dark-muted); }
+.smap-ctx { fill: var(--m-ctx); }
+.smap-land { fill: var(--m-land); stroke: var(--m-edge); stroke-width: .6; stroke-linejoin: round; }
+.smap-route { fill: none; stroke: var(--m-route); stroke-width: 1.3; stroke-linecap: round; opacity: .45; }
+.js .smap-route { stroke-dasharray: 1; stroke-dashoffset: 1; animation: smap-draw 1.1s var(--ease-out) forwards; animation-delay: calc(var(--i) * 140ms + .2s); }
+@keyframes smap-draw { to { stroke-dashoffset: 0; } }
+.smap-city { fill: var(--m-chip); stroke: var(--m-dot); stroke-width: 1.6; }
+.smap-hub { fill: var(--m-hub); stroke: var(--m-chip); stroke-width: 2; }
+.smap-ring { fill: none; stroke: var(--m-hub); stroke-width: 1.5; }
+.smap-parcel { fill: var(--m-route); stroke: var(--m-chip); stroke-width: 1.2; }
+.smap-trail { fill: var(--m-route); opacity: .4; }
+.smap-label { position: absolute; padding: .15em .55em; border-radius: var(--r-full); background: var(--m-chip); box-shadow: inset 0 0 0 1px var(--m-chip-edge); color: var(--m-text); font-size: clamp(9px, 1.9cqw, 12px); font-weight: 500; line-height: 1.5; white-space: nowrap; pointer-events: none; }
+.smap-label.pos-b { transform: translate(-50%, 70%); }
+.smap-label.pos-r { transform: translate(14px, -50%); }
+.smap-label.pos-l { transform: translate(calc(-100% - 12px), -50%); }
+.smap-hub-label { position: absolute; display: inline-flex; align-items: center; gap: .45em; padding: .4em .8em .4em .5em; border-radius: var(--r-md); background: var(--m-hub); color: var(--m-hub-text); font-size: clamp(10px, 2.2cqw, 14px); line-height: 1.2; white-space: nowrap; transform: translate(-18%, calc(-100% - 16px)); box-shadow: 0 6px 18px var(--shadow-soft); pointer-events: none; }
+.smap-hub-label::after { content: ""; position: absolute; left: 18%; bottom: -5px; width: 10px; height: 10px; margin-left: -5px; background: inherit; transform: rotate(45deg); border-radius: 2px; }
+.smap-hub-label .ms { font-size: 1.5em; }
+.smap-hub-label b { display: block; font-weight: 600; }
+.smap-hub-label small { display: block; font-family: var(--mono); font-size: .72em; opacity: .8; }
+.smap-cap { position: absolute; left: 0; bottom: 0; font-family: var(--mono); font-size: clamp(9px, 1.6cqw, 11px); letter-spacing: .06em; text-transform: uppercase; color: var(--m-muted); }
