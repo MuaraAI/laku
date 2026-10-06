@@ -1,0 +1,88 @@
+@import "tailwindcss";
+@import "./theme.css";
+
+/* Expose semantic tokens to Tailwind utilities (bg-paper, text-ink, font-mono, ...) */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-bone: var(--bone);
+  --color-wash: var(--wash);
+  --color-obsidian: var(--obsidian);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ash: var(--ash);
+  --color-hairline: var(--hairline);
+  --color-rule: var(--rule);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-critical: var(--critical);
+  --color-critical-bg: var(--critical-bg);
+  --color-reorder: var(--reorder);
+  --color-reorder-bg: var(--reorder-bg);
+  --color-ok: var(--ok);
+  --color-ok-bg: var(--ok-bg);
+  --color-overstock: var(--overstock);
+  --color-overstock-bg: var(--overstock-bg);
+  --color-dead: var(--dead);
+  --color-dead-bg: var(--dead-bg);
+  --color-insufficient: var(--insufficient);
+  --color-insufficient-bg: var(--insufficient-bg);
+  --font-sans: var(--font);
+  --font-mono: var(--mono);
+}
+
+/* ==========================================================
+   Base
+   ========================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; scroll-padding-top: var(--hdr-h); }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: var(--font); font-weight: 400; font-size: 1rem; line-height: 1.5;
+  font-optical-sizing: auto; -webkit-font-smoothing: antialiased;
+}
+main { overflow-x: clip; }
+h1, h2, h3, h4, p { margin: 0; font-weight: 400; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+.num, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* Material Symbols Rounded */
+.ms {
+  font-family: "Material Symbols Rounded"; font-weight: normal; font-style: normal;
+  font-size: 20px; line-height: 1; display: inline-block; white-space: nowrap; direction: ltr; flex: none;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24; user-select: none;
+}
+.ms.fill { font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24; }
+
+.tag { display: inline-flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: .6875rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ash); }
+.tag b { font-weight: 500; color: var(--ink); }
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 44px; padding: 0 20px; border-radius: var(--r-btn);
+  font-size: .9375rem; white-space: nowrap;
+  transition: background-color .3s var(--ease), box-shadow .3s var(--ease), color .3s var(--ease);
+}
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--accent); color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-outline { color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.btn-outline:hover { background: var(--bone); }
+.btn-sm { min-height: 34px; padding: 0 12px; font-size: .8125rem; }
+.btn .go { display: inline-grid; place-items: center; width: 30px; height: 30px; margin-right: -12px; border-radius: var(--r-btn); background: var(--ink); color: var(--accent); }
+.btn .go .ms { font-size: 18px; transition: transform .35s var(--ease-out); }
+.btn:hover .go .ms { transform: translateX(3px); }
+
+/* ---------- Status badges: color + icon + label ---------- */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px 3px 6px; border-radius: var(--r-btn); font-size: .75rem; line-height: 1.4; white-space: nowrap; }
+.badge .ms { font-size: 15px; font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 20; }
+.b-critical { background: var(--critical-bg); color: var(--critical); }
+.b-reorder { background: var(--reorder-bg); color: var(--reorder); }
+.b-ok { background: var(--ok-bg); color: var(--ok); }
+.b-overstock { background: var(--overstock-bg); color: var(--overstock); }
+.b-dead { background: var(--dead-bg); color: var(--dead); }
+.b-insufficient { background: var(--insufficient-bg); color: var(--insufficient); }
+.b-asumsi { font-family: var(--mono); background: var(--bone); color: var(--ink-2); font-size: .625rem; letter-spacing: .04em; text-transform: uppercase; padding: 2px 6px; }

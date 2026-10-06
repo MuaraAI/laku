@@ -2,7 +2,29 @@
 
 Next.js 15 App Router — landing page (`/`) dan dashboard seller (`/dashboard`).
 
-> **NOTE SCAFFOLD:** `package.json` saat ini minimal placeholder struktur. Jalankan `npx create-next-app@latest . --typescript --tailwind --app` di root untuk generate full setup, lalu paste isi `theme.css` (dari PRD repo utama / DESIGN.md) ke `app/globals.css`.
+Stack: Next.js 15.5 · React 19 · TypeScript · Tailwind CSS v4.
+
+```bash
+npm install
+npm run dev     # http://localhost:3000
+npm run build   # wajib lulus sebelum PR
+```
+
+## Struktur
+
+```
+app/
+  layout.tsx            root: font, metadata, flag motion (.js)
+  globals.css           Tailwind + base + tombol/badge bersama
+  theme.css             semantic tokens (satu-satunya tempat hex)
+  icon.svg              favicon (mark Laku)
+  (marketing)/          landing page `/` + landing.css
+components/landing/     section landing (client hanya yang interaktif)
+constants/id.ts         semua copy UI Bahasa Indonesia
+lib/                    helper motion (client) & css
+```
+
+Token juga tersedia sebagai utility Tailwind: `bg-paper`, `text-ink`, `bg-critical-bg`, `font-mono`, dst.
 
 ## Halaman
 
