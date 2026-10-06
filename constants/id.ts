@@ -76,10 +76,10 @@ export const statement = {
 
 export const problem = {
   tag: "Masalahnya",
-  title: "Barang dari Jawa butuh berhari-hari. Salah tebak, rugi dua kali.",
-  body: "Seller di Kalimantan Barat restock dari Jawa dengan lead time 3–7 hari. Tanpa hitungan, stok habis saat laris dan modal nyangkut di barang yang lambat.",
+  title: "Kiriman dari supplier butuh berhari-hari. Salah tebak, rugi dua kali.",
+  body: "Banyak seller di seluruh Nusantara restock dari supplier luar kota atau luar pulau dengan lead time 3–7 hari. Tanpa hitungan, stok habis saat laris dan modal nyangkut di barang yang lambat.",
   cells: [
-    { key: "A.", big: "3–7 hr", title: "Kiriman dari Jawa tidak instan", body: "Telat pesan sehari, rak kosong berhari-hari dan pembeli pindah toko." },
+    { key: "A.", big: "3–7 hr", title: "Kiriman dari supplier tidak instan", body: "Telat pesan sehari, rak kosong berhari-hari dan pembeli pindah toko." },
     { key: "B.", big: "2×", title: "Kehabisan dan kebanyakan sekaligus", body: "Yang laris kehabisan, yang lambat menumpuk. Dua-duanya makan modal." },
     { key: "C.", big: "≠1", title: "Data tersebar di beberapa Seller Center", body: "Format beda-beda, angka harus dicocokkan manual setiap minggu." },
   ],
@@ -153,7 +153,7 @@ export const why = {
   nota: {
     aria: "Nota perhitungan: saran pesan Kopi Robusta 173 unit, status segera pesan",
     head: "LAKU · NOTA RESTOCK",
-    shop: "Tokopi — Pontianak",
+    shop: "Tokopi",
     date: "Sen, 05 Okt 2026 · 08.12 WIB",
     item: "KOPI ROBUSTA 200 G",
     lines: [
@@ -210,7 +210,7 @@ export const pricing = {
     priceNote: "harga setelah uji coba",
     items: [
       { icon: "forum", text: "Kuota asisten AI lebih besar" },
-      { icon: "map", text: "Insight permintaan regional Kalimantan" },
+      { icon: "map", text: "Insight permintaan per daerah" },
       { icon: "api", text: "API Laku untuk data Anda sendiri" },
     ],
   },
@@ -304,7 +304,7 @@ export const brand = {
       no: "05",
       kicker: "Jarak",
       title: "Celah lima",
-      body: "Jarak antara kotak yang datang dan kotak di rak tepat lima satuan, sama dengan lead time bawaan lima hari dari Jawa ke Kalimantan. Celah inilah yang dijaga Laku supaya rak tidak pernah kosong.",
+      body: "Jarak antara kotak yang datang dan kotak di rak tepat lima satuan, sama dengan lead time bawaan lima hari dari supplier ke gudang. Celah inilah yang dijaga Laku supaya rak tidak pernah kosong.",
       spec: [{ text: "5 satuan = 5 hari" }, { text: "Lead time bawaan" }],
     },
     {
