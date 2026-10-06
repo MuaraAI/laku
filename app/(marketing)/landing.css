@@ -75,7 +75,19 @@
 
 .hero-cta { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 12px; width: 100%; }
 .hero-cta .btn { min-height: 52px; font-size: 1rem; flex: 1 1 100%; }
-.hero-cta .btn-outline { justify-content: space-between; padding-right: 14px; }
+.hero-cta .btn-outline { justify-content: space-between; padding-right: 8px; }
+/* "Lihat cara kerjanya": round badge whose circle floods the whole button on hover */
+.btn-flood { position: relative; isolation: isolate; overflow: hidden; gap: 16px; }
+.btn-flood:hover, .btn-flood:focus-visible { background: var(--surface); color: var(--on-primary); box-shadow: inset 0 0 0 1px var(--primary); }
+.btn-flood .lbl { position: relative; z-index: 1; }
+.btn-flood .go { position: relative; display: grid; place-items: center; width: 36px; height: 36px; margin: 0; border-radius: 50%; background: none; color: var(--on-primary); }
+.btn-flood .go::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: 50%; background: var(--primary); transition: transform .7s var(--ease-emph); }
+.btn-flood:hover .go::before, .btn-flood:focus-visible .go::before { transform: scale(24); }
+.btn-flood .go-win { position: relative; width: 18px; height: 18px; overflow: hidden; }
+.btn-flood .go-win .ms { position: absolute; inset: 0; font-size: 18px; transition: transform .45s var(--ease-emph); }
+.btn-flood .go-win .ms + .ms { transform: translateY(-110%); }
+.btn-flood:hover .go-win .ms, .btn-flood:focus-visible .go-win .ms { transform: translateY(110%); }
+.btn-flood:hover .go-win .ms + .ms, .btn-flood:focus-visible .go-win .ms + .ms { transform: none; transition-delay: .08s; }
 @media (min-width: 560px) { .hero-cta .btn { flex: 0 0 auto; } .hero-cta .btn-primary { min-width: 200px; } .hero-cta .btn-outline { gap: 24px; } }
 
 /* crate pile in the right column (below the actions on mobile) */
@@ -411,6 +423,9 @@ html.lock { overflow: hidden; }
 /* the sub, buttons and notes follow the headline instead of arriving with it */
 .hero .sub { transition-delay: .25s; }
 .hero .hero-cta { transition-delay: .35s; }
+/* once the actions land, the arrow gives one downward nudge toward "Cara kerja" */
+.js .hero-cta.in .btn-flood .go-win .ms:first-child { animation: go-nudge .9s var(--ease) 1.1s; }
+@keyframes go-nudge { 0%, 100% { transform: none; } 35% { transform: translateY(4px); } 60% { transform: translateY(-1px); } }
 /* statement: question from the left, answer from the right, then the highlighter sweeps under it */
 .js [data-reveal="slide"] { opacity: 1; transform: none; }
 .js .spacer .st-line { opacity: 0; transform: translateX(-10%); transition: transform 1s var(--ease-emph), opacity .6s var(--ease); }
