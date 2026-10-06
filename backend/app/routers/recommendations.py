@@ -13,7 +13,7 @@ router = APIRouter(prefix="/v1/recommendations", tags=["recommendations"])
 
 
 @router.get("", status_code=status.HTTP_200_OK)
-async def list_recommendations(
+def list_recommendations(
     state: str | None = Query(None),
     overlays: str | None = Query(None),
     identity: Identity = Depends(get_identity),
@@ -26,7 +26,7 @@ async def list_recommendations(
         import json
         from pathlib import Path
 
-        f = Path(__file__).parent.parent / "mock" / "fixtures" / "recommendations.json"
+        f = Path(__file__).parent.parent.parent / "mock" / "fixtures" / "recommendations.json"
         data = json.loads(f.read_text(encoding="utf-8"))
         items = data["recommendations"]
         if state:
@@ -46,7 +46,7 @@ async def list_recommendations(
 
 
 @router.get("/{product_id}", status_code=status.HTTP_200_OK)
-async def get_recommendation(
+def get_recommendation(
     product_id: str,
     identity: Identity = Depends(get_identity),
 ):
@@ -55,7 +55,7 @@ async def get_recommendation(
         import json
         from pathlib import Path
 
-        f = Path(__file__).parent.parent / "mock" / "fixtures" / "recommendations.json"
+        f = Path(__file__).parent.parent.parent / "mock" / "fixtures" / "recommendations.json"
         items = json.loads(f.read_text(encoding="utf-8"))["recommendations"]
         item = next((i for i in items if i["product_id"] == product_id), None)
         if item is None:

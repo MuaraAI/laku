@@ -76,6 +76,7 @@ def _compute_preview(store: ImportsStore, seller_id: str, batch_id: str) -> dict
     from app.services.imports_store import _line_diff
 
     new = updated = unchanged = 0
+    seen: set[tuple] = set()
     new_products: set[str] = set()
     sku_seen = sku_filled = 0
 
@@ -85,6 +86,12 @@ def _compute_preview(store: ImportsStore, seller_id: str, batch_id: str) -> dict
         if r.get("sku"):
             sku_filled += 1
 
+        key = (r["order_id"], r["line_key"])
+        if key in seen:
+            # duplikat dalam 1 file: upsert nanti = unchanged — samakan semantik preview (H5)
+            unchanged += 1
+            continue
+        seen.add(key)
         prev = existing_map.get((r["order_id"], r["line_key"]))
         if prev is None:
             new += 1
@@ -145,7 +152,18 @@ def upload_import(
     store.stage_rows(seller_id, batch_id, result.rows, result.problems)
 
     preview = _compute_preview(store, seller_id, batch_id)
-    store.update_batch(seller_id, batch_id, preview)
+    # Map key preview → kolom import_batches (rows_new dst) — PostgREST menolak
+    # kolom tak dikenal (C1: upload 500 setelah staging masuk kalau tidak dimap)
+    store.update_batch(seller_id, batch_id, {
+        "rows_read": preview.get("rows_read", 0),
+        "rows_new": preview["new"],
+        "rows_updated": preview["updated"],
+        "rows_unchanged": preview["unchanged"],
+        "rows_problem": preview["problem_rows"],
+        "sku_fill_rate": preview.get("sku_fill_rate"),
+        "data_from": preview.get("data_from"),
+        "data_through": preview.get("data_through"),
+    })
 
     return {
         "import_batch_id": batch_id,
@@ -167,10 +185,10 @@ def get_preview(store: ImportsStore, seller_id: str, batch_id: str) -> dict:
         "status": batch["status"],
         "channel": batch["channel"],
         "rows_read": batch.get("rows_read", 0),
-        "new": batch.get("new", 0),
-        "updated": batch.get("updated", 0),
-        "unchanged": batch.get("unchanged", 0),
-        "problem_rows": batch.get("problem_rows", 0),
+        "new": batch.get("rows_new", 0),
+        "updated": batch.get("rows_updated", 0),
+        "unchanged": batch.get("rows_unchanged", 0),
+        "problem_rows": batch.get("rows_problem", 0),
         "new_products": batch.get("new_products", []),
         "sku_fill_rate": batch.get("sku_fill_rate"),
         "data_from": batch.get("data_from"),
@@ -189,8 +207,8 @@ def confirm_import(store: ImportsStore, seller_id: str, batch_id: str) -> dict:
         raise ImportPipelineError("INVALID_STATUS", f"Batch status '{batch['status']}' tidak bisa di-commit.")
 
     rows, problems = store.get_staging(seller_id, batch_id)
-    # staging expired/purged → batch invalid
-    if not rows and batch.get("new", 0) + batch.get("updated", 0) + batch.get("unchanged", 0) == 0:
+    # staging kosong = expired/purged — JANGAN commit "0 new" yang menimpa angka preview (C4)
+    if not rows:
         raise ImportPipelineError("STAGING_EXPIRED", "Staging batch sudah kedaluwarsa. Upload ulang file.")
 
     existing_keys = [(r["order_id"], r["line_key"]) for r in rows]
@@ -221,9 +239,9 @@ def confirm_import(store: ImportsStore, seller_id: str, batch_id: str) -> dict:
 
     store.update_batch(seller_id, batch_id, {
         "status": "committed",
-        "new": counts["new"],
-        "updated": counts["updated"],
-        "unchanged": counts["unchanged"],
+        "rows_new": counts["new"],
+        "rows_updated": counts["updated"],
+        "rows_unchanged": counts["unchanged"],
         "change_log": change_log,
         # problems ikut disimpan (row/column/reason — tanpa isi sel) supaya
         # tetap bisa di-download setelah staging di-purge (ADR-2 aman).
@@ -242,10 +260,10 @@ def list_imports(store: ImportsStore, seller_id: str, limit: int = 50) -> list[d
             "channel": b["channel"],
             "status": b["status"],
             "rows_read": b.get("rows_read", b.get("row_count", 0)),
-            "new": b.get("new", 0),
-            "updated": b.get("updated", 0),
-            "unchanged": b.get("unchanged", 0),
-            "problem_rows": b.get("problem_rows", 0),
+            "new": b.get("rows_new", 0),
+            "updated": b.get("rows_updated", 0),
+            "unchanged": b.get("rows_unchanged", 0),
+            "problem_rows": b.get("rows_problem", 0),
             "sku_fill_rate": b.get("sku_fill_rate"),
             "data_from": (b.get("data_from") or "")[:10] if b.get("data_from") else None,
             "data_through": (b.get("data_through") or "")[:10] if b.get("data_through") else None,

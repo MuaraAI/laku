@@ -7,7 +7,7 @@ import csv
 import io
 import re
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 
 import yaml
 
@@ -154,8 +154,15 @@ def parse_rows(
         if list_price is None and status not in ("cancelled", "unpaid"):
             row_problems.append("harga awal tidak terbaca")
 
-        # tanggal
-        sold_at = _parse_dt(val("sold_at"), tz)
+        # tanggal — kolom DB sold_at NOT NULL; kalau disediakan tapi invalid → problem (C1).
+        # kalau tidak ada di file → default sekarang (WIB/UTC) agar tidak fail diam-diam.
+        sold_at_raw = val("sold_at")
+        if sold_at_raw:
+            sold_at = _parse_dt(sold_at_raw, tz)
+            if sold_at is None:
+                row_problems.append("waktu pesanan tidak terbaca")
+        else:
+            sold_at = datetime.now(timezone.utc)
 
         # --- PII: derive region lalu JANGAN simpan teks mentah ---
         kab = val("buyer_kabupaten") or None
@@ -277,7 +284,7 @@ def parse_shopee_xlsx(raw_bytes: bytes, config: dict) -> ParseResult:
     try:
         wb = openpyxl.load_workbook(io.BytesIO(raw_bytes), read_only=True, data_only=True)
     except Exception as e:
-        result.problems.append({"row": 0, "column": "-", "reason": f"file XLSX rusak/tidak terbaca: {e}"})
+        result.problems.append({"row": 0, "column": "-", "reason": "file XLSX rusak/tidak terbaca"})
         return result
 
     # Multi-sheet aware (format B): workbook bisa berisi sheet README/Stock/

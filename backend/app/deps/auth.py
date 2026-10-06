@@ -64,6 +64,9 @@ def verify_token(token: str) -> dict:
         raise
     except jwt.ExpiredSignatureError:
         raise HTTPException(401, "Token expired")
+    except httpx.RequestError:
+        # JWKS/Supabase down bukan salah token — jangan bilang "invalid" (H7)
+        raise HTTPException(503, "Auth upstream unavailable")
     except Exception:
         raise HTTPException(401, "Invalid token")
 

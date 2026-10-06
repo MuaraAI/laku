@@ -313,15 +313,31 @@ class ImportsSupabaseStore(ImportsStore):
         keyset = {(k[0], k[1]) for k in keys}
         return [r for r in (resp.data or []) if (r["order_id"], r["line_key"]) in keyset]
 
+    @staticmethod
+    def _to_rpc_row(r: dict) -> dict:
+        """Translate field parser → kolom tabel order_lines (schema drift C1).
+
+        Parser canonical: list_price/paid_price/seller_discount;
+        kolom DB & RPC: unit_price/discount_amount/allocated_discount.
+        """
+        return {
+            **r,
+            "unit_price": r.get("unit_price") or r.get("list_price") or 0,
+            "discount_amount": r.get("discount_amount") or 0,
+            "allocated_discount": r.get("allocated_discount") or 0,
+            "shop_id": r.get("shop_id") or "",
+        }
+
     def upsert_lines(self, seller_id: str, batch_id: str,
                      rows: list[dict], change_log: list[dict]) -> dict:
+        rpc_rows = [self._to_rpc_row(r) for r in rows if r.get("sold_at")]
         resp = (
             self.client.rpc(
                 UPSERT_RPC,
                 {
                     "p_seller_id": seller_id,
                     "p_batch_id": batch_id,
-                    "p_rows": rows,
+                    "p_rows": rpc_rows,
                     "p_change_log": change_log,
                 },
             ).execute()
