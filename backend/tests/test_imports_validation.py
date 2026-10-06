@@ -22,15 +22,26 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.routers.imports import _batches
+from app.deps.auth import Identity, get_identity
+from app.routers.imports import _memory_store
+
+SELLER = "s-test-r1"
 
 
 @pytest.fixture(autouse=True)
-def clear_batches():
-    """Reset in-memory batch store between tests."""
-    _batches.clear()
+def setup_auth_and_store():
+    """Reset in-memory store + override auth (endpoint B2 owner-only)."""
+    _memory_store._batches.clear()
+    _memory_store._staging.clear()
+    _memory_store._lines.clear()
+    app.dependency_overrides[get_identity] = lambda: Identity(
+        user_id="u-test", email=None, seller_id=SELLER, role="owner"
+    )
     yield
-    _batches.clear()
+    _memory_store._batches.clear()
+    _memory_store._staging.clear()
+    _memory_store._lines.clear()
+    app.dependency_overrides.pop(get_identity, None)
 
 
 client = TestClient(app)
