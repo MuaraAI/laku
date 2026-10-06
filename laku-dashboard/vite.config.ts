@@ -1,2 +1,3 @@
 import { defineConfig } from 'vite';
-export default defineConfig({ base: './' });
+// postcss inline kosong: cegah Vite menyedot postcss.config.mjs milik Next.js root (parent dir)
+export default defineConfig({ base: './', css: { postcss: {} } });
