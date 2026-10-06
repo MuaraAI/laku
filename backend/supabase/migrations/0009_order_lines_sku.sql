@@ -110,3 +110,8 @@ BEGIN
   RETURN jsonb_build_object('new', v_new, 'updated', v_updated, 'unchanged', v_unchanged);
 END;
 $$;
+
+REVOKE EXECUTE ON FUNCTION upsert_order_lines(uuid, uuid, jsonb, jsonb) FROM anon, public;
+GRANT EXECUTE ON FUNCTION upsert_order_lines(uuid, uuid, jsonb, jsonb) TO authenticated, service_role;
+REVOKE EXECUTE ON FUNCTION get_platform_stats() FROM anon;
+GRANT EXECUTE ON FUNCTION get_platform_stats() TO authenticated, service_role;
