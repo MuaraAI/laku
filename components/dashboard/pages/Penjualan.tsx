@@ -53,7 +53,8 @@ function TrendChart({ period }: { period: Period }) {
         <path d={area} className="chart-area" />
         <path d={line} className="chart-line" />
         {labels.map((l) => (
-          <text key={l.i} x={x(l.i)} y={H - 8} className="chart-tick" textAnchor="middle">{l.label}</text>
+          <text key={l.i} x={x(l.i)} y={H - 8} className="chart-tick"
+            textAnchor={l.i === 0 ? 'start' : l.i === data.length - 1 ? 'end' : 'middle'}>{l.label}</text>
         ))}
         {hov && hover != null && (
           <g>

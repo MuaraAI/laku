@@ -32,7 +32,7 @@ export function OnboardingPage({ onFinish }: { onFinish: () => void }) {
       <header className="page-head" data-reveal>
         <p className="kicker"><b>Setup awal</b></p>
         <h1 className="page-title">Kenalkan, ini Laku</h1>
-        <p className="page-sub">Lima langkah singkat supaya Laku bisa mulai menyarankan restock dari data penjualanmu.</p>
+        <p className="page-sub">Enam langkah singkat supaya Laku bisa mulai menyarankan restock dari data penjualanmu.</p>
       </header>
 
       <nav className="wizard-dots" aria-label="Langkah onboarding">

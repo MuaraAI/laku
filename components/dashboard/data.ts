@@ -113,7 +113,9 @@ export const fmtIDR = (n: number) => idr.format(n);
 export const fmtNum = (n: number) => num.format(n);
 export const fmtNum1 = (n: number) => num1.format(n);
 export function fmtDays(d: number): string {
-  return d === Infinity ? '∞' : `${num1.format(d)} hr`;
+  if (d === Infinity) return '∞';
+  if (d > 90) return '> 90 hr'; // stok mati/berlebih: angka raksasa tidak membantu keputusan
+  return `${num1.format(d)} hr`;
 }
 
 // ── Data penjualan (recap) ───────────────────────────────────────────────────

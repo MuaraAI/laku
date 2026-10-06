@@ -546,6 +546,8 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   }
   .stock-figures .why-btn { grid-column: 1 / -1; width: 100%; justify-content: center; }
   .fig { min-width: 0; }
+  /* label nowrap + lebih kecil supaya tinggi baris angka tetap sejajar */
+  .stock-figures .fig-label { white-space: nowrap; font-size: 9.5px; letter-spacing: .04em; }
   .channel-picker { display: grid; grid-template-columns: 1fr; }
   .channel-row { grid-template-columns: 1fr; gap: 8px; }
   .channel-figs { justify-content: space-between; }
