@@ -1,4 +1,4 @@
-name: CI (MuaraAI Hackathon)
+name: CI (MuaraAI Laku)
 
 on:
   push:
@@ -7,15 +7,9 @@ on:
     branches: [main]
 
 jobs:
-  test:
-    name: Backend Test Suite
+  backend:
+    name: Backend Test Suite (FastAPI)
     runs-on: ubuntu-latest
-    # Filter ketat: Hanya jalan di repo resmi MuaraAI/laku (bukan fork)
-    # dan hanya untuk anggota resmi tim hackthon-1:
-    # 1. Curzyori (Yuken)
-    # 2. Seeyaa77 (Rafli/Bob)
-    # 3. MyKineID (Jio/Verzio)
-    # 4. kabayy-sys (Raken)
     if: >
       github.repository == 'MuaraAI/laku' &&
       contains(fromJSON('["Curzyori", "Seeyaa77", "MyKineID", "kabayy-sys"]'), github.actor)
@@ -36,16 +30,33 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Run Backend Pytest Suite
+      - name: Run Backend Pytest Suite (139 tests)
         run: |
           cd backend
           python -m pytest tests/ -v
 
-      - name: Build Frontend (if npm lockfile present)
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-            npm run build
-          else
-            echo "package-lock.json belum ada, frontend build dilewati sampai scaffolding selesai."
-          fi
+  frontend:
+    name: Frontend Quality & Build (Next.js 15)
+    runs-on: ubuntu-latest
+    if: >
+      github.repository == 'MuaraAI/laku' &&
+      contains(fromJSON('["Curzyori", "Seeyaa77", "MyKineID", "kabayy-sys"]'), github.actor)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Build Next.js Production (Landing + Dashboard + Auth)
+        run: npm run build
