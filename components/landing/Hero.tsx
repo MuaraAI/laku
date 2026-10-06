@@ -1,88 +1,18 @@
 import Link from "next/link";
 import { hero, routes } from "@/constants/id";
-import { AssumptionBadge, Headline, Icon, StatusBadge } from "./primitives";
+import { AssumptionBadge, Headline, Icon } from "./primitives";
 
 export default function Hero() {
   return (
     <div className="rail">
       <section className="hero" aria-labelledby="hero-title">
-        <article className="panel" aria-label={hero.panelAria} data-reveal="">
-          <div className="panel-body">
-            <div className="sc-head">
-              <div className="sc-title">{hero.title}</div>
-              <span className="demo-chip">{hero.demoChip}</span>
-            </div>
-            <p className="tb-hint">{hero.hint}</p>
-            <div className="tb">
-              <div className="tb-head" aria-hidden="true">
-                {hero.cols.map((c) => (
-                  <span key={c}>{c}</span>
-                ))}
-              </div>
-              <ul className="tb-list">
-                {hero.rows.map((r) => (
-                  <li key={r.name} className={`tb-row${r.hot ? " hot" : ""}`}>
-                    <span className="tb-name">{r.name}</span>
-                    <span className="tb-num">{r.stock}</span>
-                    <span className="tb-num tb-days">{r.days}</span>
-                    <StatusBadge kind={r.status} />
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="sc-foot">
-              <Icon name="local_shipping" />
-              <div className="sum">
-                <span className="k">{hero.footKey}</span>
-                <span className="v">
-                  {hero.footProduct}
-                  <span className="num">{hero.footQty}</span>
-                  {hero.footUnit}
-                </span>
-              </div>
-              <a className="btn btn-outline btn-sm" href="#mengapa">
-                {hero.footWhy}
-              </a>
-            </div>
-          </div>
-        </article>
-
-        <div className="hero-copy">
-          <span className="tag" data-reveal="fade">
-            <b>00</b> {hero.tag}
-          </span>
-          <Headline as="h1" id="hero-title" parts={hero.headline} />
-          <p className="sub" data-reveal="">
-            {hero.sub}
-          </p>
-          <div className="route" aria-hidden="true">
-            <span className="pin from">
-              <span className="ms">factory</span>
-              <span>
-                {hero.routeFrom}
-                <span className="long">{hero.routeFromLong}</span>
-              </span>
-            </span>
-            <span className="lt">
-              <span>
-                <span className="long">{hero.routeLeadLong}</span>
-                {hero.routeLead}
-              </span>{" "}
-              <AssumptionBadge />
-            </span>
-            <span className="pin to">
-              <span className="ms fill">warehouse</span>
-              <span>
-                {hero.routeTo}
-                <span className="long">{hero.routeToLong}</span>
-              </span>
-            </span>
-          </div>
-          <p className="route-cap" data-reveal="">
-            {hero.routeCap}
-          </p>
-        </div>
-
+        <span className="tag" data-reveal="fade">
+          <b>00</b> {hero.tag}
+        </span>
+        <Headline as="h1" id="hero-title" parts={hero.headline} split />
+        <p className="sub" data-reveal="">
+          {hero.sub}
+        </p>
         <div className="hero-cta" data-reveal="">
           <Link className="btn btn-primary" href={routes.login}>
             {hero.ctaPrimary}
@@ -94,6 +24,38 @@ export default function Hero() {
             </span>
           </a>
         </div>
+
+        {/* supplier → warehouse: the line draws, then one parcel makes the trip */}
+        <div className="route" data-reveal="route" aria-hidden="true">
+          <span className="pin from">
+            <span className="ms">factory</span>
+            <span>
+              {hero.routeFrom}
+              <span className="long">{hero.routeFromLong}</span>
+            </span>
+          </span>
+          <span className="track">
+            <span className="lt">
+              <span>
+                <span className="long">{hero.routeLeadLong}</span>
+                {hero.routeLead}
+              </span>{" "}
+              <AssumptionBadge />
+            </span>
+            <span className="packet" />
+          </span>
+          <span className="pin to">
+            <span className="ms fill">warehouse</span>
+            <span>
+              {hero.routeTo}
+              <span className="long">{hero.routeToLong}</span>
+            </span>
+          </span>
+        </div>
+        <p className="route-cap" data-reveal="fade">
+          {hero.routeCap}
+        </p>
+
         <div className="hero-note" data-reveal="fade">
           {hero.notes.map((n) => (
             <span key={n}>

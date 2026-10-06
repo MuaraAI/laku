@@ -3,10 +3,10 @@
 import { useEffect } from "react";
 import { hasMotion } from "@/lib/motion";
 
-/** Adds `.in` to [data-reveal] blocks as they scroll into view (one quiet fade). Mount once per page. */
+/** Adds `.in` to [data-reveal] / [data-split] blocks as they scroll into view. Mount once per page. */
 export default function RevealObserver() {
   useEffect(() => {
-    const targets = Array.from(document.querySelectorAll<HTMLElement>("[data-reveal]"));
+    const targets = Array.from(document.querySelectorAll<HTMLElement>("[data-reveal], [data-split]"));
     const show = (el: Element) => el.classList.add("in");
     if (!hasMotion() || !("IntersectionObserver" in window)) {
       targets.forEach(show);

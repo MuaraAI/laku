@@ -2,13 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import LoginCard from "@/components/auth/LoginCard";
 import { Headline, Icon, LakuMark, StatusBadge } from "@/components/landing/primitives";
-import { footer, hero, login, nav, routes } from "@/constants/id";
+import { demo, footer, hero, login, nav, routes } from "@/constants/id";
 
 export const metadata: Metadata = { title: login.metaTitle };
 
 type ErrorKey = keyof typeof login.errors;
-
-const previewRows = hero.rows.filter((r) => login.aside.previewRows.includes(r.name));
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error } = await searchParams;
@@ -27,10 +25,10 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <div className="auth-preview">
           <div className="auth-preview-head">
             <span>{login.aside.previewTitle}</span>
-            <span className="demo-chip">{hero.demoChip}</span>
+            <span className="demo-chip">{demo.label}</span>
           </div>
           <ul>
-            {previewRows.map((r) => (
+            {demo.rows.map((r) => (
               <li key={r.name}>
                 <span className="name">{r.name}</span>
                 <span className="days">{r.days}</span>
