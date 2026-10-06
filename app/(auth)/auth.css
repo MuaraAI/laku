@@ -37,10 +37,10 @@
 /* email magic link */
 .auth-email { display: grid; gap: 10px; }
 .auth-label { font-size: .875rem; color: var(--text-secondary); }
-.auth-input { min-height: 48px; padding: 0 14px; border: 1px solid var(--border); border-radius: var(--r-input); background: var(--surface); color: var(--ink); font: inherit; }
+.auth-input { min-height: 48px; padding: 0 14px; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface); color: var(--text-primary); font: inherit; }
 .auth-input:focus { outline: 2px solid var(--primary); outline-offset: 1px; border-color: transparent; }
 .auth-input::placeholder { color: var(--text-muted); }
-.auth-email-btn { min-height: 48px; background: var(--primary); color: var(--on-primary); font-weight: 600; border-radius: var(--r-input); }
+.auth-email-btn { min-height: 48px; background: var(--primary); color: var(--on-primary); font-weight: 600; border-radius: var(--r-md); }
 .auth-email-btn:hover { background: var(--primary-hover, #075985); }
 .auth-email-btn:disabled { cursor: progress; opacity: .7; }
 .auth-divider { display: flex; align-items: center; gap: 12px; margin: 2px 0; color: var(--text-muted); font-size: .8125rem; }
