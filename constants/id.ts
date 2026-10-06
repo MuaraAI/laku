@@ -36,23 +36,17 @@ export const nav = {
   menuClose: "Tutup menu",
 };
 
-export const hero = {
-  panelAria: "Contoh daftar restock Tokopi, data demo",
-  demoChip: "Data demo",
-  title: "Restock minggu ini",
-  hint: "Kiriman dari Jawa butuh 5 hari. Stok yang cukup 5 hari atau kurang harus dipesan hari ini.",
-  cols: ["Produk", "Stok", "Cukup", "Status"],
+/** Illustrative restock rows (login preview); always shown with the demo label. */
+export const demo = {
+  label: "Data demo",
   rows: [
-    { name: "Kopi Robusta 200 g", stock: "40", days: "4 hari", status: "critical", hot: true },
-    { name: "Kopi Arabika Gayo 200 g", stock: "36", days: "9 hari", status: "reorder" },
-    { name: "Drip Bag Kopi isi 10", stock: "52", days: "26 hari", status: "ok" },
-    { name: "French Press 600 ml", stock: "120", days: ">60 hari", status: "overstock" },
-  ] as { name: string; stock: string; days: string; status: StatusKey; hot?: boolean }[],
-  footKey: "Saran pesan hari ini",
-  footProduct: "Kopi Robusta · ",
-  footQty: "173",
-  footUnit: " unit",
-  footWhy: "Kenapa 173?",
+    { name: "Kopi Robusta 200 g", days: "4 hari", status: "critical" },
+    { name: "Kopi Arabika Gayo 200 g", days: "9 hari", status: "reorder" },
+    { name: "French Press 600 ml", days: ">60 hari", status: "overstock" },
+  ] as { name: string; days: string; status: StatusKey }[],
+};
+
+export const hero = {
   tag: "Restock engine · MuaraAI",
   headline: ["Tau apa yang bakal laku, ", { text: "sebelum stokmu habis.", className: "soft" }] as SplitPart[],
   sub: "Upload export Shopee, TikTok Shop, dan Tokopedia. Laku menghitung apa yang perlu di-restock, berapa banyak, dan apa yang berhenti dibeli.",
@@ -62,7 +56,7 @@ export const hero = {
   routeLead: "5 hari",
   routeTo: "Gudang",
   routeToLong: " · Pontianak",
-  routeCap: "Kopi Robusta habis dalam 4 hari, kiriman butuh 5. Itu sebabnya statusnya “Segera pesan”.",
+  routeCap: "Kalau stok habis sebelum kiriman tiba, Laku menandainya “Segera pesan”.",
   ctaPrimary: "Coba gratis",
   ctaSecondary: "Lihat cara kerjanya",
   notes: ["File CSV / XLSX", "Tanpa login marketplace", "Data pembeli tidak disimpan"],
@@ -356,7 +350,6 @@ export const login = {
   aside: {
     sub: "Upload export marketplace seminggu sekali. Laku menyusun daftar restock dari yang paling mendesak.",
     previewTitle: "Restock minggu ini",
-    previewRows: ["Kopi Robusta 200 g", "Kopi Arabika Gayo 200 g", "French Press 600 ml"],
   },
   consentLead: "Dengan masuk, Anda menyetujui ",
   consentTos: "Syarat & Ketentuan",

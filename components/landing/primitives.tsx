@@ -1,4 +1,4 @@
-import { Fragment, type ElementType, type ReactNode } from "react";
+import { Fragment, type CSSProperties, type ElementType, type ReactNode } from "react";
 import { assumption, status, type SplitPart, type StatusKey } from "@/constants/id";
 
 export function Icon({ name, fill, className }: { name: string; fill?: boolean; className?: string }) {
@@ -83,27 +83,50 @@ export function SectionTag({ no, children }: { no?: string; children: ReactNode 
   );
 }
 
-/** Section heading; `parts` lets one phrase carry a class (e.g. the soft grey half). Fades in with its block. */
+/**
+ * Section heading; `parts` lets one phrase carry a class (e.g. the soft grey half).
+ * Fades in with its block, or with `split` its words rise one by one (hero only).
+ */
 export function Headline({
   as: Tag = "h2",
   parts,
   id,
   className,
+  split = false,
 }: {
   as?: ElementType;
   parts: SplitPart[] | string;
   id?: string;
   className?: string;
+  split?: boolean;
 }) {
   const list = typeof parts === "string" ? [parts] : parts;
+  let wi = 0;
+  const words = (text: string) =>
+    text
+      .split(/(\s+)/)
+      .filter(Boolean)
+      .map((w, i) =>
+        /^\s+$/.test(w) ? (
+          " "
+        ) : (
+          <span className="w" aria-hidden="true" key={i}>
+            <span style={{ "--wi": wi++ } as CSSProperties}>{w}</span>
+          </span>
+        ),
+      );
+  const render = (text: string) => (split ? words(text) : text);
+  const motionProps = split
+    ? { "data-split": "", "aria-label": list.map((p) => (typeof p === "string" ? p : p.text)).join("").trim() }
+    : { "data-reveal": "" };
   return (
-    <Tag id={id} className={className} data-reveal="">
+    <Tag id={id} className={className} {...motionProps}>
       {list.map((p, i) =>
         typeof p === "string" ? (
-          <Fragment key={i}>{p}</Fragment>
+          <Fragment key={i}>{render(p)}</Fragment>
         ) : (
           <span key={i} className={p.className}>
-            {p.text}
+            {render(p.text)}
           </span>
         ),
       )}
