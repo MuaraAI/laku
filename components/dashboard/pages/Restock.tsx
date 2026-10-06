@@ -55,6 +55,18 @@ export function RestockPage() {
   const [why, setWhy] = useState<Product | null>(null);
   const actionable = useMemo(() => sortedActionable(PRODUCTS), []);
   const stop = useMemo(() => stopBuying(PRODUCTS), []);
+  const todayStr = useMemo(() => {
+    try {
+      return new Intl.DateTimeFormat('id-ID', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }).format(new Date());
+    } catch {
+      return 'Prioritas Pemesanan';
+    }
+  }, []);
 
   const criticalCount = PRODUCTS.filter((p) => p.status === 'CRITICAL').length;
   const reorderCount = PRODUCTS.filter((p) => p.status === 'REORDER').length;
@@ -64,7 +76,7 @@ export function RestockPage() {
   return (
     <div className="page">
       <header className="page-head" data-reveal>
-        <p className="kicker"><b>Dashboard</b> · Selasa, 6 Oktober 2026</p>
+        <p className="kicker"><b>Dashboard</b> · {todayStr}</p>
         <h1 className="page-title">Restock</h1>
         <p className="page-sub">Barang yang perlu dipesan dulu ada di atas. Angka dihitung dari laju laku tiap SKU.</p>
       </header>
