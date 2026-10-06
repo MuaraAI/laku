@@ -37,7 +37,6 @@ export default function Hero() {
             <span className="ms">factory</span>
             <span>
               {hero.routeFrom}
-              <span className="long">{hero.routeFromLong}</span>
             </span>
           </span>
           <span className="track">
@@ -54,7 +53,6 @@ export default function Hero() {
             <span className="ms fill">warehouse</span>
             <span>
               {hero.routeTo}
-              <span className="long">{hero.routeToLong}</span>
             </span>
           </span>
         </div>
