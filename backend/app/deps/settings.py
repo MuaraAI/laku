@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     redis_url: str = ""
     muaraai_gateway_key: str = ""
     demo_mode: bool = False
+    env: str = "prod"  # "dev" | "prod" — dev saja yang expose /docs & openapi
     sentry_dsn: str = ""
     allowed_origins: str = "http://localhost:3000,https://laku.muaraai.com"
 
