@@ -279,11 +279,12 @@ class ImportsSupabaseStore(ImportsStore):
         resp = (
             self.client.table("order_lines")
             .select("*")
+            .eq("seller_id", seller_id)  # eksplisit — jangan andalkan RLS saja
             .or_(or_expr)
             .execute()
         )
         # filter kombinasi lengkap di memori (order_id+line_key cukup unik per seller
-        # karena unique index 6 kolom; seller_id sudah dijamin RLS)
+        # karena unique index 6 kolom; seller_id difilter eksplisit di query di atas)
         keyset = {(k[0], k[1]) for k in keys}
         return [r for r in (resp.data or []) if (r["order_id"], r["line_key"]) in keyset]
 
