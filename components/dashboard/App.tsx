@@ -24,6 +24,7 @@ export default function App() {
   const [onboarded, setOnboarded] = useState<boolean>(false);
   const [page, setPage] = useState<PageKey>('restock');
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -35,7 +36,41 @@ export default function App() {
     }
   }, []);
 
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const { supabaseBrowser } = await import('@/lib/supabase/client');
+        const supabase = supabaseBrowser();
+        if (supabase) {
+          const { data } = await supabase.auth.getSession();
+          if (data.session?.user?.email) {
+            setUserEmail(data.session.user.email);
+          }
+          supabase.auth.onAuthStateChange((_event, session) => {
+            setUserEmail(session?.user?.email ?? null);
+          });
+        }
+      } catch {
+        /* abaikan */
+      }
+    }
+    loadUser();
+  }, []);
+
   useEffect(() => { window.scrollTo({ top: 0 }); }, [page]);
+
+  async function handleLogout() {
+    try {
+      const { supabaseBrowser } = await import('@/lib/supabase/client');
+      const supabase = supabaseBrowser();
+      if (supabase) {
+        await supabase.auth.signOut();
+      }
+      window.location.href = '/';
+    } catch {
+      window.location.href = '/';
+    }
+  }
 
   function finishOnboarding() {
     try {
@@ -89,8 +124,25 @@ export default function App() {
           ))}
         </nav>
         <div className="side-foot">
+          {userEmail ? (
+            <div className="side-user">
+              <span className="user-email" title={userEmail}>
+                {userEmail}
+              </span>
+              <button className="user-logout" onClick={handleLogout}>
+                Keluar
+              </button>
+            </div>
+          ) : (
+            <div className="side-user demo-user">
+              <span className="user-email">Mode Demo (Tamu)</span>
+              <a className="user-logout user-login-link" href="/login">
+                Masuk
+              </a>
+            </div>
+          )}
           <p className="side-note"><span className="demo-chip">Data demo</span> Disimpan hanya di browser ini.</p>
-          <p className="side-note num num-left">Deadline MVP · 08 Okt 2026</p>
+          <p className="side-note num num-left">SIFEST 2026 · MuaraAI</p>
         </div>
       </aside>
 
