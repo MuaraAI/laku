@@ -70,6 +70,17 @@
 .trend-chart { animation: val-in .3s var(--ease-out); }
 .channel-row { animation: val-in .3s var(--ease-out); }
 
+/* Grafik tren menggambar diri saat load/ganti periode (bahasa alur-data landing).
+   pathLength=1 menormalkan panjang path — draw selalu tepat satu durasi. */
+.chart-line {
+  stroke-dasharray: 1; stroke-dashoffset: 1;
+  animation: draw-line .9s var(--ease-out) .15s forwards;
+}
+@keyframes draw-line { to { stroke-dashoffset: 0; } }
+.chart-area { animation: fade-only .6s var(--ease-out) .3s backwards; }
+.chart-grid { animation: fade-only .5s var(--ease-out) backwards; }
+@keyframes fade-only { from { opacity: 0; } }
+
 .dash, .dash * {
   box-sizing: border-box;
 }

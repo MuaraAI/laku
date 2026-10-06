@@ -51,7 +51,7 @@ function TrendChart({ period }: { period: Period }) {
           <line key={f} x1={PL} x2={W - PR} y1={y(max * f)} y2={y(max * f)} className="chart-grid" />
         ))}
         <path d={area} className="chart-area" />
-        <path d={line} className="chart-line" />
+        <path d={line} className="chart-line" pathLength={1} />
         {labels.map((l) => (
           <text key={l.i} x={x(l.i)} y={H - 8} className="chart-tick"
             textAnchor={l.i === 0 ? 'start' : l.i === data.length - 1 ? 'end' : 'middle'}>{l.label}</text>
