@@ -7,7 +7,13 @@ import { Icon } from "@/components/landing/primitives";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export default function LoginCard({ initialError }: { initialError: string | null }) {
+export default function LoginCard({
+  initialError,
+  nextDestination,
+}: {
+  initialError: string | null;
+  nextDestination?: string;
+}) {
   const [error, setError] = useState(initialError);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -16,8 +22,10 @@ export default function LoginCard({ initialError }: { initialError: string | nul
   const [otpCode, setOtpCode] = useState("");
   const [verifying, setVerifying] = useState(false);
 
+  const targetNext = nextDestination || "/dashboard?mode=live";
+
   const redirectTo = () =>
-    `${location.origin}/auth/callback?next=${encodeURIComponent(routes.afterLogin)}`;
+    `${location.origin}/auth/callback?next=${encodeURIComponent(targetNext)}`;
 
   const signIn = async () => {
     // the Supabase client only loads when someone actually signs in
@@ -76,7 +84,7 @@ export default function LoginCard({ initialError }: { initialError: string | nul
       setError("Kode OTP salah atau kedaluwarsa. Periksa kode di email.");
       return;
     }
-    window.location.href = routes.afterLogin;
+    window.location.href = targetNext;
   };
 
   if (sentTo) {
