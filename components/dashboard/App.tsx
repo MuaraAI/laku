@@ -131,43 +131,8 @@ export default function App() {
             <rect className="m-stock" x="24" y="33" width="14" height="14" rx="2" />
             <path className="m-l" d="M17 17V50H48" />
           </svg>
-          <span className="wordmark-text">LAKU<small>Restock Engine</small></span>
+          <span className="wordmark-text">LAKU<small>Restock yuk!</small></span>
         </a>
-
-        {/* Store & Mode Switcher (Option A) */}
-        <div className="store-selector">
-          <div className="store-selector-header">
-            <span className={`store-badge ${mode === 'live' ? 'live' : ''}`}>
-              {mode === 'demo' ? 'DEMO' : 'LIVE'}
-            </span>
-            <span className="store-name" title={storeName}>
-              {storeName}
-            </span>
-          </div>
-          <div className="mode-toggle-group">
-            <button
-              className={`mode-btn ${mode === 'demo' ? 'active' : ''}`}
-              onClick={() => setMode('demo')}
-              type="button"
-            >
-              Demo
-            </button>
-            <button
-              className={`mode-btn ${mode === 'live' ? 'active' : ''}`}
-              onClick={() => {
-                if (!userEmail) {
-                  window.location.href = `/login?next=${encodeURIComponent('/dashboard?mode=live')}`;
-                } else {
-                  setMode('live');
-                }
-              }}
-              title={!userEmail ? 'Login untuk buka Toko Saya' : 'Beralih ke Toko Saya'}
-              type="button"
-            >
-              Toko Saya
-            </button>
-          </div>
-        </div>
 
         <nav className="side-nav" aria-label="Navigasi utama" onMouseLeave={() => setHoverIdx(null)}>
           {hoverIdx !== null && (
@@ -201,17 +166,50 @@ export default function App() {
               </a>
             </div>
           )}
-          <p className="side-note">
-            {mode === 'demo'
-              ? 'Data demo simulasi Warung Bu Rina.'
-              : 'Terhubung ke database Toko Saya.'}
-          </p>
-          <p className="side-note num num-left">v1.0.0 · MuaraAI</p>
         </div>
       </aside>
 
       <main className="content" id="top">
-        <div className="content-inner">{body}</div>
+        <div className="content-inner">
+          <header className="dash-topbar" aria-label="Pengaturan Toko dan Mode">
+            <div className="mode-switcher-top">
+              <span className={`store-badge ${mode === 'live' ? 'live' : ''}`}>
+                {mode === 'demo' ? 'DEMO' : 'LIVE'}
+              </span>
+              <span className="store-name" title={storeName}>
+                {storeName}
+              </span>
+              <div className="mode-toggle-group" role="radiogroup" aria-label="Pilih mode data">
+                <button
+                  className={`mode-btn ${mode === 'demo' ? 'active' : ''}`}
+                  onClick={() => setMode('demo')}
+                  type="button"
+                  role="radio"
+                  aria-checked={mode === 'demo'}
+                >
+                  Demo
+                </button>
+                <button
+                  className={`mode-btn ${mode === 'live' ? 'active' : ''}`}
+                  onClick={() => {
+                    if (!userEmail) {
+                      window.location.href = `/login?next=${encodeURIComponent('/dashboard?mode=live')}`;
+                    } else {
+                      setMode('live');
+                    }
+                  }}
+                  title={!userEmail ? 'Login untuk buka Toko Saya' : 'Beralih ke Toko Saya'}
+                  type="button"
+                  role="radio"
+                  aria-checked={mode === 'live'}
+                >
+                  Toko Saya
+                </button>
+              </div>
+            </div>
+          </header>
+          {body}
+        </div>
       </main>
 
       <nav className="bottom-tabs" aria-label="Navigasi utama mobile">
