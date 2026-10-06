@@ -1,29 +1,28 @@
-/* ─────────────────────────────────────────────────────────────────────────
-   Laku · MuaraAI — Sistem Desain "Light-First"
-   DNA template: editorial hitam-putih → dialihkan ke terang (putih),
-   karena Laku dipakai seller di gudang/warung terang.
-   Semua warna lewat semantic tokens (tidak ada hex hardcode di komponen).
-   Radius presisi: 8px (input/badge), 12–16px (kartu/tombol).
-   Elevasi: flat (border) > card (shadow ringan) > overlay (shadow + backdrop).
-   ───────────────────────────────────────────────────────────────────────── */
-
 @font-face {
   font-family: 'Space Grotesk';
-  src: url('./fonts/space-grotesk-var.woff2') format('woff2');
+  src: url('/fonts/space-grotesk-var.woff2') format('woff2');
   font-weight: 300 700; font-style: normal; font-display: swap;
 }
 @font-face {
   font-family: 'Inter';
-  src: url('./fonts/inter-var.woff2') format('woff2');
+  src: url('/fonts/inter-var.woff2') format('woff2');
   font-weight: 100 900; font-style: normal; font-display: swap;
 }
 @font-face {
   font-family: 'JetBrains Mono';
-  src: url('./fonts/jetbrains-mono-var.woff2') format('woff2');
+  src: url('/fonts/jetbrains-mono-var.woff2') format('woff2');
   font-weight: 100 800; font-style: normal; font-display: swap;
 }
 
-:root {
+@keyframes slide-in { from { transform: translateX(24px); opacity: 0; }
+@keyframes shimmer { to { background-position: -200% 0; }
+
+.dash, .dash * {
+  box-sizing: border-box;
+}
+
+.dash {
+
   /* Warna utama (brand MuaraAI) */
   --primary: #0369A1;          /* River Current Blue */
   --primary-strong: #075985;
@@ -61,19 +60,20 @@
   --font-head: 'Space Grotesk', 'Inter', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
   --font-num: 'JetBrains Mono', ui-monospace, monospace;
-}
 
-* { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-body {
-  margin: 0;
+  min-height: 100dvh;
   background: var(--bg);
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
-}
+
+
+
+
+
+
 h1, h2, h3 { font-family: var(--font-head); margin: 0; }
 p { margin: 0; }
 button { font-family: inherit; cursor: pointer; }
@@ -292,7 +292,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   animation: slide-in 0.22s ease-out;
   outline: none;
 }
-@keyframes slide-in { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+ to { transform: none; opacity: 1; } }
 .panel-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
 .panel-kicker { font-family: var(--font-num); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--primary); }
 .panel-title { font-size: 1.25rem; margin-top: 4px; }
@@ -424,7 +424,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .sk-row { height: 44px; }
 .sk-row.short { width: 55%; }
 .w60 { width: 60%; } .w80 { width: 80%; }
-@keyframes shimmer { to { background-position: -200% 0; } }
+ }
 
 .preview-block { display: grid; gap: 4px; }
 .preview-file { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); }
@@ -500,6 +500,8 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
+  
   .sk, .why-panel { animation: none; }
+}
+
 }

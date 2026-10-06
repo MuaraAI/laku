@@ -41,24 +41,11 @@ jobs:
           cd backend
           python -m pytest tests/ -v
 
-      # Next.js root (landing + app). laku-dashboard di-exclude dari tsconfig/eslint
-      # supaya build ini tidak menyeret config Vite milik folder prototype.
-      - name: Build Frontend — Next.js root (if npm lockfile present)
+      - name: Build Frontend (if npm lockfile present)
         run: |
           if [ -f package-lock.json ]; then
             npm ci
             npm run build
           else
             echo "package-lock.json belum ada, frontend build dilewati sampai scaffolding selesai."
-          fi
-
-      # Dashboard prototype (Vite terpisah) — digabung ke Next.js root pasca-freeze.
-      - name: Build Frontend — laku-dashboard Vite (if npm lockfile present)
-        run: |
-          if [ -f laku-dashboard/package-lock.json ]; then
-            cd laku-dashboard
-            npm ci
-            npm run build
-          else
-            echo "laku-dashboard/package-lock.json belum ada, dashboard build dilewati."
           fi
