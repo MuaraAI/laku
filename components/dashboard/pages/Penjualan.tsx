@@ -1,7 +1,8 @@
 // Halaman Penjualan (Recap): period selector 7/30/90 hari, trend chart,
 // ringkasan omzet, dan Coverage Banner untuk data usang/parsial.
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import { apiFetch } from '@/lib/api';
 import { SALES, CHANNEL_SPLIT, DATA_FRESHNESS, fmtIDR, fmtNum, fmtNum1 } from '../data';
 import { Num, SementaraChip } from '../components';
 import { IconWarning } from '../icons';
@@ -78,14 +79,40 @@ function TrendChart({ period }: { period: Period }) {
   );
 }
 
-export function PenjualanPage() {
+interface LiveRecapResponse {
+  totals?: {
+    gross_rp?: number;
+    net_rp?: number;
+    orders_count?: number;
+  };
+}
+
+export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
   const [period, setPeriod] = useState<Period>(30);
+  const [liveRecap, setLiveRecap] = useState<LiveRecapResponse | null>(null);
+
+  useEffect(() => {
+    if (mode === 'live') {
+      apiFetch<LiveRecapResponse>(`/v1/recap?days=${period}`).then((res) => {
+        if (res) setLiveRecap(res);
+      });
+    } else {
+      setLiveRecap(null);
+    }
+  }, [mode, period]);
+
   const data = SALES[period];
   const split = CHANNEL_SPLIT[period];
 
-  const omzetKotor = data.reduce((s, d) => s + d.omzet, 0);
-  const penjualanBersih = Math.round(omzetKotor * 0.934); // setelah potongan & retur
-  const transaksi = data.reduce((s, d) => s + d.transaksi, 0);
+  const omzetKotor = (mode === 'live' && liveRecap?.totals?.gross_rp != null)
+    ? Number(liveRecap.totals.gross_rp)
+    : data.reduce((s, d) => s + d.omzet, 0);
+  const penjualanBersih = (mode === 'live' && liveRecap?.totals?.net_rp != null)
+    ? Number(liveRecap.totals.net_rp)
+    : Math.round(omzetKotor * 0.934);
+  const transaksi = (mode === 'live' && liveRecap?.totals?.orders_count != null)
+    ? Number(liveRecap.totals.orders_count)
+    : data.reduce((s, d) => s + d.transaksi, 0);
   const rataHarian = omzetKotor / period;
   const staleChannels = DATA_FRESHNESS.filter((c) => c.daysAgo > 7);
 

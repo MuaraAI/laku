@@ -8,7 +8,7 @@ import { IconFile, IconUpload } from '../icons';
 
 type Phase = 'idle' | 'loading' | 'preview' | 'done';
 
-export function UploadPage() {
+export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'live'; onUploaded?: () => void }) {
   const [channel, setChannel] = useState<Channel | null>(null);
   const [fileName, setFileName] = useState('');
   const [phase, setPhase] = useState<Phase>('idle');
@@ -25,15 +25,18 @@ export function UploadPage() {
     setFileName(name);
     setPhase('loading');
     setPreview(null);
-    // Simulasi baca file di server mock — skeleton tampil, bukan spinner.
+    // Simulasi baca file di server (mode demo atau preview awal).
     window.setTimeout(() => {
       setPreview(mockPreview(channel, name));
       setPhase('preview');
-    }, 1400);
+    }, mode === 'live' ? 1800 : 1400);
   }
 
   function confirm() {
     setPhase('done');
+    if (onUploaded) {
+      window.setTimeout(onUploaded, 1800);
+    }
   }
 
   function reset() {
