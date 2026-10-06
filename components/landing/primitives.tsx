@@ -75,10 +75,10 @@ export function Block({ children }: { children: ReactNode }) {
   );
 }
 
-export function SectionTag({ no, children }: { no?: string; children: ReactNode }) {
+export function SectionTag({ children }: { children: ReactNode }) {
   return (
     <span className="tag" data-reveal="fade">
-      {no && <b>{no}</b>} {children}
+      {children}
     </span>
   );
 }
