@@ -2,6 +2,7 @@
 // routing internal berbasis state (preview statis tanpa server rewrite).
 
 import { useEffect, useState } from 'react';
+import RevealObserver from '@/components/landing/RevealObserver';
 import { RestockPage } from './pages/Restock';
 import { PenjualanPage } from './pages/Penjualan';
 import { UploadPage } from './pages/Upload';
@@ -22,6 +23,7 @@ const ONBOARDED_KEY = 'laku-onboarded';
 export default function App() {
   const [onboarded, setOnboarded] = useState<boolean>(false);
   const [page, setPage] = useState<PageKey>('restock');
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
 
   useEffect(() => {
     try {
@@ -57,6 +59,9 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      {/* observer reveal ala landing — key berganti per halaman supaya elemen
+          halaman aktif yang dipindai ulang (elemen baru tidak diamati observer lama) */}
+      <RevealObserver key={`${onboarded}-${page}`} />
       <aside className="sidebar">
         <a className="wordmark" href="#top" onClick={(e) => { e.preventDefault(); if (onboarded) setPage('restock'); }}>
           {/* Mark Laku (oktagon, L rak, kotak stok) — salinan dari components/landing/primitives.tsx */}
@@ -68,11 +73,15 @@ export default function App() {
           </svg>
           <span className="wordmark-text">LAKU<small>MuaraAI · MVP</small></span>
         </a>
-        <nav className="side-nav" aria-label="Navigasi utama">
+        <nav className="side-nav" aria-label="Navigasi utama" onMouseLeave={() => setHoverIdx(null)}>
+          {hoverIdx !== null && (
+            <span className="side-pill" style={{ transform: `translateY(${hoverIdx * 46}px)` }} aria-hidden="true" />
+          )}
           {NAV.map((n, i) => (
             <button key={n.key}
               className={`side-link${(!onboarded ? n.key === 'setup' : page === n.key) ? ' active' : ''}`}
-              onClick={() => setPage(n.key)}>
+              onClick={() => setPage(n.key)}
+              onMouseEnter={() => setHoverIdx(i)}>
               {n.icon({ size: 19 })}
               <span>{n.label}</span>
               <span className="side-no num">0{i + 1}</span>

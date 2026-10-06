@@ -1,7 +1,7 @@
 // Komponen bersama: badge status (warna tint + teks + ikon + label),
 // angka bisnis (mono tabular, rata kanan), chip overlay, dan panel "Mengapa".
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { STATUS, type Product, overlaysOf, fmtNum, fmtNum1, fmtIDR } from './data';
 import { StatusIcon, IconClose, IconSync, IconScale } from './icons';
 
@@ -49,14 +49,23 @@ export function OverlayBadges({ p }: { p: Product }) {
 /** Panel breakdown "Mengapa" — menjelaskan asal angka ROP / saran restock. */
 export function WhyPanel({ product, onClose }: { product: Product | null; onClose: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
+  const [closing, setClosing] = useState(false);
+  // tutup dengan animasi slide-out dulu (class .closing), baru unmount
+  const close = () => {
+    if (closing) return;
+    setClosing(true);
+    setTimeout(onClose, 200);
+  };
   useEffect(() => {
     if (!product) return;
+    setClosing(false);
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
     window.addEventListener('keydown', onKey);
     ref.current?.focus();
     return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product, onClose]);
 
   if (!product) return null;
@@ -65,7 +74,7 @@ export function WhyPanel({ product, onClose }: { product: Product | null; onClos
   const demandLead = p.avgDaily * p.leadTimeDays;
 
   return (
-    <div className="panel-backdrop" onClick={onClose} role="presentation">
+    <div className={`panel-backdrop${closing ? ' closing' : ''}`} onClick={close} role="presentation">
       <div className="why-panel" role="dialog" aria-modal="true" aria-label={`Mengapa angka restock ${p.name}`}
         ref={ref} tabIndex={-1} onClick={(e) => e.stopPropagation()}>
         <div className="panel-head">
@@ -74,7 +83,7 @@ export function WhyPanel({ product, onClose }: { product: Product | null; onClos
             <h3 className="panel-title">{p.name}</h3>
             <p className="panel-sub num num-left">{p.sku} · {p.channel}</p>
           </div>
-          <button className="icon-btn" onClick={onClose} aria-label="Tutup panel"><IconClose size={18} /></button>
+          <button className="icon-btn" onClick={close} aria-label="Tutup panel"><IconClose size={18} /></button>
         </div>
 
         {o.negative ? (

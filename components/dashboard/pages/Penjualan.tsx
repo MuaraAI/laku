@@ -28,7 +28,7 @@ function TrendChart({ period }: { period: Period }) {
   }, [data]);
 
   return (
-    <div className="chart-wrap">
+    <div className="chart-wrap" data-reveal>
       <svg viewBox={`0 0 ${W} ${H}`} className="trend-chart" role="img"
         aria-label={`Tren omzet ${period} hari terakhir`}
         onMouseLeave={() => setHover(null)}
@@ -90,7 +90,7 @@ export function PenjualanPage() {
 
   return (
     <div className="page">
-      <header className="page-head">
+      <header className="page-head" data-reveal>
         <p className="kicker">Recap penjualan</p>
         <h1 className="page-title">Penjualan</h1>
         <div className="period-selector" role="tablist" aria-label="Pilih periode">
@@ -104,7 +104,7 @@ export function PenjualanPage() {
       </header>
 
       {/* Coverage Banner — wajib ada: peringatan data usang/parsial */}
-      <div className="coverage-banner" role="status">
+      <div className="coverage-banner" role="status" data-reveal>
         <IconWarning size={18} />
         <div>
           {staleChannels.length > 0 && (
@@ -120,7 +120,7 @@ export function PenjualanPage() {
         </div>
       </div>
 
-      <section className="kpi-strip" aria-label="Ringkasan omzet">
+      <section className="kpi-strip" data-reveal="kids" aria-label="Ringkasan omzet">
         <div className="kpi">
           <span className="kpi-label">Omzet kotor</span>
           <Num strong>{fmtIDR(omzetKotor)}</Num>
@@ -150,7 +150,7 @@ export function PenjualanPage() {
 
       <section aria-labelledby="per-channel">
         <h2 id="per-channel" className="section-title">Per channel</h2>
-        <ul className="channel-split">
+        <ul className="channel-split" data-reveal="kids">
           {split.map((c) => (
             <li key={c.channel} className="channel-row">
               <span className="channel-name">{c.channel}</span>
