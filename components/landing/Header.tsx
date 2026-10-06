@@ -106,7 +106,7 @@ export default function Header() {
             <Link className="site-login" href={routes.login}>
               {nav.login}
             </Link>
-            <Link className="btn btn-primary site-cta" href={routes.login}>
+            <Link className="btn btn-primary site-cta" href={routes.afterLogin}>
               {nav.cta}
               <Icon name="arrow_forward" />
             </Link>
