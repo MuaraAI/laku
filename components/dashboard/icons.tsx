@@ -29,6 +29,7 @@ export const IconSync = (p: P) => <S {...p}><path d="M20 11A8 8 0 0 0 5.6 6.6L4 
 export const IconWarning = (p: P) => <S {...p}><path d="M12 3 2.5 20h19L12 3z" /><path d="M12 10v4" /><path d="M12 17.5h.01" /></S>;
 export const IconScale = (p: P) => <S {...p}><path d="M12 4v16" /><path d="M5 7h14" /><path d="m5 7-2.5 6a3 3 0 0 0 5 0L5 7z" /><path d="m19 7-2.5 6a3 3 0 0 0 5 0L19 7z" /></S>;
 export const IconFile = (p: P) => <S {...p}><path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9l-6-6z" /><path d="M13 3v6h6" /></S>;
+export const IconSearch = (p: P) => <S {...p}><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></S>;
 
 export function StatusIcon({ name, size }: { name: string; size?: number }): JSX.Element {
   switch (name) {
