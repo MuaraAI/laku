@@ -1,13 +1,56 @@
 // Halaman Restock (utama): list stok dengan CRITICAL/REORDER di atas,
 // area "Berhenti beli" untuk OVERSTOCK & DEAD, panel "mengapa" per baris.
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import { apiFetch } from '@/lib/api';
 import {
   PRODUCTS, sortedActionable, stopBuying, overlaysOf, daysOfStock,
-  fmtNum, fmtIDR, fmtDays, type Product, STATUS,
+  fmtNum, fmtIDR, fmtDays, type Product, type StatusKey, type Channel, STATUS,
 } from '../data';
 import { StatusBadge, OverlayBadges, WhyPanel, Num } from '../components';
 import { IconWhy } from '../icons';
+
+interface ApiRecommendationItem {
+  product_id: string;
+  name?: string;
+  sku?: string;
+  channel?: Channel;
+  state: string;
+  overlays?: string[];
+  reorder_point?: number;
+  safety_stock?: number;
+  suggested_qty?: number;
+  price?: number;
+  why?: {
+    on_hand?: number;
+    mu?: number;
+    lead_time_days?: number;
+    lead_time_assumed?: boolean;
+  };
+}
+
+interface ApiRecommendationsResponse {
+  items?: ApiRecommendationItem[];
+}
+
+function mapApiToProduct(item: ApiRecommendationItem): Product {
+  const why = item.why || {};
+  return {
+    sku: item.sku || item.product_id,
+    name: item.name || 'Produk',
+    channel: item.channel || 'Shopee',
+    onHand: why.on_hand ?? 0,
+    avgDaily: why.mu ?? 0,
+    leadTimeDays: why.lead_time_days ?? 5,
+    leadTimeAssumed: Boolean(why.lead_time_assumed ?? true),
+    safetyStock: item.safety_stock ?? 0,
+    rop: item.reorder_point ?? 0,
+    suggestedQty: item.suggested_qty ?? 0,
+    lastSyncDaysAgo: item.overlays?.includes('STALE') ? 8 : 0,
+    status: (item.state as StatusKey) || 'INSUFFICIENT_DATA',
+    price: item.price ?? 25000,
+  };
+}
 
 function StockRow({ p, onWhy }: { p: Product; onWhy: (p: Product) => void }) {
   const o = overlaysOf(p);
@@ -51,10 +94,34 @@ function StockRow({ p, onWhy }: { p: Product; onWhy: (p: Product) => void }) {
   );
 }
 
-export function RestockPage() {
+export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'live'; onGoUpload?: () => void }) {
   const [why, setWhy] = useState<Product | null>(null);
-  const actionable = useMemo(() => sortedActionable(PRODUCTS), []);
-  const stop = useMemo(() => stopBuying(PRODUCTS), []);
+  const [liveProducts, setLiveProducts] = useState<Product[] | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (mode === 'live') {
+      setLoading(true);
+      apiFetch<ApiRecommendationsResponse>('/v1/recommendations')
+        .then((res) => {
+          if (res?.items) {
+            setLiveProducts(res.items.map(mapApiToProduct));
+          } else {
+            setLiveProducts([]);
+          }
+        })
+        .finally(() => setLoading(false));
+    } else {
+      setLiveProducts(null);
+    }
+  }, [mode]);
+
+  const activeProducts = useMemo(() => {
+    return mode === 'live' ? (liveProducts ?? []) : PRODUCTS;
+  }, [mode, liveProducts]);
+
+  const actionable = useMemo(() => sortedActionable(activeProducts), [activeProducts]);
+  const stop = useMemo(() => stopBuying(activeProducts), [activeProducts]);
   const todayStr = useMemo(() => {
     try {
       return new Intl.DateTimeFormat('id-ID', {
@@ -68,10 +135,10 @@ export function RestockPage() {
     }
   }, []);
 
-  const criticalCount = PRODUCTS.filter((p) => p.status === 'CRITICAL').length;
-  const reorderCount = PRODUCTS.filter((p) => p.status === 'REORDER').length;
-  const restockValue = PRODUCTS.reduce((s, p) => s + (overlaysOf(p).negative ? 0 : p.suggestedQty * p.price), 0);
-  const staleCount = PRODUCTS.filter((p) => overlaysOf(p).stale).length;
+  const criticalCount = activeProducts.filter((p) => p.status === 'CRITICAL').length;
+  const reorderCount = activeProducts.filter((p) => p.status === 'REORDER').length;
+  const restockValue = activeProducts.reduce((s, p) => s + (overlaysOf(p).negative ? 0 : p.suggestedQty * p.price), 0);
+  const staleCount = activeProducts.filter((p) => overlaysOf(p).stale).length;
 
   return (
     <div className="page">
@@ -104,22 +171,46 @@ export function RestockPage() {
         </div>
       </section>
 
-      <section aria-labelledby="perlu-dipesan">
-        <h2 id="perlu-dipesan" className="section-title">Perlu dipesan</h2>
-        <ul className="stock-list">
-          {actionable.map((p) => <StockRow key={p.sku} p={p} onWhy={setWhy} />)}
-        </ul>
-      </section>
-
-      <section className="stop-zone" data-reveal aria-labelledby="berhenti-beli">
-        <div className="stop-head">
-          <h2 id="berhenti-beli" className="section-title">Berhenti beli</h2>
-          <p className="stop-sub">Stok berlebih atau tidak laku — tahan dulu uangnya, jangan pesan ulang.</p>
+      {loading ? (
+        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+          Memuat data rekomendasi restock dari server…
         </div>
-        <ul className="stock-list stock-list-muted">
-          {stop.map((p) => <StockRow key={p.sku} p={p} onWhy={setWhy} />)}
-        </ul>
-      </section>
+      ) : mode === 'live' && activeProducts.length === 0 ? (
+        <div style={{
+          padding: '48px 24px', textAlign: 'center', background: 'var(--surface)',
+          border: '1px dashed var(--border-strong)', borderRadius: 'var(--r-lg)',
+          display: 'grid', gap: '14px', justifyItems: 'center'
+        }}>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 600 }}>Toko Anda Belum Memiliki Data Produk</h3>
+          <p style={{ color: 'var(--text-secondary)', maxWidth: '48ch', margin: 0 }}>
+            Unggah file export pesanan (Shopee atau TikTok Shop) lewat menu <strong>Upload</strong> agar engine Laku dapat menghitung laju penjualan dan titik pesan ulang (ROP) produk Anda.
+          </p>
+          {onGoUpload && (
+            <button className="btn btn-primary" onClick={onGoUpload} type="button">
+              Buka Menu Upload Sekarang →
+            </button>
+          )}
+        </div>
+      ) : (
+        <>
+          <section aria-labelledby="perlu-dipesan">
+            <h2 id="perlu-dipesan" className="section-title">Perlu dipesan ({actionable.length})</h2>
+            <ul className="stock-list">
+              {actionable.map((p) => <StockRow key={p.sku} p={p} onWhy={setWhy} />)}
+            </ul>
+          </section>
+
+          <section className="stop-zone" data-reveal aria-labelledby="berhenti-beli">
+            <div className="stop-head">
+              <h2 id="berhenti-beli" className="section-title">Berhenti beli ({stop.length})</h2>
+              <p className="stop-sub">Stok berlebih atau tidak laku — tahan dulu uangnya, jangan pesan ulang.</p>
+            </div>
+            <ul className="stock-list stock-list-muted">
+              {stop.map((p) => <StockRow key={p.sku} p={p} onWhy={setWhy} />)}
+            </ul>
+          </section>
+        </>
+      )}
 
       <WhyPanel product={why} onClose={() => setWhy(null)} />
     </div>
