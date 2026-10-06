@@ -1,0 +1,51 @@
+name: CI (MuaraAI Hackathon)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Backend Test Suite
+    runs-on: ubuntu-latest
+    # Filter ketat: Hanya jalan di repo resmi MuaraAI/laku (bukan fork)
+    # dan hanya untuk anggota resmi tim hackthon-1:
+    # 1. Curzyori (Yuken)
+    # 2. Seeyaa77 (Rafli/Bob)
+    # 3. MyKineID (Jio/Verzio)
+    # 4. kabayy-sys (Raken)
+    if: >
+      github.repository == 'MuaraAI/laku' &&
+      contains(fromJSON('["Curzyori", "Seeyaa77", "MyKineID", "kabayy-sys"]'), github.actor)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Run Backend Pytest Suite
+        run: |
+          cd backend
+          python -m pytest tests/ -v
+
+      - name: Build Frontend (if npm lockfile present)
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+            npm run build
+          else
+            echo "package-lock.json belum ada, frontend build dilewati sampai scaffolding selesai."
+          fi
