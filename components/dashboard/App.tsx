@@ -19,23 +19,28 @@ const NAV: { key: PageKey; label: string; icon: (p: { size?: number }) => React.
 
 const ONBOARDED_KEY = 'laku-onboarded';
 
-export function App() {
-  const [onboarded, setOnboarded] = useState<boolean>(() => {
-    try { return localStorage.getItem(ONBOARDED_KEY) === '1'; } catch { return false; }
-  });
+export default function App() {
+  const [onboarded, setOnboarded] = useState<boolean>(false);
   const [page, setPage] = useState<PageKey>('restock');
 
   useEffect(() => {
-    document.documentElement.lang = 'id';
-    document.title = 'Laku · MuaraAI — Demand-driven Restock Engine';
-    document.querySelector('meta[name="description"]')?.setAttribute('content',
-      'Laku menyatukan data penjualan Shopee, TikTok Shop, dan Tokopedia lalu menyarankan restock. Prototype MVP hackathon — data demo.');
+    try {
+      if (typeof window !== 'undefined' && localStorage.getItem(ONBOARDED_KEY) === '1') {
+        setOnboarded(true);
+      }
+    } catch {
+      /* abaikan */
+    }
   }, []);
 
   useEffect(() => { window.scrollTo({ top: 0 }); }, [page]);
 
   function finishOnboarding() {
-    try { localStorage.setItem(ONBOARDED_KEY, '1'); } catch { /* abaikan */ }
+    try {
+      if (typeof window !== 'undefined') localStorage.setItem(ONBOARDED_KEY, '1');
+    } catch {
+      /* abaikan */
+    }
     setOnboarded(true);
     setPage('restock');
   }

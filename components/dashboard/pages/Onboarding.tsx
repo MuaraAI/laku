@@ -4,7 +4,7 @@
 
 import { useRef, useState } from 'react';
 import { CHANNELS, UPLOAD_GUIDE, DEFAULT_LEAD_TIME_DAYS, fmtNum, type Channel } from '../data';
-import { AssumsiBadge, Num } from '../components';
+import { AssumsiBadge } from '../components';
 import { IconChevron, IconUpload } from '../icons';
 
 const STEP_TITLES = ['Channel', 'Panduan upload', 'Upload awal', 'Lead time', 'Saldo awal stok', 'Selesai'];
