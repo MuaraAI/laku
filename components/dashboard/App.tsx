@@ -12,6 +12,7 @@ import { IconRestock, IconSales, IconUpload, IconSetup, IconLock } from './icons
 type PageKey = 'restock' | 'penjualan' | 'upload' | 'setup';
 
 const ONBOARDED_KEY_PREFIX = 'laku-onboarded-';
+const DEMO_ONBOARDED_KEY = 'laku-onboarded-demo';
 
 export default function App() {
   const [page, setPage] = useState<PageKey>('restock');
@@ -19,6 +20,7 @@ export default function App() {
   const [mode, setMode] = useState<'demo' | 'live'>('demo');
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [liveOnboarded, setLiveOnboarded] = useState<boolean>(true);
+  const [demoOnboarded, setDemoOnboarded] = useState<boolean>(true);
 
   useEffect(() => {
     try {
@@ -28,6 +30,8 @@ export default function App() {
         if (urlMode === 'live' || urlMode === 'demo') {
           setMode(urlMode);
         }
+        const isDemoDone = localStorage.getItem(DEMO_ONBOARDED_KEY) === '1';
+        setDemoOnboarded(isDemoDone);
       }
     } catch {
       /* abaikan */
@@ -50,9 +54,6 @@ export default function App() {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('mode') !== 'demo') {
               setMode('live');
-              if (!isDone) {
-                setPage('setup');
-              }
             }
           }
 
@@ -64,9 +65,6 @@ export default function App() {
               setLiveOnboarded(isDone);
               if (new URLSearchParams(window.location.search).get('mode') !== 'demo') {
                 setMode('live');
-                if (!isDone) {
-                  setPage('setup');
-                }
               }
             }
           });
@@ -96,21 +94,39 @@ export default function App() {
 
   function finishOnboarding() {
     try {
-      if (typeof window !== 'undefined' && userEmail) {
-        localStorage.setItem(`${ONBOARDED_KEY_PREFIX}${userEmail}`, '1');
+      if (typeof window !== 'undefined') {
+        if (mode === 'demo') {
+          localStorage.setItem(DEMO_ONBOARDED_KEY, '1');
+          setDemoOnboarded(true);
+        } else {
+          if (userEmail) localStorage.setItem(`${ONBOARDED_KEY_PREFIX}${userEmail}`, '1');
+          setLiveOnboarded(true);
+        }
       }
     } catch {
       /* abaikan */
     }
-    setLiveOnboarded(true);
     setPage('restock');
   }
 
-  const isLocked = mode === 'live' && !liveOnboarded;
+  const isLocked = mode === 'demo' ? !demoOnboarded : !liveOnboarded;
   const currentPage: PageKey = isLocked ? 'setup' : page;
 
   const navItems = useMemo(() => {
-    if (isLocked) {
+    if (mode === 'demo') {
+      // Di Demo: menu Setup SELALU ADA di navigasi ("di demo, seharusnya ya ada").
+      // Jika belum wizard (!demoOnboarded), tab lain terkunci.
+      return [
+        { key: 'setup' as PageKey, label: 'Setup', icon: (p: { size?: number }) => <IconSetup {...p} />, locked: false },
+        { key: 'restock' as PageKey, label: 'Restock', icon: (p: { size?: number }) => <IconRestock {...p} />, locked: !demoOnboarded },
+        { key: 'penjualan' as PageKey, label: 'Penjualan', icon: (p: { size?: number }) => <IconSales {...p} />, locked: !demoOnboarded },
+        { key: 'upload' as PageKey, label: 'Upload', icon: (p: { size?: number }) => <IconUpload {...p} />, locked: !demoOnboarded },
+      ];
+    }
+
+    // Di Live (Toko Saya):
+    // Jika belum selesai setup (!liveOnboarded), tab lain terkunci.
+    if (!liveOnboarded) {
       return [
         { key: 'setup' as PageKey, label: 'Setup', icon: (p: { size?: number }) => <IconSetup {...p} />, locked: false },
         { key: 'restock' as PageKey, label: 'Restock', icon: (p: { size?: number }) => <IconRestock {...p} />, locked: true },
@@ -118,12 +134,14 @@ export default function App() {
         { key: 'upload' as PageKey, label: 'Upload', icon: (p: { size?: number }) => <IconUpload {...p} />, locked: true },
       ];
     }
+
+    // Khusus yang sudah login: setelah setup, tab Setup HILANG!
     return [
       { key: 'restock' as PageKey, label: 'Restock', icon: (p: { size?: number }) => <IconRestock {...p} />, locked: false },
       { key: 'penjualan' as PageKey, label: 'Penjualan', icon: (p: { size?: number }) => <IconSales {...p} />, locked: false },
       { key: 'upload' as PageKey, label: 'Upload', icon: (p: { size?: number }) => <IconUpload {...p} />, locked: false },
     ];
-  }, [isLocked]);
+  }, [mode, demoOnboarded, liveOnboarded]);
 
   const storeName = mode === 'demo'
     ? 'Warung Bu Rina'
