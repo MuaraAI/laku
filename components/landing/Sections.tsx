@@ -124,13 +124,25 @@ export function Footer() {
               <span className="logo-name">{nav.brandName}</span>
             </BrandButton>
             <p>{footer.about}</p>
+            {footer.location && (
+              <p style={{ marginTop: "8px", fontSize: "0.875rem", color: "var(--text-muted)" }}>
+                {footer.location}
+              </p>
+            )}
+            {footer.email && (
+              <p style={{ marginTop: "4px", fontSize: "0.875rem" }}>
+                <a href={`mailto:${footer.email}`} style={{ color: "var(--primary)" }}>
+                  {footer.email}
+                </a>
+              </p>
+            )}
           </div>
           {footer.cols.map((col) => (
             <div className="f-col" key={col.title}>
               <h4>{col.title}</h4>
               {col.links.map((l) =>
-                l.href.startsWith("http") ? (
-                  <a key={l.label} href={l.href} rel="noopener">
+                l.href.startsWith("http") || l.href.startsWith("mailto:") ? (
+                  <a key={l.label} href={l.href} rel={l.href.startsWith("http") ? "noopener" : undefined}>
                     {l.label}
                   </a>
                 ) : (

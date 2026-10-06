@@ -228,6 +228,8 @@ export const finalCta = {
 
 export const footer = {
   about: "Restock engine untuk seller multi-marketplace di daerah. Tau apa yang bakal laku, sebelum stokmu habis.",
+  location: "Pontianak, Kalimantan Barat, Indonesia",
+  email: "support@laku.muaraai.com",
   cols: [
     {
       title: "Produk",
@@ -242,12 +244,13 @@ export const footer = {
       links: [
         { href: "/tos", label: "Syarat & Ketentuan" },
         { href: "/privacy", label: "Kebijakan Privasi" },
+        { href: "mailto:support@laku.muaraai.com", label: "support@laku.muaraai.com" },
         { href: "https://github.com/MuaraAI/laku", label: "GitHub" },
       ],
     },
   ],
   wordmark: "laku",
-  copyright: "© 2026 MuaraAI",
+  copyright: "© 2026 MuaraAI · Pontianak, Kalimantan Barat, Indonesia",
   disclaimer:
     "Laku tidak berafiliasi dengan, atau didukung oleh, Shopee, TikTok Shop, maupun Tokopedia. Nama marketplace hanya dipakai untuk menyebut format file export.",
 };
@@ -382,7 +385,7 @@ export const tos: LegalDoc = {
     {
       heading: "1. Tentang Laku",
       body: [
-        "Laku adalah layanan MuaraAI yang membaca file export penjualan marketplace yang Anda upload, lalu menghitung saran restock, status stok, dan rekap penjualan gabungan.",
+        "Laku adalah layanan inovasi digital dari MuaraAI (berbasis di Pontianak, Kalimantan Barat, Indonesia) yang membaca file export penjualan marketplace yang Anda upload, lalu menghitung saran restock, status stok, dan rekap penjualan gabungan.",
         "Laku tidak berafiliasi dengan, atau didukung oleh, Shopee, TikTok Shop, maupun Tokopedia. Nama marketplace hanya dipakai untuk menyebut format file export.",
       ],
     },
@@ -436,7 +439,7 @@ export const tos: LegalDoc = {
       heading: "9. Perubahan dan hukum yang berlaku",
       body: [
         "Kami akan memberi tahu perubahan penting pada syarat ini sebelum berlaku. Syarat ini tunduk pada hukum Republik Indonesia.",
-        "Pertanyaan bisa disampaikan ke tim MuaraAI lewat repositori GitHub Laku.",
+        "Pertanyaan dan komunikasi resmi dapat disampaikan ke tim MuaraAI melalui email support@laku.muaraai.com atau repositori GitHub Laku.",
       ],
     },
   ],
@@ -450,7 +453,7 @@ export const privacy: LegalDoc = {
     {
       heading: "1. Peran kami",
       body: [
-        "Untuk data penjualan yang Anda upload, Anda adalah pengendali data dan Laku (MuaraAI) adalah pemroses data yang bekerja atas instruksi Anda.",
+        "Untuk data penjualan yang Anda upload, Anda adalah pengendali data dan Laku (MuaraAI, Pontianak, Kalimantan Barat, Indonesia) adalah pemroses data yang bekerja atas instruksi Anda.",
       ],
     },
     {
@@ -505,7 +508,7 @@ export const privacy: LegalDoc = {
       heading: "9. Hak Anda",
       body: [
         "Sesuai UU Pelindungan Data Pribadi, Anda bisa meminta akses, koreksi, atau penghapusan data, dan mencabut persetujuan insight kapan saja.",
-        "Hubungi tim MuaraAI lewat repositori GitHub Laku.",
+        "Permohonan dapat diajukan kepada kami melalui email support@laku.muaraai.com atau repositori GitHub Laku.",
       ],
     },
   ],

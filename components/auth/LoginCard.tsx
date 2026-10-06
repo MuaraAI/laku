@@ -189,6 +189,13 @@ export default function LoginCard({
           Mode Demo (Buka Dashboard Langsung) →
         </a>
       </div>
+
+      <p style={{ marginTop: "8px", fontSize: "0.75rem", color: "var(--text-muted)", textAlign: "center" }}>
+        Bantuan:{" "}
+        <a href="mailto:support@laku.muaraai.com" style={{ color: "var(--primary)" }}>
+          support@laku.muaraai.com
+        </a>
+      </p>
     </>
   );
 }
