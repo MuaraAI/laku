@@ -59,7 +59,13 @@ export default function App() {
     <div className="app-shell">
       <aside className="sidebar">
         <a className="wordmark" href="#top" onClick={(e) => { e.preventDefault(); if (onboarded) setPage('restock'); }}>
-          <span className="logo-mark" aria-hidden="true">◈</span>
+          {/* Mark Laku (oktagon, L rak, kotak stok) — salinan dari components/landing/primitives.tsx */}
+          <svg className="mark" viewBox="0 0 64 64" aria-hidden="true">
+            <path className="m-oct" d="M19.8 2H44.2L62 19.8V44.2L44.2 62H19.8L2 44.2V19.8Z" />
+            <rect className="m-ghost" x="24" y="14" width="14" height="14" rx="2" />
+            <rect className="m-stock" x="24" y="33" width="14" height="14" rx="2" />
+            <path className="m-l" d="M17 17V50H48" />
+          </svg>
           <span className="wordmark-text">LAKU<small>MuaraAI · MVP</small></span>
         </a>
         <nav className="side-nav" aria-label="Navigasi utama">
