@@ -9,9 +9,14 @@ export default function Statement() {
         <span className="tag" data-reveal="fade">
           {statement.tag}
         </span>
-        <p className="spacer" data-reveal="">
-          <span className="lead">{statement.lead}</span>
-          <span className="hl">{statement.highlight}</span>
+        {/* the question slides in from the left, the answer from the right, then its marker sweeps in */}
+        <p className="spacer" data-reveal="slide">
+          <span className="st-line l">
+            <span className="lead">{statement.lead}</span>
+          </span>
+          <span className="st-line r">
+            <span className="hl">{statement.highlight}</span>
+          </span>
         </p>
       </section>
     </div>
