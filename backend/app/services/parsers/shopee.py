@@ -38,19 +38,48 @@ def detect_delimiter(sample: str) -> str:
     return ","
 
 
-def _parse_money(raw: str) -> float | None:
-    if raw is None or str(raw).strip() in ("", "-"):
+def _parse_money(raw) -> float | None:
+    if raw is None:
         return None
-    s = MONEY_RE.sub("", str(raw)).replace(".", "").replace(",", ".")
+    if isinstance(raw, (int, float)):
+        return float(raw)
+    s = str(raw).strip()
+    if s in ("", "-"):
+        return None
+    s = MONEY_RE.sub("", s)
+    if not s:
+        return None
+    if "." in s and "," in s:
+        s = s.replace(".", "").replace(",", ".")
+    elif "," in s:
+        s = s.replace(",", ".")
+    elif "." in s:
+        parts = s.split(".")
+        if len(parts) == 2 and len(parts[1]) != 3:
+            pass  # decimal e.g. 50000.0 or 12.50
+        else:
+            s = s.replace(".", "")
     try:
         return float(s)
     except ValueError:
         return None
 
 
-def _parse_int(raw: str) -> int | None:
-    digits = NUM_RE.sub("", str(raw or ""))
-    return int(digits) if digits else None
+def _parse_int(raw) -> int | None:
+    if raw is None:
+        return None
+    if isinstance(raw, int):
+        return raw
+    if isinstance(raw, float):
+        return int(raw)
+    s = str(raw).strip()
+    if not s:
+        return None
+    try:
+        return int(float(s.replace(",", ".")))
+    except ValueError:
+        digits = NUM_RE.sub("", s)
+        return int(digits) if digits else None
 
 
 def _parse_dt(raw: str, tz: str) -> datetime | None:

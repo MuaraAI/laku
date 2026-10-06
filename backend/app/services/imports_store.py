@@ -26,11 +26,17 @@ _LINE_FIELDS = ("status", "qty", "list_price", "paid_price", "seller_discount", 
 def _line_diff(existing: dict, incoming: dict) -> dict:
     """Field yang beda antara line lama & baru — untuk DO UPDATE + change_log."""
     diff = {}
-    for f in _LINE_FIELDS:
-        new_v = incoming.get(f)
-        old_v = existing.get(f)
-        if new_v is not None and new_v != old_v:
-            diff[f] = new_v
+    field_map = {
+        "status": lambda d: d.get("status"),
+        "qty": lambda d: int(d["qty"]) if d.get("qty") is not None else None,
+        "list_price": lambda d: float(d.get("list_price") if d.get("list_price") is not None else d.get("unit_price") or 0),
+        "seller_discount": lambda d: float(d.get("seller_discount") if d.get("seller_discount") is not None else d.get("discount_amount") or 0),
+    }
+    for f, getter in field_map.items():
+        new_v = getter(incoming)
+        old_v = getter(existing)
+        if new_v is not None and old_v is not None and new_v != old_v:
+            diff[f] = incoming.get(f, new_v)
     return diff
 
 
@@ -322,8 +328,8 @@ class ImportsSupabaseStore(ImportsStore):
         """
         return {
             **r,
-            "unit_price": r.get("unit_price") or r.get("list_price") or 0,
-            "discount_amount": r.get("discount_amount") or 0,
+            "unit_price": r.get("unit_price") if r.get("unit_price") is not None else r.get("list_price") or 0,
+            "discount_amount": r.get("discount_amount") if r.get("discount_amount") is not None else r.get("seller_discount") or 0,
             "allocated_discount": r.get("allocated_discount") or 0,
             "shop_id": r.get("shop_id") or "",
         }

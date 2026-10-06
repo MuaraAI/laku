@@ -10,11 +10,12 @@ Rumus (aturan mengikat #4 — hanya dari DB/formula):
 """
 from __future__ import annotations
 
+import re
 import uuid
 from abc import ABC, abstractmethod
 from datetime import date, datetime
 
-from fastapi import HTTPException
+MONEY_RE = re.compile(r"[^\d.,-]")
 
 # Status order yang mengurangi stok (A9 / FR-27)
 ELIGIBLE_STATUS = ("completed", "in_progress")
@@ -196,7 +197,7 @@ class StockSupabaseStore(StockStore):
                 "name": rows[0]["products"]["canonical_name"], "sku": sku}
 
     def create_product(self, seller_id: str, product: dict) -> dict:
-        row = {"canonical_name": product["name"], "match_state": "unmatched"}
+        row = {"seller_id": seller_id, "canonical_name": product["name"], "match_state": "unmatched"}
         created = self.client.table("products").insert(row).execute().data[0]
         if product.get("sku"):
             self.client.table("product_links").insert({
@@ -220,7 +221,7 @@ class StockSupabaseStore(StockStore):
     def get_product(self, seller_id: str, product_id: str) -> dict | None:
         rows = (
             self.client.table("products")
-            .select("id, canonical_name")
+            .select("id, canonical_name, product_links(sku_raw)")
             .eq("seller_id", seller_id)
             .eq("id", product_id)
             .limit(1)
@@ -229,7 +230,12 @@ class StockSupabaseStore(StockStore):
         )
         if not rows:
             return None
-        return {"id": rows[0]["id"], "name": rows[0]["canonical_name"]}
+        links = rows[0].get("product_links") or []
+        return {
+            "id": rows[0]["id"],
+            "name": rows[0]["canonical_name"],
+            "sku": links[0]["sku_raw"] if links else None,
+        }
 
     def list_products(self, seller_id: str) -> list[dict]:
         rows = (
@@ -492,17 +498,47 @@ def _match_col(headers: list[str], pattern: str) -> str | None:
 
 
 def _to_float(v) -> float | None:
-    s = str(v or "").strip().replace(".", "").replace(",", ".")
+    if v is None:
+        return None
+    if isinstance(v, (int, float)):
+        return float(v)
+    s = str(v).strip()
+    if not s or s == "-":
+        return None
+    s = MONEY_RE.sub("", s)
+    if not s:
+        return None
+    if "." in s and "," in s:
+        s = s.replace(".", "").replace(",", ".")
+    elif "," in s:
+        s = s.replace(",", ".")
+    elif "." in s:
+        parts = s.split(".")
+        if len(parts) == 2 and len(parts[1]) != 3:
+            pass
+        else:
+            s = s.replace(".", "")
     try:
-        return float(s) if s else None
+        return float(s)
     except ValueError:
         return None
 
 
 def _to_int(v) -> int | None:
-    s = str(v or "").strip()
-    digits = "".join(ch for ch in s if ch.isdigit())
-    return int(digits) if digits else None
+    if v is None:
+        return None
+    if isinstance(v, int):
+        return v
+    if isinstance(v, float):
+        return int(v)
+    s = str(v).strip()
+    if not s:
+        return None
+    try:
+        return int(float(s.replace(",", ".")))
+    except ValueError:
+        digits = "".join(ch for ch in s if ch.isdigit())
+        return int(digits) if digits else None
 
 
 def _parse_template(raw: bytes, ext: str) -> tuple[list[dict], list[dict]]:
