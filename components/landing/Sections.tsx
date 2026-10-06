@@ -9,7 +9,7 @@ export function FeaturesSection() {
     <Block>
       <section className="inner" id="fitur" aria-labelledby="fitur-title">
         <div className="sec-head">
-          <SectionTag no="02">{features.tag}</SectionTag>
+          <SectionTag>{features.tag}</SectionTag>
           <Headline id="fitur-title" parts={features.title} />
         </div>
         <Features />
@@ -32,7 +32,7 @@ export function Pricing() {
     <Block>
       <section className="inner" id="harga" aria-labelledby="harga-title">
         <div className="sec-head center">
-          <SectionTag no="05">{pricing.tag}</SectionTag>
+          <SectionTag>{pricing.tag}</SectionTag>
           <Headline id="harga-title" parts={pricing.title} />
         </div>
         <div className="plans" data-reveal="">

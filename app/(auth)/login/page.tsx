@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import LoginCard from "@/components/auth/LoginCard";
-import { Headline, Icon, LakuMark, StatusBadge } from "@/components/landing/primitives";
-import { demo, footer, hero, login, nav, routes } from "@/constants/id";
+import Image from "next/image";
+import { Icon, LakuMark } from "@/components/landing/primitives";
+import { footer, hero, login, nav, routes } from "@/constants/id";
 
 export const metadata: Metadata = { title: login.metaTitle };
 
@@ -14,28 +15,24 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <div className="auth">
       <aside className="auth-aside" aria-hidden="true">
-        <div className="auth-aside-top">
-          <span className="auth-brand on-dark">
-            <LakuMark />
-            <span className="logo-name">{nav.brandName}</span>
-          </span>
-          <Headline as="p" className="auth-tagline" parts={hero.headline} />
+        <span className="auth-brand on-dark">
+          <LakuMark />
+          <span className="logo-name">{nav.brandName}</span>
+        </span>
+        <div className="auth-aside-mid">
+          <p className="auth-tagline">
+            {hero.headline.map((p, i) =>
+              typeof p === "string" ? (
+                p
+              ) : (
+                <span key={i} className={p.className}>
+                  {p.text}
+                </span>
+              ),
+            )}
+          </p>
           <p className="auth-aside-sub">{login.aside.sub}</p>
-        </div>
-        <div className="auth-preview">
-          <div className="auth-preview-head">
-            <span>{login.aside.previewTitle}</span>
-            <span className="demo-chip">{demo.label}</span>
-          </div>
-          <ul>
-            {demo.rows.map((r) => (
-              <li key={r.name}>
-                <span className="name">{r.name}</span>
-                <span className="days">{r.days}</span>
-                <StatusBadge kind={r.status} />
-              </li>
-            ))}
-          </ul>
+          <Image className="auth-crates" src="/illustrations/stock-crates.svg" alt="" width={357} height={394} priority unoptimized />
         </div>
         <p className="auth-aside-foot">{footer.copyright}</p>
       </aside>
