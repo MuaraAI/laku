@@ -1,0 +1,7 @@
+ID Pesanan,Status Pesanan,Waktu Pesanan Dibuat,Nama Produk,Nomor SKU,Variasi,Jumlah,Harga Jual,Harga Setelah Diskon,Diskon Penjual,Kota/Kabupaten,Provinsi,,Nama Penerima,Telepon,Alamat
+TT-2026-1001,SELESAI,28/09/2026 19:45,Beras Ramos Premium 5kg,BERAS-5KG,Premium,2,"150.000","146.000",4000,Pontianak Kota,Kalimantan Barat,,Budi,081234567890,Jl. Gajah Mada No. 10
+TT-2026-1001,SELESAI,28/09/2026 19:45,Minyak Goreng Sania 2L,MINYAK-2L,,1,"38.000","38.000",,Pontianak Kota,Kalimantan Barat,,Budi,081234567890,Jl. Gajah Mada No. 10
+TT-2026-1001,SELESAI,28/09/2026 19:45,Gula Pasir Gulaku 1kg,GULA-1KG,,2,"17.500","17.000",500,Pontianak Kota,Kalimantan Barat,,Budi,081234567890,Jl. Gajah Mada No. 10
+TT-2026-1002,DIBATALKAN,27/09/2026 08:30,Teh Celup Sariwangi isi 50,SARIWANGI-50,,1,"21.000","21.000",,Pontianak Barat,Kalimantan Barat,,Ani,081298765432,Jl. Sultan Agung No. 5
+TT-2026-1003,SIAP DIKIRIM,29/09/2026 10:15,Kopi Kapal Api Blend 165g,KOPI-KAPAL,Special Mix,3,"12.000","11.500",500,Kubu Raya,Kalimantan Barat,,Dedi,081311122233,Jl. Proklamasi
+TT-2026-1004,SELESAI,25/09/2026 20:30,Galon Isi Ulang,GALON-ISI,,6,"5.000","5.000",,Mempawah,Kalimantan Barat,,Fina,081555566677,Jl. Diponegoro

@@ -147,20 +147,21 @@ def parse_rows(
 
         # --- id_long guard: notasi ilmiah Excel ---
         order_id = val("order_id")
+        flags_i = flags.get(i - start_row, set())  # flags di-key 0-based (index rows)
         if not order_id:
             row_problems.append("order_id kosong")
         elif SCIENTIFIC_ID.match(order_id):
             # PII rule: JANGAN echo isi sel ke reason (bisa berisi data pembeli
             # kalau kolom geser) — cukup sebut kolom & saran.
             row_problems.append("order_id dalam notasi ilmiah Excel — export ulang dengan format teks")
-        elif "numeric_order_id" in flags.get(i, set()):
+        elif "numeric_order_id" in flags_i:
             row_problems.append(
                 "order_id tersimpan sebagai angka di Excel — berisiko notasi ilmiah / digit hilang; "
                 "export ulang dengan format teks"
             )
 
         sku_raw = val("sku")
-        if sku_raw and "numeric_sku" in flags.get(i, set()):
+        if sku_raw and "numeric_sku" in flags_i:
             row_problems.append(
                 "SKU tersimpan sebagai angka di Excel — leading-zero kemungkinan hilang; "
                 "export ulang dengan format teks"

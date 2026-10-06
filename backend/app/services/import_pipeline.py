@@ -15,8 +15,15 @@ from datetime import datetime, timezone
 from app.config import MAX_ROWS_PER_FILE
 from app.services.imports_store import ImportsStore
 from app.services.parsers.shopee import parse_shopee, parse_shopee_xlsx
+from app.services.parsers.tiktok import parse_tiktok, parse_tiktok_xlsx
 
-SUPPORTED_CHANNELS = {"shopee"}  # tiktok_shop menyusul (task terpisah)
+SUPPORTED_CHANNELS = {"shopee", "tiktok_shop"}
+
+# (parse_csv, parse_xlsx) per channel — mapping kolom tetap dari YAML per channel
+_PARSERS = {
+    "shopee": (parse_shopee, parse_shopee_xlsx),
+    "tiktok_shop": (parse_tiktok, parse_tiktok_xlsx),
+}
 
 
 class ImportPipelineError(Exception):
@@ -47,10 +54,11 @@ def _parse_file(raw: bytes, ext: str, channel: str):
     config = load_config(config_path)
 
     try:
+        parse_csv, parse_xlsx = _PARSERS[channel]
         if ext == ".csv":
-            return parse_shopee(raw, config)
+            return parse_csv(raw, config)
         if ext == ".xlsx":
-            return parse_shopee_xlsx(raw, config)
+            return parse_xlsx(raw, config)
         raise ImportPipelineError("INVALID_EXTENSION", f"Ekstensi '{ext}' tidak didukung.")
     except ValueError as e:
         # parser raise ValueError("MISSING_COLUMNS: [...]") untuk header wajib hilang
@@ -69,9 +77,12 @@ def _compute_preview(store: ImportsStore, seller_id: str, batch_id: str) -> dict
     """Bandingkan staging vs order_lines existing → payload preview (FR-7)."""
     rows, problems = store.get_staging(seller_id, batch_id)
 
-    keys = [(r["order_id"], r["line_key"]) for r in rows]
+    # dedup key lengkap FR-3: (source_system, sales_channel, order_id, line_key)
+    keys = [(r["source_system"], r["sales_channel"], r["order_id"], r["line_key"])
+            for r in rows]
     existing = store.fetch_lines_by_keys(seller_id, keys)
-    existing_map = {(r["order_id"], r["line_key"]): r for r in existing}
+    existing_map = {(r["source_system"], r["sales_channel"], r["order_id"], r["line_key"]): r
+                    for r in existing}
 
     from app.services.imports_store import _line_diff
 
@@ -86,13 +97,13 @@ def _compute_preview(store: ImportsStore, seller_id: str, batch_id: str) -> dict
         if r.get("sku"):
             sku_filled += 1
 
-        key = (r["order_id"], r["line_key"])
+        key = (r["source_system"], r["sales_channel"], r["order_id"], r["line_key"])
         if key in seen:
             # duplikat dalam 1 file: upsert nanti = unchanged — samakan semantik preview (H5)
             unchanged += 1
             continue
         seen.add(key)
-        prev = existing_map.get((r["order_id"], r["line_key"]))
+        prev = existing_map.get(key)
         if prev is None:
             new += 1
             new_products.add(r.get("sku") or r["order_id"])
@@ -222,16 +233,20 @@ def confirm_import(store: ImportsStore, seller_id: str, batch_id: str) -> dict:
     if not rows:
         raise ImportPipelineError("STAGING_EXPIRED", "Staging batch sudah kedaluwarsa. Upload ulang file.")
 
-    existing_keys = [(r["order_id"], r["line_key"]) for r in rows]
+    # dedup key lengkap FR-3
+    existing_keys = [(r["source_system"], r["sales_channel"], r["order_id"], r["line_key"])
+                     for r in rows]
     existing = store.fetch_lines_by_keys(seller_id, existing_keys)
-    existing_map = {(r["order_id"], r["line_key"]): r for r in existing}
+    existing_map = {(r["source_system"], r["sales_channel"], r["order_id"], r["line_key"]): r
+                    for r in existing}
 
     from app.services.imports_store import _line_diff
 
     # change_log SEBELUM upsert — store memory mutasi in-place, diff harus diambil dulu
     change_log: list[dict] = []
     for r in rows:
-        prev = existing_map.get((r["order_id"], r["line_key"]))
+        prev = existing_map.get((r["source_system"], r["sales_channel"],
+                                 r["order_id"], r["line_key"]))
         if prev is not None:
             diff = _line_diff(prev, r)
             if diff:
