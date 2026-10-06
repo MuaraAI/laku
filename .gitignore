@@ -24,7 +24,9 @@ build/
 
 # raw marketplace files — JANGAN pernah commit export seller (PII!)
 *.xlsx
-!tests/fixtures/*.xlsx
+*.csv
+!backend/tests/fixtures/*.csv
+!tests/fixtures/*.csv
 uploads/
 samples/
 
