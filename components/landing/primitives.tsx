@@ -1,5 +1,4 @@
-import { Fragment, type CSSProperties, type ElementType, type ReactNode } from "react";
-import { cssVars } from "@/lib/css";
+import { Fragment, type ElementType, type ReactNode } from "react";
 import { assumption, status, type SplitPart, type StatusKey } from "@/constants/id";
 
 export function Icon({ name, fill, className }: { name: string; fill?: boolean; className?: string }) {
@@ -84,46 +83,27 @@ export function SectionTag({ no, children }: { no?: string; children: ReactNode 
   );
 }
 
-const partText = (p: SplitPart) => (typeof p === "string" ? p : p.text);
-
-/** Heading whose words rise in one by one when revealed. Screen readers get the plain sentence. */
-export function SplitText({
+/** Section heading; `parts` lets one phrase carry a class (e.g. the soft grey half). Fades in with its block. */
+export function Headline({
   as: Tag = "h2",
   parts,
   id,
   className,
-  style,
 }: {
   as?: ElementType;
   parts: SplitPart[] | string;
   id?: string;
   className?: string;
-  style?: CSSProperties;
 }) {
   const list = typeof parts === "string" ? [parts] : parts;
-  const label = list.map(partText).join("").replace(/\s+/g, " ").trim();
-  let wi = 0;
-  const words = (text: string) =>
-    text
-      .split(/(\s+)/)
-      .filter(Boolean)
-      .map((w, i) =>
-        /^\s+$/.test(w) ? (
-          " "
-        ) : (
-          <span className="w" aria-hidden="true" key={i}>
-            <span style={cssVars({ "--wi": wi++ })}>{w}</span>
-          </span>
-        ),
-      );
   return (
-    <Tag id={id} className={className} style={style} data-split="" aria-label={label}>
+    <Tag id={id} className={className} data-reveal="">
       {list.map((p, i) =>
         typeof p === "string" ? (
-          <Fragment key={i}>{words(p)}</Fragment>
+          <Fragment key={i}>{p}</Fragment>
         ) : (
           <span key={i} className={p.className}>
-            {words(p.text)}
+            {p.text}
           </span>
         ),
       )}

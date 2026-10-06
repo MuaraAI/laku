@@ -1,20 +1,16 @@
-import { BrandProvider } from "@/components/landing/BrandDialog";
-import Header from "@/components/landing/Header";
 import Hero from "@/components/landing/Hero";
 import How from "@/components/landing/How";
 import Kinetic from "@/components/landing/Kinetic";
 import Problem from "@/components/landing/Problem";
 import RevealObserver from "@/components/landing/RevealObserver";
-import { FeaturesSection, FinalCta, Footer, Pricing } from "@/components/landing/Sections";
+import { FeaturesSection, FinalCta, Pricing } from "@/components/landing/Sections";
+import SiteShell from "@/components/landing/SiteShell";
 import Statement from "@/components/landing/Statement";
 import Why from "@/components/landing/Why";
-import { LakuSprite } from "@/components/landing/primitives";
 
 export default function LandingPage() {
   return (
-    <BrandProvider>
-      <LakuSprite />
-      <Header />
+    <SiteShell>
       <main id="top">
         <Hero />
         <Kinetic />
@@ -26,8 +22,7 @@ export default function LandingPage() {
         <Pricing />
         <FinalCta />
       </main>
-      <Footer />
       <RevealObserver />
-    </BrandProvider>
+    </SiteShell>
   );
 }

@@ -18,11 +18,18 @@ app/
   globals.css           Tailwind + base + tombol/badge bersama
   theme.css             semantic tokens (satu-satunya tempat hex)
   icon.svg              favicon (mark Laku)
-  (marketing)/          landing page `/` + landing.css
+  (marketing)/          landing `/`, `/tos`, `/privacy` + landing.css
+  (auth)/login/         login Google (Supabase)
+  auth/callback/        tukar kode OAuth → cookie sesi, lalu ke `/dashboard`
 components/landing/     section landing (client hanya yang interaktif)
 constants/id.ts         semua copy UI Bahasa Indonesia
-lib/                    helper motion (client) & css
+lib/supabase/           client browser/server Supabase (@supabase/ssr)
+lib/motion.ts           helper client kecil
 ```
+
+Login butuh `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` (lihat `.env.local.example`). Di Supabase → Authentication → URL Configuration, tambahkan Redirect URL `http://localhost:3000/auth/callback` dan `https://laku.muaraai.com/auth/callback`.
+
+Motion landing sengaja minim: satu fade-up per blok, tanpa animasi loop atau yang ikut scroll; semua mati saat `prefers-reduced-motion`.
 
 Token juga tersedia sebagai utility Tailwind: `bg-paper`, `text-ink`, `bg-critical-bg`, `font-mono`, dst.
 
@@ -32,6 +39,7 @@ Token juga tersedia sebagai utility Tailwind: `bg-paper`, `text-ink`, `bg-critic
 |---|---|---|
 | `/` | Landing (hero, fitur, cara kerja, CTA) | Raken |
 | `/login` | Google OAuth via Supabase | Jio |
+| `/tos`, `/privacy` | Syarat & Kebijakan Privasi (draf, final dari Raken) | Raken |
 | `/dashboard` | Restock home (ranking + badge state) | Jio |
 | `/dashboard/upload` | Import CSV/XLSX + preview/confirm | Jio |
 | `/dashboard/stok` | Ledger stok | Jio |
