@@ -108,10 +108,10 @@
 /* ==========================================================
    Kinetic band + statement
    ========================================================== */
-.kinetic { overflow: hidden; border-block: 1px solid var(--border); background: var(--surface); padding: clamp(24px, 5vw, 64px) 0; }
+.kinetic { overflow: hidden; border-block: 1px solid var(--border); background: var(--surface); padding: clamp(32px, 6vw, 80px) 0; }
 .k-wrap { max-width: var(--maxw); margin: 0 auto; padding-inline: var(--pad); }
-/* font-size is fitted by JS so the longest line spans the container exactly */
-.k-line { display: block; font-family: var(--font-display); font-weight: 700; font-size: var(--kfs, clamp(2rem, 9vw, 9rem)); line-height: 1.02; letter-spacing: -.025em; white-space: nowrap; padding-bottom: .04em; }
+/* font-size is fitted by JS so the longest line spans ~3/4 of the container (lines stagger left/right) */
+.k-line { display: block; font-family: var(--font-display); font-weight: 700; font-size: var(--kfs, clamp(2rem, 9vw, 9rem)); line-height: 1.08; letter-spacing: -.03em; white-space: nowrap; padding-bottom: .04em; }
 .k-line.r { text-align: right; color: var(--primary); }
 .k-text { display: inline-block; }
 .smile { display: inline-block; width: .64em; height: .64em; margin-left: .12em; vertical-align: -.02em; }
@@ -419,6 +419,22 @@ html.lock { overflow: hidden; }
 .js .chart-card.in .dot, .js .chart-card.in .note { opacity: 1; transition-delay: 1.4s; }
 .js .chart-card.in .proj { opacity: .7; transition-delay: 1.6s; }
 .js .chart-card.in .empty-band, .js .chart-card.in .arrival, .js .chart-card.in .empty-chip { opacity: 1; transition-delay: 1.9s; }
+/* kinetic line: slides in from the left, answer from the right, smiley pops in once at the end */
+.js [data-reveal="kinetic"] { opacity: 1; transform: none; }
+.js .k-wrap .k-line { opacity: 0; transform: translateX(-14%); transition: transform 1s var(--ease-emph), opacity .6s var(--ease); }
+.js .k-wrap .k-line.r { transform: translateX(14%); transition-delay: .18s; }
+.js .k-wrap.in .k-line { opacity: 1; transform: none; }
+.js .k-wrap .smile { transform: scale(0) rotate(-200deg); }
+.js .k-wrap.in .smile { animation: smile-pop .8s var(--ease-out) .85s both; }
+.js .k-wrap .smile .mouth { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.js .k-wrap.in .smile .mouth { animation: smile-draw .5s var(--ease-out) 1.35s forwards; }
+.js .k-wrap.in .smile .wink { animation: smile-wink .45s var(--ease) 1.95s; }
+.smile .eye { transform-box: fill-box; transform-origin: center; }
+.js .k-wrap.in .smile:hover svg { animation: smile-wiggle .6s var(--ease); }
+@keyframes smile-pop { 0% { transform: scale(0) rotate(-200deg); } 65% { transform: scale(1.18) rotate(14deg); } 82% { transform: scale(.95) rotate(-6deg); } 100% { transform: none; } }
+@keyframes smile-draw { to { stroke-dashoffset: 0; } }
+@keyframes smile-wink { 0%, 100% { transform: none; } 50% { transform: scaleY(.1); } }
+@keyframes smile-wiggle { 0%, 100% { transform: none; } 25% { transform: rotate(-12deg); } 50% { transform: rotate(9deg); } 75% { transform: rotate(-4deg); } }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
