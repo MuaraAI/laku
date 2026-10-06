@@ -11,6 +11,8 @@ from datetime import datetime
 
 import yaml
 
+from app.config import MAX_ROWS_PER_FILE
+
 MONEY_RE = re.compile(r"[^\d.,-]")
 NUM_RE = re.compile(r"[^\d]")
 SCIENTIFIC_ID = re.compile(r"^\d\.?\d*[eE]\+\d+$")
@@ -119,29 +121,32 @@ def parse_rows(
         if not order_id:
             row_problems.append("order_id kosong")
         elif SCIENTIFIC_ID.match(order_id):
-            row_problems.append(f"order_id dalam notasi ilmiah Excel ({order_id}) — export ulang dengan format teks")
+            # PII rule: JANGAN echo isi sel ke reason (bisa berisi data pembeli
+            # kalau kolom geser) — cukup sebut kolom & saran.
+            row_problems.append("order_id dalam notasi ilmiah Excel — export ulang dengan format teks")
         elif "numeric_order_id" in flags.get(i, set()):
             row_problems.append(
-                f"order_id tersimpan sebagai angka di Excel ({order_id}) — berisiko notasi ilmiah / digit hilang; "
+                "order_id tersimpan sebagai angka di Excel — berisiko notasi ilmiah / digit hilang; "
                 "export ulang dengan format teks"
             )
 
         sku_raw = val("sku")
         if sku_raw and "numeric_sku" in flags.get(i, set()):
             row_problems.append(
-                f"SKU tersimpan sebagai angka di Excel ({sku_raw}) — leading-zero kemungkinan hilang; "
+                "SKU tersimpan sebagai angka di Excel — leading-zero kemungkinan hilang; "
                 "export ulang dengan format teks"
             )
 
         qty = _parse_int(val("qty"))
         if qty is None or qty <= 0:
-            row_problems.append(f"qty tidak valid ({val('qty')!r})")
+            row_problems.append("qty tidak valid")
 
         # status map — normalisasi case: export asli pakai Title Case ("Selesai")
         status_raw = val("status")
         status = status_map.get(status_raw.strip().upper()) or status_map.get(status_raw.strip())
         if status_raw and status is None:
-            row_problems.append(f"status tak dikenal: {status_raw!r}")
+            # PII rule: tanpa echo nilai (kolom bisa geser → isi sel = data pembeli)
+            row_problems.append("status tak dikenal")
 
         list_price = _parse_money(val("list_price"))
         # Export asli Shopee mengosongkan kolom harga utk order dibatalkan —
@@ -167,7 +172,7 @@ def parse_rows(
             "sales_channel": config["channel"],
             "order_id": order_id,
             "line_key": f"{order_id}:{(val('sku') or val('product_name'))[:80]}",
-            "sku": val("sku") or None,
+            "sku": _safe_cell(val("sku")) or None,
             "status": status,
             "qty": qty,
             "list_price": list_price,
@@ -180,6 +185,17 @@ def parse_rows(
         })
 
     return result
+
+
+def _safe_cell(s: str | None) -> str | None:
+    """Neutralize formula injection (=,+,-,@ di awal sel → prefix apostrophe).
+
+    Excel/LibreOffice mengeksekusi sel seperti itu saat seller export/opens
+    data kita. Disimpan verbatim = pedang dua mata begitu fitur export ada.
+    """
+    if s and s[:1] in ("=", "+", "-", "@"):
+        return "'" + s
+    return s
 
 
 def load_status_keys(config: dict) -> list[str]:
@@ -237,11 +253,14 @@ def parse_shopee(raw_bytes: bytes, config: dict) -> ParseResult:
                     s += 1
                 return s
 
-            variants = [cells] + [
-                cells[:i] + cells[i + 1:]                      # buang 1 sel kosong
-                for i, c in enumerate(cells) if c.strip() == ""
-            ] + [cells[1:], cells[:-1]]                        # shift kiri/kanan
-            cells = max(variants, key=_score)
+            # M5 guard: kalau jumlah sel liar (>> header), skip heuristic —
+            # export asli cuma offset 1-2 sel; kasus liar = file jahat.
+            if len(cells) <= 2 * len(fieldnames):
+                variants = [cells] + [
+                    cells[:i] + cells[i + 1:]                      # buang 1 sel kosong
+                    for i, c in enumerate(cells) if c.strip() == ""
+                ] + [cells[1:], cells[:-1]]                        # shift kiri/kanan
+                cells = max(variants, key=_score)
         rows.append(dict(zip(fieldnames, (c.strip() for c in cells))))
     return parse_rows(rows, config, start_row=2, headers=fieldnames)
 
@@ -292,6 +311,11 @@ def parse_shopee_xlsx(raw_bytes: bytes, config: dict) -> ParseResult:
                 continue
             if all(c is None or (isinstance(c, str) and c.strip() == "") for c in row):
                 continue  # baris kosong — bukan data, bukan problem
+            # DoS guard: stop baca sheet di row cap — file jahat bisa 500k baris
+            # dari zip 1MB; tanpa ini CPU & memori meledak sebelum cap dicek.
+            if len(raw_rows) > MAX_ROWS_PER_FILE:
+                result.problems.append({"row": i, "column": "-", "reason": "file melebihi batas baris (20.000)"})
+                break
             cells = {headers[j]: c for j, c in enumerate(row) if j < len(headers)}
             flags: set[str] = set()
             for col in ("Nomor Pesanan", "Nomor SKU", "No. Pesanan"):

@@ -46,6 +46,11 @@ def verify_token(token: str) -> dict:
         jwks = _fetch_jwks()
         key = next((k for k in jwks["keys"] if k["kid"] == header["kid"]), None)
         if key is None:
+            # L5: kid miss → bisa jadi Supabase baru rotate key; force refresh 1x
+            _JWKS_CACHE["keys"] = None
+            jwks = _fetch_jwks()
+            key = next((k for k in jwks["keys"] if k["kid"] == header["kid"]), None)
+        if key is None:
             raise HTTPException(401, "Unknown token key")
         payload = jwt.decode(
             token,
