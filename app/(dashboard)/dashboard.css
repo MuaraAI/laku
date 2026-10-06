@@ -184,18 +184,19 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 }
 .user-logout {
   font-size: 11.5px; font-weight: 600;
-  color: var(--critical); background: var(--critical-bg);
-  border: 1px solid transparent; padding: 4px 8px; border-radius: var(--r-sm);
+  color: var(--critical) !important; background: var(--critical-bg) !important;
+  border: 1px solid var(--critical-bg) !important; padding: 4px 10px; border-radius: var(--r-sm);
   cursor: pointer; transition: background-color .15s var(--ease), color .15s var(--ease);
 }
 .user-logout:hover {
-  background: var(--critical); color: #ffffff;
+  background: var(--critical) !important; color: #ffffff !important;
 }
 .user-login-link {
-  color: var(--primary); background: var(--primary-soft); text-decoration: none;
+  color: var(--primary) !important; background: var(--primary-soft) !important; text-decoration: none;
+  border: 1px solid var(--primary-tint) !important;
 }
 .user-login-link:hover {
-  background: var(--primary); color: var(--on-primary);
+  background: var(--primary) !important; color: var(--on-primary) !important;
 }
 
 .content { flex: 1; min-width: 0; }
