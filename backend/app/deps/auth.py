@@ -50,7 +50,7 @@ def verify_token(token: str) -> dict:
         payload = jwt.decode(
             token,
             key,
-            algorithms=[header.get("alg", "RS256")],
+            algorithms=["RS256"],  # pinned — JANGAN ambil alg dari header token
             audience="authenticated",
             options={"require": ["exp", "sub"]},
         )
