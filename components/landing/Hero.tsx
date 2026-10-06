@@ -18,10 +18,14 @@ export default function Hero() {
           <Link className="btn btn-primary" href={routes.login}>
             {hero.ctaPrimary}
           </Link>
-          <a className="btn btn-outline" href="#cara-kerja">
-            {hero.ctaSecondary}
-            <span className="go">
-              <Icon name="arrow_forward" />
+          {/* the round badge floods the button on hover; its arrow drops out and a new one drops in */}
+          <a className="btn btn-outline btn-flood" href="#cara-kerja">
+            <span className="lbl">{hero.ctaSecondary}</span>
+            <span className="go" aria-hidden="true">
+              <span className="go-win">
+                <Icon name="arrow_downward" />
+                <Icon name="arrow_downward" />
+              </span>
             </span>
           </a>
         </div>
