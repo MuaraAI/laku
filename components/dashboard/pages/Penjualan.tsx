@@ -28,8 +28,8 @@ function TrendChart({ period }: { period: Period }) {
   }, [data]);
 
   return (
-    <div className="chart-wrap">
-      <svg viewBox={`0 0 ${W} ${H}`} className="trend-chart" role="img"
+    <div className="chart-wrap" data-reveal>
+      <svg key={period} viewBox={`0 0 ${W} ${H}`} className="trend-chart" role="img"
         aria-label={`Tren omzet ${period} hari terakhir`}
         onMouseLeave={() => setHover(null)}
         onMouseMove={(e) => {
@@ -51,9 +51,10 @@ function TrendChart({ period }: { period: Period }) {
           <line key={f} x1={PL} x2={W - PR} y1={y(max * f)} y2={y(max * f)} className="chart-grid" />
         ))}
         <path d={area} className="chart-area" />
-        <path d={line} className="chart-line" />
+        <path d={line} className="chart-line" pathLength={1} />
         {labels.map((l) => (
-          <text key={l.i} x={x(l.i)} y={H - 8} className="chart-tick" textAnchor="middle">{l.label}</text>
+          <text key={l.i} x={x(l.i)} y={H - 8} className="chart-tick"
+            textAnchor={l.i === 0 ? 'start' : l.i === data.length - 1 ? 'end' : 'middle'}>{l.label}</text>
         ))}
         {hov && hover != null && (
           <g>
@@ -90,8 +91,8 @@ export function PenjualanPage() {
 
   return (
     <div className="page">
-      <header className="page-head">
-        <p className="kicker">Recap penjualan</p>
+      <header className="page-head" data-reveal>
+        <p className="kicker"><b>Recap penjualan</b></p>
         <h1 className="page-title">Penjualan</h1>
         <div className="period-selector" role="tablist" aria-label="Pilih periode">
           {PERIODS.map((p) => (
@@ -104,7 +105,7 @@ export function PenjualanPage() {
       </header>
 
       {/* Coverage Banner — wajib ada: peringatan data usang/parsial */}
-      <div className="coverage-banner" role="status">
+      <div className="coverage-banner" role="status" data-reveal>
         <IconWarning size={18} />
         <div>
           {staleChannels.length > 0 && (
@@ -120,25 +121,25 @@ export function PenjualanPage() {
         </div>
       </div>
 
-      <section className="kpi-strip" aria-label="Ringkasan omzet">
+      <section className="kpi-strip" data-reveal="kids" aria-label="Ringkasan omzet">
         <div className="kpi">
           <span className="kpi-label">Omzet kotor</span>
-          <Num strong>{fmtIDR(omzetKotor)}</Num>
+          <Num strong key={period}>{fmtIDR(omzetKotor)}</Num>
           <span className="kpi-sub">{period} hari terakhir, semua channel</span>
         </div>
         <div className="kpi">
           <span className="kpi-label">Penjualan bersih</span>
-          <Num strong>{fmtIDR(penjualanBersih)}</Num>
+          <Num strong key={period}>{fmtIDR(penjualanBersih)}</Num>
           <span className="kpi-sub">Setelah potongan platform &amp; retur</span>
         </div>
         <div className="kpi">
           <span className="kpi-label">Transaksi</span>
-          <Num strong>{fmtNum(transaksi)}</Num>
+          <Num strong key={period}>{fmtNum(transaksi)}</Num>
           <span className="kpi-sub">Pesanan tercatat</span>
         </div>
         <div className="kpi">
           <span className="kpi-label">Rata-rata harian</span>
-          <Num strong>{fmtIDR(rataHarian)}</Num>
+          <Num strong key={period}>{fmtIDR(rataHarian)}</Num>
           <span className="kpi-sub">Omzet kotor per hari</span>
         </div>
       </section>
@@ -150,9 +151,9 @@ export function PenjualanPage() {
 
       <section aria-labelledby="per-channel">
         <h2 id="per-channel" className="section-title">Per channel</h2>
-        <ul className="channel-split">
+        <ul className="channel-split" data-reveal="kids">
           {split.map((c) => (
-            <li key={c.channel} className="channel-row">
+            <li key={`${period}-${c.channel}`} className="channel-row">
               <span className="channel-name">{c.channel}</span>
               <span className="channel-bar" aria-hidden="true">
                 <span className="channel-bar-fill" style={{ width: `${c.share}%` }} />
