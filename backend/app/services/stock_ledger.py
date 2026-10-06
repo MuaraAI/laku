@@ -342,7 +342,7 @@ def compute_stock(store: StockStore, seller_id: str, product: dict,
         d = _sold_at_to_date(s.get("sold_at"))
         if d is None or opening_date is None or d < opening_date:
             continue  # sebelum opening_date → tidak mengurangi (FR-11)
-        sales_total += int(s.get("qty", 0))
+        sales_total += int(s.get("qty") or 0)
 
     on_hand = opening_qty + receipts + adjustments - sales_total
     return {

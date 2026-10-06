@@ -66,7 +66,7 @@ def compute(inp: EngineInput) -> Recommendation:
     if inp.on_hand < 0:
         overlays.append("NEGATIVE")
         return Recommendation(
-            state="INSUFFICIENT_DATA" if not inp.stock_set_up else "OK",
+            state="INSUFFICIENT_DATA" if not inp.stock_set_up else "CRITICAL",
             overlays=overlays,
             inputs={"on_hand": inp.on_hand, "note": "Cocokkan stok — stok buku negatif"},
         )

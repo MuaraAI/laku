@@ -299,25 +299,28 @@ class ImportsSupabaseStore(ImportsStore):
 
     # -- order_lines ---------------------------------------------------
     def fetch_lines_by_keys(self, seller_id: str, keys: list[tuple]) -> list[dict]:
-        # PostgREST `in` untuk kombinasi kolom: pakai or_ pada (order_id,line_key)
-        # lalu filter seller_id/channel di sisi server (RLS).
+        # PostgREST `in` untuk kombinasi kolom: chunk per 100 kunci agar tidak
+        # melebihi batas panjang URL (HTTP 414 URI Too Long pada file besar).
         if not keys:
             return []
-        or_expr = ",".join(
-            f"and(order_id.eq.{_q(o)},line_key.eq.{_q(lk)})"
-            for o, lk in keys
-        )
-        resp = (
-            self.client.table("order_lines")
-            .select("*")
-            .eq("seller_id", seller_id)  # eksplisit — jangan andalkan RLS saja
-            .or_(or_expr)
-            .execute()
-        )
-        # filter kombinasi lengkap di memori (order_id+line_key cukup unik per seller
-        # karena unique index 6 kolom; seller_id difilter eksplisit di query di atas)
         keyset = {(k[0], k[1]) for k in keys}
-        return [r for r in (resp.data or []) if (r["order_id"], r["line_key"]) in keyset]
+        out = []
+        chunk_size = 100
+        for i in range(0, len(keys), chunk_size):
+            chunk = keys[i:i + chunk_size]
+            or_expr = ",".join(
+                f"and(order_id.eq.{_q(o)},line_key.eq.{_q(lk)})"
+                for o, lk in chunk
+            )
+            resp = (
+                self.client.table("order_lines")
+                .select("*")
+                .eq("seller_id", seller_id)  # eksplisit — jangan andalkan RLS saja
+                .or_(or_expr)
+                .execute()
+            )
+            out.extend([r for r in (resp.data or []) if (r["order_id"], r["line_key"]) in keyset])
+        return out
 
     @staticmethod
     def _to_rpc_row(r: dict) -> dict:
@@ -328,6 +331,7 @@ class ImportsSupabaseStore(ImportsStore):
         """
         return {
             **r,
+            "sku": r.get("sku") or "",
             "unit_price": r.get("unit_price") if r.get("unit_price") is not None else r.get("list_price") or 0,
             "discount_amount": r.get("discount_amount") if r.get("discount_amount") is not None else r.get("seller_discount") or 0,
             "allocated_discount": r.get("allocated_discount") or 0,

@@ -35,6 +35,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         hits = self._hits[key]
         while hits and hits[0] <= now - window:
             hits.popleft()
+        if not hits and len(self._hits) > 1000:
+            self._hits.pop(key, None)
+            hits = self._hits[key]
         if len(hits) >= limit:
             return JSONResponse(
                 status_code=429,
