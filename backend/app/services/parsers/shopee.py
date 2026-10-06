@@ -337,6 +337,7 @@ def parse_shopee_xlsx(raw_bytes: bytes, config: dict) -> ParseResult:
         result.problems.append({"row": 0, "column": "-", "reason": "file XLSX tidak memiliki sheet"})
         return result
 
+    last_val_err: ValueError | None = None
     for ws in candidate_sheets:
         raw_rows: list[dict] = []
         row_flags: dict[int, set[str]] = {}
@@ -364,11 +365,14 @@ def parse_shopee_xlsx(raw_bytes: bytes, config: dict) -> ParseResult:
         try:
             parsed = parse_rows(raw_rows, config, start_row=2, row_flags=row_flags,
                                 headers=headers)
-        except ValueError:
+        except ValueError as err:
+            last_val_err = err
             continue  # sheet bukan format order — skip
         result.rows.extend(parsed.rows)
         result.problems.extend(parsed.problems)
         result.rows_read += parsed.rows_read
         result.skipped_columns.extend(parsed.skipped_columns)
     wb.close()
+    if not result.rows and last_val_err is not None:
+        raise last_val_err
     return result
