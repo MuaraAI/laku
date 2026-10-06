@@ -3,10 +3,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.deps.settings import get_settings
 
+_dev_docs = get_settings().env == "dev"
+
 app = FastAPI(
     title="Laku API",
     description="Demand-driven restock engine untuk seller multi-marketplace.",
     version="0.1.0",
+    # Docs/openapi hanya di dev — produksi tidak expose skema API ke publik.
+    docs_url="/docs" if _dev_docs else None,
+    redoc_url="/redoc" if _dev_docs else None,
+    openapi_url="/openapi.json" if _dev_docs else None,
 )
 
 # --- Routers ---
