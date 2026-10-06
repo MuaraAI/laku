@@ -36,14 +36,9 @@ export const nav = {
   menuClose: "Tutup menu",
 };
 
-/** Illustrative restock rows (login preview); always shown with the demo label. */
+/** Label for illustrative data; always shown next to demo numbers. */
 export const demo = {
   label: "Data demo",
-  rows: [
-    { name: "Kopi Robusta 200 g", days: "4 hari", status: "critical" },
-    { name: "Kopi Arabika Gayo 200 g", days: "9 hari", status: "reorder" },
-    { name: "French Press 600 ml", days: ">60 hari", status: "overstock" },
-  ] as { name: string; days: string; status: StatusKey }[],
 };
 
 /** Hero chart: the §9A worked example over time (μ 10/hari, stok 40, lead time 5, saran 173). */
@@ -374,7 +369,6 @@ export const login = {
   notes: ["Data pembeli tidak disimpan", "File mentah tidak pernah disimpan", "Gratis selama uji coba"],
   aside: {
     sub: "Upload export marketplace seminggu sekali. Laku menyusun daftar restock dari yang paling mendesak.",
-    previewTitle: "Restock minggu ini",
   },
   consentLead: "Dengan masuk, Anda menyetujui ",
   consentTos: "Syarat & Ketentuan",
