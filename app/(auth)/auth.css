@@ -22,9 +22,9 @@
 /* right: the form */
 .auth-main { position: relative; min-height: 100dvh; display: grid; place-items: center; padding: 72px 16px 40px; background: var(--canvas); }
 @media (min-width: 960px) { .auth-main { background: var(--surface); padding: 72px clamp(32px, 6vw, 96px); } }
-.auth-back { position: absolute; top: 16px; left: 16px; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 10px; border-radius: var(--r-sm); font-size: .875rem; color: var(--text-secondary); }
+/* pinned to the top-left corner of the form panel */
+.auth-back { position: absolute; top: 12px; left: 12px; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 10px; border-radius: var(--r-sm); font-size: .875rem; color: var(--text-secondary); }
 .auth-back:hover { color: var(--primary); background: var(--primary-soft); }
-@media (min-width: 960px) { .auth-back { top: 24px; left: clamp(24px, 3vw, 40px); } }
 .auth-form { width: min(400px, 100%); display: grid; gap: 22px; }
 @media (max-width: 959px) { .auth-form { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-card); padding: clamp(24px, 6vw, 36px); } }
 @media (min-width: 960px) { .auth-brand-mobile { display: none; } }
