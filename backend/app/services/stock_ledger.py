@@ -295,8 +295,13 @@ class StockSupabaseStore(StockStore):
 # Core: on_hand computation
 # ---------------------------------------------------------------------------
 
-def compute_stock(store: StockStore, seller_id: str, product: dict) -> dict:
-    """Hitung on_hand 1 produk dari ledger. Negatif → mismatch=True (jangan clamp)."""
+def compute_stock(store: StockStore, seller_id: str, product: dict,
+                  sales: list[dict] | None = None) -> dict:
+    """Hitung on_hand 1 produk dari ledger. Negatif → mismatch=True (jangan clamp).
+
+    sales: eligible sales precomputed — pass dari caller loop (H6: hindari
+    full-fetch per produk / N+1 ke Supabase).
+    """
     item = store.get_stock_item(seller_id, product["id"])
     if item is None:
         # belum set stok → ledger belum aktif utk produk ini
@@ -324,16 +329,16 @@ def compute_stock(store: StockStore, seller_id: str, product: dict) -> dict:
         else:  # adjustment (signed)
             adjustments += qty
 
-    sales = 0
-    for s in store.fetch_eligible_sales(seller_id):
+    sales_total = 0
+    for s in (sales if sales is not None else store.fetch_eligible_sales(seller_id)):
         if (s.get("sku") or "") != (product.get("sku") or ""):
             continue  # bukan produk ini
         d = _sold_at_to_date(s.get("sold_at"))
         if d is None or opening_date is None or d < opening_date:
             continue  # sebelum opening_date → tidak mengurangi (FR-11)
-        sales += int(s.get("qty", 0))
+        sales_total += int(s.get("qty", 0))
 
-    on_hand = opening_qty + receipts + adjustments - sales
+    on_hand = opening_qty + receipts + adjustments - sales_total
     return {
         "product_id": product["id"], "name": product.get("name"),
         "sku": product.get("sku"),
@@ -343,7 +348,7 @@ def compute_stock(store: StockStore, seller_id: str, product: dict) -> dict:
         "opening_date": opening_date.isoformat() if opening_date else None,
         "receipts": receipts,
         "adjustments": adjustments,
-        "eligible_sales": sales,
+        "eligible_sales": sales_total,
         "mismatch": on_hand < 0,  # FR-43: tampil, jangan clamp
         "on_order": 0,  # P1 purchase-order-lite
     }
@@ -351,7 +356,8 @@ def compute_stock(store: StockStore, seller_id: str, product: dict) -> dict:
 
 def list_stock(store: StockStore, seller_id: str) -> list[dict]:
     products = store.list_products(seller_id)
-    return [compute_stock(store, seller_id, p) for p in products]
+    sales = store.fetch_eligible_sales(seller_id)  # H6: 1x fetch, bukan per produk
+    return [compute_stock(store, seller_id, p, sales=sales) for p in products]
 
 
 def get_stock_detail(store: StockStore, seller_id: str, product_id: str) -> dict | None:

@@ -22,10 +22,8 @@ def _get_store():
     global _memory_store
     # Lazy wiring: kalau B2 (imports pipeline) sudah merge, sales dibaca dari
     # order_lines memory store yang sama; kalau belum, ledger jalan tanpa sales.
-    try:
-        from app.routers.imports import _memory_store as _imports_memory
-    except ImportError:
-        _imports_memory = None
+    from app.routers import imports as _imports_mod  # ImportError di sini = bug nyata, biarkan raise
+    _imports_memory = getattr(_imports_mod, "_memory_store", None)
 
     from app.deps.settings import get_settings
     if get_settings().supabase_url:
@@ -70,7 +68,7 @@ class MovementIn(BaseModel):
 
 
 @router.get("")
-async def list_stock(identity: Identity = Depends(get_identity)):
+def list_stock(identity: Identity = Depends(get_identity)):
     """Stok semua produk: on_hand, opening, mismatch indicator (api.md MVP)."""
     seller_id = require_owner(identity).seller_id or ""
     store = _get_store()
@@ -83,7 +81,7 @@ async def list_stock(identity: Identity = Depends(get_identity)):
 
 
 @router.get("/{product_id}")
-async def stock_detail(product_id: str, identity: Identity = Depends(get_identity)):
+def stock_detail(product_id: str, identity: Identity = Depends(get_identity)):
     """Riwayat mutasi + breakdown on_hand 1 produk."""
     seller_id = require_owner(identity).seller_id or ""
     detail = stock_ledger.get_stock_detail(_get_store(), seller_id, product_id)
