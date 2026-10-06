@@ -46,3 +46,11 @@ def test_operator_role_guard():
     with pytest.raises(HTTPException) as exc_info2:
         require_owner(operator)
     assert exc_info2.value.status_code == 403
+
+
+@pytest.mark.anyio
+async def test_auto_provisioning_demo_mode():
+    from app.deps.auth import _lookup_membership
+    sid, role = await _lookup_membership("new-user-123")
+    assert role == "owner"
+    assert sid is not None

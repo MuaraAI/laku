@@ -13,6 +13,8 @@ export default function LoginCard({ initialError }: { initialError: string | nul
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
+  const [otpCode, setOtpCode] = useState("");
+  const [verifying, setVerifying] = useState(false);
 
   const redirectTo = () =>
     `${location.origin}/auth/callback?next=${encodeURIComponent(routes.afterLogin)}`;
@@ -55,11 +57,82 @@ export default function LoginCard({ initialError }: { initialError: string | nul
     setSentTo(value);
   };
 
+  const verifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const tokenVal = otpCode.trim();
+    if (!tokenVal || !sentTo) return;
+    const { supabaseBrowser } = await import("@/lib/supabase/client");
+    const supabase = supabaseBrowser();
+    if (!supabase) return setError(login.errors.config);
+    setVerifying(true);
+    setError(null);
+    const { error: verifyErr } = await supabase.auth.verifyOtp({
+      email: sentTo,
+      token: tokenVal,
+      type: "email",
+    });
+    setVerifying(false);
+    if (verifyErr) {
+      setError("Kode OTP salah atau kedaluwarsa. Periksa kode di email.");
+      return;
+    }
+    window.location.href = routes.afterLogin;
+  };
+
   if (sentTo) {
     return (
-      <div className="auth-sent" role="status">
-        <span className="ms" aria-hidden="true">mark_email_read</span>
-        <p>{login.email.sent(sentTo)}</p>
+      <div className="auth-email">
+        <div className="auth-sent" role="status">
+          <span className="ms" aria-hidden="true">mark_email_read</span>
+          <p>{login.email.sent(sentTo)}</p>
+        </div>
+
+        {error && (
+          <p className="auth-error" role="alert">
+            <Icon name="error" />
+            {error}
+          </p>
+        )}
+
+        <form onSubmit={verifyOtp} style={{ display: "grid", gap: "10px" }}>
+          <label className="auth-label" htmlFor="otp">
+            Atau masukkan kode 6-digit dari email
+          </label>
+          <input
+            className="auth-input"
+            id="otp"
+            name="otp"
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            placeholder="Contoh: 123456"
+            value={otpCode}
+            onChange={(e) => setOtpCode(e.target.value)}
+            maxLength={10}
+            required
+          />
+          <button
+            className="btn btn-primary auth-email-btn"
+            type="submit"
+            disabled={verifying || !otpCode.trim()}
+            aria-busy={verifying}
+          >
+            {verifying ? "Memverifikasi…" : "Masuk dengan kode"}
+          </button>
+        </form>
+
+        <button
+          className="btn btn-outline"
+          type="button"
+          onClick={() => {
+            setSentTo(null);
+            setOtpCode("");
+            setError(null);
+          }}
+          style={{ minHeight: "44px" }}
+        >
+          ← Gunakan email lain
+        </button>
       </div>
     );
   }
