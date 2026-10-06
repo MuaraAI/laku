@@ -1,58 +1,61 @@
 /* ==========================================================
-   Laku theme — semantic tokens (light only, MVP).
+   Laku theme — semantic tokens from DESIGN.md (light only, MVP).
+   MuaraAI river family: River Current Blue on Estuary Canvas, Deep Riverbed Ink.
    Komponen WAJIB pakai var(--token), bukan hex (AGENTS.md aturan 6).
    ========================================================== */
 :root {
-  /* surfaces */
-  --paper: #ffffff;
-  --paper-glass: rgba(255, 255, 255, 0.95);
-  --bone: #f4f2f0;
-  --wash: #ebe8e4;
-  --obsidian: #1a1919;
+  /* surfaces: canvas → surface → border */
+  --canvas: #f7fafc;          /* Estuary Canvas, page background */
+  --subtle: #eef3f7;          /* recessed wash inside the canvas */
+  --surface: #ffffff;         /* cards and panels */
+  --surface-glass: rgba(255, 255, 255, 0.88);
+  --secondary: #072033;       /* Deep Riverbed Ink, also dark panels */
 
   /* text */
-  --ink: #0c0a08;
-  --ink-2: #3b3936;
-  --ash: #6d6c6b;
-  --on-dark-text: #d6d4d2;
-  --on-dark-muted: #a3a19f;
+  --text-primary: #072033;
+  --text-secondary: #42586e;
+  --text-muted: #64748b;
+  --on-primary: #ffffff;
+  --on-dark-text: #cbd5e1;
+  --on-dark-muted: #94a3b8;
+  --on-dark-accent: #7dd3fc;
 
   /* lines */
-  --hairline: #e5e7eb;
-  --rule: #dcdad6;
-  --rule-dash: #b9b6b1;
-  --rule-dot: #a9a6a1;
-  --smoke: #d3d3d3;
-  --dot: #cfccc7;
-  --dot-soft: #d9d6d1;
-  --on-dark-rule: #4a4847;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --on-dark-rule: rgba(255, 255, 255, 0.16);
   --on-dark-hover: rgba(255, 255, 255, 0.06);
 
-  /* the one highlighter */
-  --accent: #e4f222;
-  --accent-hover: #d6e414;
-  --accent-soft: #f6fbb4;
+  /* the one accent: interaction (buttons, links, active, focus) */
+  --primary: #0369a1;         /* River Current Blue */
+  --primary-hover: #075e85;
+  --primary-soft: #f0f9ff;
+  --primary-tint: #e0f2fe;
 
-  /* engine status: always paired with icon + label */
-  --critical: #b42318;      --critical-bg: #fdf0ee;
-  --reorder: #a15c07;       --reorder-bg: #fdf6e7;
-  --ok: #1d7a4a;            --ok-bg: #edf6f0;
-  --overstock: #b54708;     --overstock-bg: #fdf2ea;
-  --dead: #57534e;          --dead-bg: #efedea;
-  --insufficient: #2b5c8a;  --insufficient-bg: #eef3f8;
+  /* engine status: always paired with icon + label (FR-8) */
+  --critical: #b91c1c;      --critical-bg: #fef2f2;
+  --reorder: #b45309;       --reorder-bg: #fffbeb;
+  --ok: #047857;            --ok-bg: #ecfdf5;
+  --overstock: #c2410c;     --overstock-bg: #fff7ed;
+  --dead: #475569;          --dead-bg: #f1f5f9;
+  --insufficient: #0369a1;  --insufficient-bg: #f0f9ff;
 
-  /* elevation */
-  --shadow-soft: rgba(12, 10, 8, 0.1);
-  --shadow-edge: rgba(12, 10, 8, 0.08);
-  --shadow-sheet: rgba(12, 10, 8, 0.2);
-  --backdrop: rgba(12, 10, 8, 0.45);
+  /* elevation: tinted to the ink, never pure black */
+  --shadow-card: 0 1px 2px rgba(7, 32, 51, 0.06), 0 8px 24px rgba(7, 32, 51, 0.08);
+  --shadow-raise: 0 2px 4px rgba(7, 32, 51, 0.06), 0 16px 40px rgba(7, 32, 51, 0.12);
+  --shadow-soft: rgba(7, 32, 51, 0.1);
+  --shadow-edge: rgba(7, 32, 51, 0.06);
+  --backdrop: rgba(7, 32, 51, 0.4);
 
-  /* shape & type */
-  --r-btn: 6px; --r-input: 10px; --r-wash: 12px; --r-card: 16px;
-  --font: "Google Sans Flex", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* shape: input & small badge 8 · button & card 12–16 · status pill full */
+  --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-full: 999px;
 
-  /* motion */
+  /* type: self-hosted via next/font (app/layout.tsx) */
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* motion: functional, 150–300ms */
   --ease: cubic-bezier(.2, 0, 0, 1);
   --ease-out: cubic-bezier(.16, 1, .3, 1);
   --ease-emph: cubic-bezier(.05, .7, .1, 1);

@@ -47,7 +47,7 @@ export function Pricing() {
             </div>
             <ul>
               {free.items.map((it) => (
-                <li key={it.text}>
+                <li key={it.text} className={it.icon === "schedule" ? "soon" : undefined}>
                   <Icon name={it.icon} />
                   {it.text}
                 </li>

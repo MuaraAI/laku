@@ -292,7 +292,7 @@ export const brand = {
       kicker: "Bingkai",
       title: "Segi delapan",
       body: "Bentuk rambu STOP. Laku tidak hanya memberi tahu kapan harus beli, tapi juga kapan harus berhenti beli.",
-      spec: [{ text: "Sudut terpotong 30%" }, { text: "Garis tinta #0C0A08", chip: "ink" }],
+      spec: [{ text: "Sudut terpotong 30%" }, { text: "Garis tinta #072033", chip: "text-primary" }],
     },
     {
       dot: "Siku rak",
@@ -303,12 +303,12 @@ export const brand = {
       spec: [{ text: "Huruf L" }, { text: "Garis 6 satuan, ujung bulat" }],
     },
     {
-      dot: "Kotak kuning",
+      dot: "Kotak biru",
       no: "03",
       kicker: "Isi rak",
-      title: "Kotak kuning",
-      body: "Stok yang ada di rak hari ini. Kuning adalah satu-satunya warna sinyal Laku: di mana pun kuning muncul, ada yang perlu diperhatikan.",
-      spec: [{ text: "Kuning #E4F222", chip: "accent" }, { text: "Stok saat ini" }],
+      title: "Kotak biru",
+      body: "Stok yang ada di rak hari ini. Birunya River Current Blue, warisan MuaraAI dan satu-satunya warna aksen Laku: di mana pun biru muncul, di situ ada yang bisa Anda lakukan.",
+      spec: [{ text: "Biru #0369A1", chip: "primary" }, { text: "Stok saat ini" }],
     },
     {
       dot: "Kotak putus-putus",
@@ -341,7 +341,7 @@ export const brand = {
     title: string;
     body: string;
     hint?: string;
-    spec?: { text: string; chip?: "ink" | "accent" }[];
+    spec?: { text: string; chip?: "text-primary" | "primary" }[];
     back?: string;
     replay?: string;
   }[],
