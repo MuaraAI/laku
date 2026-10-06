@@ -63,6 +63,13 @@
 .wizard-card { animation: rise .35s var(--ease-out); }
 @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
 
+/* Ganti periode Penjualan (7/30/90): angka, grafik & bar channel crossfade tipis
+   — elemen di-remount lewat key={period}, animasi berjalan tiap konten berganti */
+@keyframes val-in { from { opacity: 0; transform: translateY(4px); } }
+.kpi .num { animation: val-in .25s var(--ease-out); }
+.trend-chart { animation: val-in .3s var(--ease-out); }
+.channel-row { animation: val-in .3s var(--ease-out); }
+
 .dash, .dash * {
   box-sizing: border-box;
 }

@@ -29,7 +29,7 @@ function TrendChart({ period }: { period: Period }) {
 
   return (
     <div className="chart-wrap" data-reveal>
-      <svg viewBox={`0 0 ${W} ${H}`} className="trend-chart" role="img"
+      <svg key={period} viewBox={`0 0 ${W} ${H}`} className="trend-chart" role="img"
         aria-label={`Tren omzet ${period} hari terakhir`}
         onMouseLeave={() => setHover(null)}
         onMouseMove={(e) => {
@@ -124,22 +124,22 @@ export function PenjualanPage() {
       <section className="kpi-strip" data-reveal="kids" aria-label="Ringkasan omzet">
         <div className="kpi">
           <span className="kpi-label">Omzet kotor</span>
-          <Num strong>{fmtIDR(omzetKotor)}</Num>
+          <Num strong key={period}>{fmtIDR(omzetKotor)}</Num>
           <span className="kpi-sub">{period} hari terakhir, semua channel</span>
         </div>
         <div className="kpi">
           <span className="kpi-label">Penjualan bersih</span>
-          <Num strong>{fmtIDR(penjualanBersih)}</Num>
+          <Num strong key={period}>{fmtIDR(penjualanBersih)}</Num>
           <span className="kpi-sub">Setelah potongan platform &amp; retur</span>
         </div>
         <div className="kpi">
           <span className="kpi-label">Transaksi</span>
-          <Num strong>{fmtNum(transaksi)}</Num>
+          <Num strong key={period}>{fmtNum(transaksi)}</Num>
           <span className="kpi-sub">Pesanan tercatat</span>
         </div>
         <div className="kpi">
           <span className="kpi-label">Rata-rata harian</span>
-          <Num strong>{fmtIDR(rataHarian)}</Num>
+          <Num strong key={period}>{fmtIDR(rataHarian)}</Num>
           <span className="kpi-sub">Omzet kotor per hari</span>
         </div>
       </section>
@@ -153,7 +153,7 @@ export function PenjualanPage() {
         <h2 id="per-channel" className="section-title">Per channel</h2>
         <ul className="channel-split" data-reveal="kids">
           {split.map((c) => (
-            <li key={c.channel} className="channel-row">
+            <li key={`${period}-${c.channel}`} className="channel-row">
               <span className="channel-name">{c.channel}</span>
               <span className="channel-bar" aria-hidden="true">
                 <span className="channel-bar-fill" style={{ width: `${c.share}%` }} />
