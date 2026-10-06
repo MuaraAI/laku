@@ -13,7 +13,7 @@ function StockRow({ p, onWhy }: { p: Product; onWhy: (p: Product) => void }) {
   const o = overlaysOf(p);
   const dos = daysOfStock(p);
   return (
-    <li className="stock-row">
+    <li className="stock-row" data-reveal>
       <div className="stock-main">
         <div className="stock-id">
           <span className="stock-name">{p.name}</span>
@@ -63,13 +63,13 @@ export function RestockPage() {
 
   return (
     <div className="page">
-      <header className="page-head">
-        <p className="kicker">Dashboard · Selasa, 6 Oktober 2026</p>
+      <header className="page-head" data-reveal>
+        <p className="kicker"><b>Dashboard</b> · Selasa, 6 Oktober 2026</p>
         <h1 className="page-title">Restock</h1>
         <p className="page-sub">Barang yang perlu dipesan dulu ada di atas. Angka dihitung dari laju laku tiap SKU.</p>
       </header>
 
-      <section className="kpi-strip" aria-label="Ringkasan restock">
+      <section className="kpi-strip" data-reveal="kids" aria-label="Ringkasan restock">
         <div className="kpi kpi-critical">
           <span className="kpi-label">{STATUS.CRITICAL.label}</span>
           <Num strong>{fmtNum(criticalCount)}</Num>
@@ -99,7 +99,7 @@ export function RestockPage() {
         </ul>
       </section>
 
-      <section className="stop-zone" aria-labelledby="berhenti-beli">
+      <section className="stop-zone" data-reveal aria-labelledby="berhenti-beli">
         <div className="stop-head">
           <h2 id="berhenti-beli" className="section-title">Berhenti beli</h2>
           <p className="stop-sub">Stok berlebih atau tidak laku — tahan dulu uangnya, jangan pesan ulang.</p>

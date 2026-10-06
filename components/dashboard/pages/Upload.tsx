@@ -43,13 +43,13 @@ export function UploadPage() {
 
   return (
     <div className="page">
-      <header className="page-head">
-        <p className="kicker">Sinkron data</p>
+      <header className="page-head" data-reveal>
+        <p className="kicker"><b>Sinkron data</b></p>
         <h1 className="page-title">Upload</h1>
         <p className="page-sub">Unggah laporan penjualan per channel. Data pembeli (nama, HP, alamat) tidak pernah disimpan Laku.</p>
       </header>
 
-      <ol className="upload-steps">
+      <ol className="upload-steps" data-reveal="kids">
         <li className={channel ? 'step done' : 'step active'}>
           <span className="step-no num">1</span>
           <div>
@@ -86,6 +86,12 @@ export function UploadPage() {
             <span className="step-no num">3</span>
             <div className="skeleton-block">
               <h2 className="step-title">Membaca file…</h2>
+              {/* rute + paket ala landing: ceritakan pipeline, bukan spinner */}
+              <div className="route" aria-hidden="true">
+                <span className="pin"><IconFile size={16} /> {fileName || 'CSV / XLSX'}</span>
+                <span className="track"><span className="packet" /></span>
+                <span className="pin to">Saran restock</span>
+              </div>
               <div className="sk sk-line w60" />
               <div className="sk sk-line w80" />
               <div className="sk sk-row" />

@@ -2,6 +2,7 @@
 // pilih channel → panduan upload per channel → upload awal → konfirmasi
 // lead time (badge "asumsi") → saldo awal stok (opsional, bisa skip) → dashboard.
 
+import Image from 'next/image';
 import { useRef, useState } from 'react';
 import { CHANNELS, UPLOAD_GUIDE, DEFAULT_LEAD_TIME_DAYS, fmtNum, type Channel } from '../data';
 import { AssumsiBadge } from '../components';
@@ -28,10 +29,10 @@ export function OnboardingPage({ onFinish }: { onFinish: () => void }) {
 
   return (
     <div className="page onboarding">
-      <header className="page-head">
-        <p className="kicker">Setup awal</p>
+      <header className="page-head" data-reveal>
+        <p className="kicker"><b>Setup awal</b></p>
         <h1 className="page-title">Kenalkan, ini Laku</h1>
-        <p className="page-sub">Lima langkah singkat supaya Laku bisa mulai menyarankan restock dari data penjualanmu.</p>
+        <p className="page-sub">Enam langkah singkat supaya Laku bisa mulai menyarankan restock dari data penjualanmu.</p>
       </header>
 
       <nav className="wizard-dots" aria-label="Langkah onboarding">
@@ -42,7 +43,7 @@ export function OnboardingPage({ onFinish }: { onFinish: () => void }) {
         <span className="dot-label">Langkah <span className="num">{step + 1}</span> dari <span className="num">{STEP_TITLES.length}</span> — {STEP_TITLES[step]}</span>
       </nav>
 
-      <div className="wizard-card">
+      <div className="wizard-card" key={step}>
         {step === 0 && (
           <section>
             <h2 className="step-title">Jualan di mana saja?</h2>
@@ -151,6 +152,7 @@ export function OnboardingPage({ onFinish }: { onFinish: () => void }) {
 
         {step === 5 && (
           <section className="wizard-finish">
+            <Image className="crate-mini" src="/illustrations/stock-crates.svg" alt="" width={110} height={121} unoptimized />
             <h2 className="step-title">Siap. Dashboard restock-mu sudah menunggu.</h2>
             <p className="step-sub">
               Laku akan menandai barang yang harus <em>segera dipesan</em>, yang masih <em>aman</em>,
