@@ -60,7 +60,3 @@ jobs:
 
       - name: Build Next.js Production (Landing + Dashboard + Auth)
         run: npm run build
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://lsyaxstligdshxbzmzeu.supabase.co' }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy' }}
-          NEXT_PUBLIC_API_BASE_URL: "https://api.muaraai.com"
