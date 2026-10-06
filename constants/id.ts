@@ -88,6 +88,7 @@ export const problem = {
 export const features = {
   tag: "Fitur",
   title: "Satu tampilan untuk semua channel, satu keputusan restock.",
+  hubIdle: "pilih fitur untuk lihat alurnya",
   items: [
     {
       title: "Import tanpa ribet",
