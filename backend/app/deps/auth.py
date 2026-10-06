@@ -82,10 +82,10 @@ def _supabase_admin():
     return create_client(settings.supabase_url, settings.supabase_service_key)
 
 
-async def _lookup_membership(user_id: str) -> tuple[str | None, str]:
-    """Query seller_members. Demo mode tanpa service key → auto-provision demo seller."""
+async def _lookup_membership(user_id: str, email: str | None = None) -> tuple[str | None, str]:
+    """Query seller_members. Auto-provision seller workspace jika user baru (defense-in-depth)."""
     settings = get_settings()
-    if settings.demo_mode and not settings.supabase_service_key:
+    if settings.demo_mode or not settings.supabase_service_key:
         return ("demo-seller", "owner")
 
     client = _supabase_admin()
@@ -97,9 +97,37 @@ async def _lookup_membership(user_id: str) -> tuple[str | None, str]:
         .execute()
     )
     rows = resp.data or []
-    if not rows:
-        raise HTTPException(403, "No seller membership")
-    return rows[0]["seller_id"], rows[0]["role"]
+    if rows:
+        return rows[0]["seller_id"], rows[0]["role"]
+
+    # Fallback auto-provision jika trigger DB belum jalan
+    store_name = f"Toko {email.split('@')[0]}" if email else "Toko Saya"
+    new_seller = (
+        client.table("sellers")
+        .insert({
+            "name": store_name,
+            "email": email,
+            "plan": "free",
+            "timezone": "Asia/Jakarta",
+            "service_level": 0.95,
+            "lead_time_days": 5,
+            "cycle_days": 14,
+            "review_days": 7,
+            "overstock_days": 60,
+        })
+        .execute()
+        .data
+    )
+    if new_seller:
+        sid = new_seller[0]["id"]
+        client.table("seller_members").insert({
+            "seller_id": sid,
+            "user_id": user_id,
+            "role": "owner",
+        }).execute()
+        return sid, "owner"
+
+    raise HTTPException(403, "No seller membership")
 
 
 async def get_identity(request: Request) -> Identity:
@@ -111,7 +139,7 @@ async def get_identity(request: Request) -> Identity:
 
     user_id = payload["sub"]
     email = payload.get("email")
-    seller_id, role = await _lookup_membership(user_id)
+    seller_id, role = await _lookup_membership(user_id, email=email)
     identity = Identity(user_id=user_id, email=email, seller_id=seller_id, role=role)
     request.state.identity = identity
     return identity
