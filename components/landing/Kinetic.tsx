@@ -7,7 +7,8 @@ import { clamp } from "@/lib/motion";
 export default function Kinetic() {
   const wrapRef = useRef<HTMLParagraphElement>(null);
 
-  // fit the font so the longest line spans the container exactly (layout only, no motion)
+  // fit the font so the longest line spans part of the container, leaving room for the
+  // left/right stagger on wide screens (layout only, no motion)
   useEffect(() => {
     const wrap = wrapRef.current;
     if (!wrap) return;
@@ -17,12 +18,13 @@ export default function Kinetic() {
       const lines = Array.from(wrap.querySelectorAll<HTMLElement>(".k-line"));
       const texts = Array.from(wrap.querySelectorAll<HTMLElement>(".k-text"));
       const widest = () => Math.max(...texts.map((t) => t.offsetWidth));
+      const target = avail * (avail < 640 ? 0.94 : 0.74);
       lines.forEach((l) => (l.style.fontSize = "100px"));
-      let size = clamp((100 * avail) / widest(), 26, 220);
+      let size = clamp((100 * target) / widest(), 26, 132);
       lines.forEach((l) => (l.style.fontSize = ""));
       wrap.style.setProperty("--kfs", `${size.toFixed(1)}px`);
       // second pass: optical sizing changes glyph widths at large sizes
-      size = clamp((size * avail) / widest(), 26, 220);
+      size = clamp((size * target) / widest(), 26, 132);
       wrap.style.setProperty("--kfs", `${size.toFixed(1)}px`);
     };
     fit();
@@ -33,7 +35,7 @@ export default function Kinetic() {
 
   return (
     <div className="kinetic">
-      <p className="k-wrap" aria-label={kinetic.aria} ref={wrapRef}>
+      <p className="k-wrap" data-reveal="kinetic" aria-label={kinetic.aria} ref={wrapRef}>
         <span className="k-line" aria-hidden="true">
           <span className="k-text">{kinetic.line1}</span>
         </span>
@@ -44,8 +46,8 @@ export default function Kinetic() {
               <svg viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="45" />
                 <ellipse className="eye" cx="35" cy="40" rx="5.5" ry="8" />
-                <ellipse className="eye" cx="65" cy="40" rx="5.5" ry="8" />
-                <path className="mouth" d="M29 58 Q50 80 71 58" />
+                <ellipse className="eye wink" cx="65" cy="40" rx="5.5" ry="8" />
+                <path className="mouth" d="M29 58 Q50 80 71 58" pathLength="1" />
               </svg>
             </span>
           </span>
