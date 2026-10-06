@@ -151,11 +151,14 @@ class ImportsMemoryStore(ImportsStore):
 
     # -- order_lines ---------------------------------------------------
     def fetch_lines_by_keys(self, seller_id: str, keys: list[tuple]) -> list[dict]:
-        keyset = {tuple(k) for k in keys}
+        """keys: (source_system, sales_channel, order_id, line_key) — dedup key
+        lengkap (FR-3) supaya line channel lain dengan order_id sama tidak
+        ikut ke-fetch (bug lintas-channel TikTok×Shopee)."""
+        keyset = {(k[0], k[1], k[2], k[3]) for k in keys}
         table = self._lines.get(seller_id, {})
         return [
             r for k, r in table.items()
-            if (k[4], k[5]) in keyset
+            if (k[1], k[2], k[4], k[5]) in keyset
         ]
 
     def upsert_lines(self, seller_id: str, batch_id: str,
@@ -299,18 +302,20 @@ class ImportsSupabaseStore(ImportsStore):
 
     # -- order_lines ---------------------------------------------------
     def fetch_lines_by_keys(self, seller_id: str, keys: list[tuple]) -> list[dict]:
-        # PostgREST `in` untuk kombinasi kolom: chunk per 100 kunci agar tidak
+        # keys: (source_system, sales_channel, order_id, line_key) — FR-3 penuh.
+        # PostgREST `or` untuk kombinasi 4 kolom: chunk per 100 kunci agar tidak
         # melebihi batas panjang URL (HTTP 414 URI Too Long pada file besar).
         if not keys:
             return []
-        keyset = {(k[0], k[1]) for k in keys}
+        keyset = {(k[0], k[1], k[2], k[3]) for k in keys}
         out = []
         chunk_size = 100
         for i in range(0, len(keys), chunk_size):
             chunk = keys[i:i + chunk_size]
             or_expr = ",".join(
-                f"and(order_id.eq.{_q(o)},line_key.eq.{_q(lk)})"
-                for o, lk in chunk
+                f"and(source_system.eq.{_q(ss)},sales_channel.eq.{_q(sc)},"
+                f"order_id.eq.{_q(o)},line_key.eq.{_q(lk)})"
+                for ss, sc, o, lk in chunk
             )
             resp = (
                 self.client.table("order_lines")
@@ -319,7 +324,11 @@ class ImportsSupabaseStore(ImportsStore):
                 .or_(or_expr)
                 .execute()
             )
-            out.extend([r for r in (resp.data or []) if (r["order_id"], r["line_key"]) in keyset])
+            out.extend([
+                r for r in (resp.data or [])
+                if (r.get("source_system"), r.get("sales_channel"),
+                    r["order_id"], r["line_key"]) in keyset
+            ])
         return out
 
     @staticmethod

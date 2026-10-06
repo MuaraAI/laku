@@ -382,7 +382,7 @@ class TestChannelGuard:
 
     def test_unsupported_channel_rejected(self):
         content = _csv([_row("ORD-CH")])
-        r = _upload(content, channel="tiktok_shop")
+        r = _upload(content, channel="tokopedia")  # belum ada parser-nya
         assert r.status_code == 422
         assert r.json()["detail"]["error"]["code"] == "UNSUPPORTED_CHANNEL"
 
