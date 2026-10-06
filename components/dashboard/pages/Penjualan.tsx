@@ -101,20 +101,22 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
     }
   }, [mode, period]);
 
+  const isLive = mode === 'live';
+
   const data = SALES[period];
   const split = CHANNEL_SPLIT[period];
 
-  const omzetKotor = (mode === 'live' && liveRecap?.totals?.gross_rp != null)
-    ? Number(liveRecap.totals.gross_rp)
+  const omzetKotor = isLive
+    ? Number(liveRecap?.totals?.gross_rp ?? 0)
     : data.reduce((s, d) => s + d.omzet, 0);
-  const penjualanBersih = (mode === 'live' && liveRecap?.totals?.net_rp != null)
-    ? Number(liveRecap.totals.net_rp)
+  const penjualanBersih = isLive
+    ? Number(liveRecap?.totals?.net_rp ?? 0)
     : Math.round(omzetKotor * 0.934);
-  const transaksi = (mode === 'live' && liveRecap?.totals?.orders_count != null)
-    ? Number(liveRecap.totals.orders_count)
+  const transaksi = isLive
+    ? Number(liveRecap?.totals?.orders_count ?? 0)
     : data.reduce((s, d) => s + d.transaksi, 0);
   const rataHarian = omzetKotor / period;
-  const staleChannels = DATA_FRESHNESS.filter((c) => c.daysAgo > 7);
+  const staleChannels = isLive ? [] : DATA_FRESHNESS.filter((c) => c.daysAgo > 7);
 
   return (
     <div className="page">
@@ -131,22 +133,24 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
         </div>
       </header>
 
-      {/* Coverage Banner — wajib ada: peringatan data usang/parsial */}
-      <div className="coverage-banner" role="status" data-reveal>
-        <IconWarning size={18} />
-        <div>
-          {staleChannels.length > 0 && (
+      {/* Coverage Banner — hanya jika ada data atau di mode demo */}
+      {(!isLive || transaksi > 0) && (
+        <div className="coverage-banner" role="status" data-reveal>
+          <IconWarning size={18} />
+          <div>
+            {staleChannels.length > 0 && (
+              <p>
+                Data <strong>{staleChannels.map((c) => c.channel).join(', ')}</strong> usang
+                {' '}<Num>{fmtNum(staleChannels[0].daysAgo)}</Num> hari — unggah ulang laporan supaya rekomendasi restock akurat.
+              </p>
+            )}
             <p>
-              Data <strong>{staleChannels.map((c) => c.channel).join(', ')}</strong> usang
-              {' '}<Num>{fmtNum(staleChannels[0].daysAgo)}</Num> hari — unggah ulang laporan supaya rekomendasi restock akurat.
+              Transaksi <span className="num">7</span> hari terakhir masih <SementaraChip /> — angka bisa berubah
+              karena pesanan belum selesai, retur, atau pembatalan.
             </p>
-          )}
-          <p>
-            Transaksi <span className="num">7</span> hari terakhir masih <SementaraChip /> — angka bisa berubah
-            karena pesanan belum selesai, retur, atau pembatalan.
-          </p>
+          </div>
         </div>
-      </div>
+      )}
 
       <section className="kpi-strip" data-reveal="kids" aria-label="Ringkasan omzet">
         <div className="kpi">
@@ -171,28 +175,39 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
         </div>
       </section>
 
-      <section aria-labelledby="tren">
-        <h2 id="tren" className="section-title">Tren omzet kotor</h2>
-        <TrendChart period={period} />
-      </section>
+      {isLive && transaksi === 0 ? (
+        <div className="stock-empty" data-reveal style={{ marginTop: '14px' }}>
+          <p>Belum ada transaksi penjualan tercatat untuk Toko Saya pada periode {period} hari ini.</p>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+            Unggah file pesanan marketplace Anda lewat menu <strong>Upload</strong> agar grafik tren omzet dan analisis per-channel muncul di sini.
+          </p>
+        </div>
+      ) : (
+        <>
+          <section aria-labelledby="tren">
+            <h2 id="tren" className="section-title">Tren omzet kotor</h2>
+            <TrendChart period={period} />
+          </section>
 
-      <section aria-labelledby="per-channel">
-        <h2 id="per-channel" className="section-title">Per channel</h2>
-        <ul className="channel-split" data-reveal="kids">
-          {split.map((c) => (
-            <li key={`${period}-${c.channel}`} className="channel-row">
-              <span className="channel-name">{c.channel}</span>
-              <span className="channel-bar" aria-hidden="true">
-                <span className="channel-bar-fill" style={{ width: `${c.share}%` }} />
-              </span>
-              <span className="channel-figs">
-                <Num strong>{fmtIDR(c.omzet)}</Num>
-                <Num>{fmtNum1(c.share)}%</Num>
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
+          <section aria-labelledby="per-channel">
+            <h2 id="per-channel" className="section-title">Per channel</h2>
+            <ul className="channel-split" data-reveal="kids">
+              {split.map((c) => (
+                <li key={`${period}-${c.channel}`} className="channel-row">
+                  <span className="channel-name">{c.channel}</span>
+                  <span className="channel-bar" aria-hidden="true">
+                    <span className="channel-bar-fill" style={{ width: `${c.share}%` }} />
+                  </span>
+                  <span className="channel-figs">
+                    <Num strong>{fmtIDR(c.omzet)}</Num>
+                    <Num>{fmtNum1(c.share)}%</Num>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </>
+      )}
     </div>
   );
 }

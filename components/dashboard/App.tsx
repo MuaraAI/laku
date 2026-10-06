@@ -1,30 +1,24 @@
 // Shell aplikasi Laku: sidebar (desktop) / bottom tabs ≤5 ikon (mobile <768px),
 // routing internal berbasis state (preview statis tanpa server rewrite).
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import RevealObserver from '@/components/landing/RevealObserver';
 import { RestockPage } from './pages/Restock';
 import { PenjualanPage } from './pages/Penjualan';
 import { UploadPage } from './pages/Upload';
 import { OnboardingPage } from './pages/Onboarding';
-import { IconRestock, IconSales, IconUpload, IconSetup } from './icons';
+import { IconRestock, IconSales, IconUpload, IconSetup, IconLock } from './icons';
 
 type PageKey = 'restock' | 'penjualan' | 'upload' | 'setup';
 
-const NAV: { key: PageKey; label: string; icon: (p: { size?: number }) => React.ReactNode }[] = [
-  { key: 'restock', label: 'Restock', icon: (p) => <IconRestock {...p} /> },
-  { key: 'penjualan', label: 'Penjualan', icon: (p) => <IconSales {...p} /> },
-  { key: 'upload', label: 'Upload', icon: (p) => <IconUpload {...p} /> },
-  { key: 'setup', label: 'Setup', icon: (p) => <IconSetup {...p} /> },
-];
-
-const ONBOARDED_KEY = 'laku-onboarded';
+const ONBOARDED_KEY_PREFIX = 'laku-onboarded-';
 
 export default function App() {
   const [page, setPage] = useState<PageKey>('restock');
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
   const [mode, setMode] = useState<'demo' | 'live'>('demo');
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [liveOnboarded, setLiveOnboarded] = useState<boolean>(true);
 
   useEffect(() => {
     try {
@@ -47,20 +41,33 @@ export default function App() {
         const supabase = supabaseBrowser();
         if (supabase) {
           const { data } = await supabase.auth.getSession();
-          if (data.session?.user?.email) {
-            setUserEmail(data.session.user.email);
-            // Pengguna yang sudah login otomatis diarahkan ke mode live (Toko Saya),
-            // kecuali jika URL secara eksplisit meminta ?mode=demo
+          const email = data.session?.user?.email ?? null;
+          setUserEmail(email);
+
+          if (email) {
+            const isDone = localStorage.getItem(`${ONBOARDED_KEY_PREFIX}${email}`) === '1';
+            setLiveOnboarded(isDone);
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('mode') !== 'demo') {
               setMode('live');
+              if (!isDone) {
+                setPage('setup');
+              }
             }
           }
+
           supabase.auth.onAuthStateChange((_event, session) => {
-            const email = session?.user?.email ?? null;
-            setUserEmail(email);
-            if (email && new URLSearchParams(window.location.search).get('mode') !== 'demo') {
-              setMode('live');
+            const sEmail = session?.user?.email ?? null;
+            setUserEmail(sEmail);
+            if (sEmail) {
+              const isDone = localStorage.getItem(`${ONBOARDED_KEY_PREFIX}${sEmail}`) === '1';
+              setLiveOnboarded(isDone);
+              if (new URLSearchParams(window.location.search).get('mode') !== 'demo') {
+                setMode('live');
+                if (!isDone) {
+                  setPage('setup');
+                }
+              }
             }
           });
         }
@@ -89,12 +96,34 @@ export default function App() {
 
   function finishOnboarding() {
     try {
-      if (typeof window !== 'undefined') localStorage.setItem(ONBOARDED_KEY, '1');
+      if (typeof window !== 'undefined' && userEmail) {
+        localStorage.setItem(`${ONBOARDED_KEY_PREFIX}${userEmail}`, '1');
+      }
     } catch {
       /* abaikan */
     }
+    setLiveOnboarded(true);
     setPage('restock');
   }
+
+  const isLocked = mode === 'live' && !liveOnboarded;
+  const currentPage: PageKey = isLocked ? 'setup' : page;
+
+  const navItems = useMemo(() => {
+    if (isLocked) {
+      return [
+        { key: 'setup' as PageKey, label: 'Setup', icon: (p: { size?: number }) => <IconSetup {...p} />, locked: false },
+        { key: 'restock' as PageKey, label: 'Restock', icon: (p: { size?: number }) => <IconRestock {...p} />, locked: true },
+        { key: 'penjualan' as PageKey, label: 'Penjualan', icon: (p: { size?: number }) => <IconSales {...p} />, locked: true },
+        { key: 'upload' as PageKey, label: 'Upload', icon: (p: { size?: number }) => <IconUpload {...p} />, locked: true },
+      ];
+    }
+    return [
+      { key: 'restock' as PageKey, label: 'Restock', icon: (p: { size?: number }) => <IconRestock {...p} />, locked: false },
+      { key: 'penjualan' as PageKey, label: 'Penjualan', icon: (p: { size?: number }) => <IconSales {...p} />, locked: false },
+      { key: 'upload' as PageKey, label: 'Upload', icon: (p: { size?: number }) => <IconUpload {...p} />, locked: false },
+    ];
+  }, [isLocked]);
 
   const storeName = mode === 'demo'
     ? 'Warung Bu Rina'
@@ -102,11 +131,11 @@ export default function App() {
     ? `Toko ${userEmail.split('@')[0]}`
     : 'Toko Saya';
 
-  const body = page === 'setup' ? (
+  const body = currentPage === 'setup' ? (
     <OnboardingPage onFinish={finishOnboarding} />
-  ) : page === 'penjualan' ? (
+  ) : currentPage === 'penjualan' ? (
     <PenjualanPage mode={mode} />
-  ) : page === 'upload' ? (
+  ) : currentPage === 'upload' ? (
     <UploadPage mode={mode} onUploaded={() => setPage('restock')} />
   ) : (
     <RestockPage mode={mode} onGoUpload={() => setPage('upload')} />
@@ -133,13 +162,23 @@ export default function App() {
           {hoverIdx !== null && (
             <span className="side-pill" style={{ transform: `translateY(${hoverIdx * 46}px)` }} aria-hidden="true" />
           )}
-          {NAV.map((n, i) => (
+          {navItems.map((n, i) => (
             <button key={n.key}
-              className={`side-link${page === n.key ? ' active' : ''}`}
-              onClick={() => setPage(n.key)}
-              onMouseEnter={() => setHoverIdx(i)}>
+              className={`side-link${currentPage === n.key ? ' active' : ''}${n.locked ? ' locked' : ''}`}
+              onClick={() => {
+                if (!n.locked) setPage(n.key);
+              }}
+              onMouseEnter={() => setHoverIdx(i)}
+              disabled={n.locked}
+              title={n.locked ? 'Selesaikan setup awal terlebih dahulu' : undefined}
+            >
               {n.icon({ size: 19 })}
               <span>{n.label}</span>
+              {n.locked && (
+                <span className="side-lock-icon" title="Terkunci">
+                  <IconLock size={14} />
+                </span>
+              )}
             </button>
           ))}
         </nav>
@@ -208,11 +247,16 @@ export default function App() {
       </main>
 
       <nav className="bottom-tabs" aria-label="Navigasi utama mobile">
-        {NAV.map((n) => (
+        {navItems.map((n) => (
           <button key={n.key}
-            className={`tab${page === n.key ? ' active' : ''}`}
-            onClick={() => setPage(n.key)} aria-label={n.label}>
-            {n.icon({ size: 21 })}
+            className={`tab${currentPage === n.key ? ' active' : ''}${n.locked ? ' locked' : ''}`}
+            onClick={() => {
+              if (!n.locked) setPage(n.key);
+            }}
+            disabled={n.locked}
+            aria-label={n.label}
+          >
+            {n.locked ? <IconLock size={20} /> : n.icon({ size: 21 })}
             <span>{n.label}</span>
           </button>
         ))}

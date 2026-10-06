@@ -13,6 +13,8 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
   const [fileName, setFileName] = useState('');
   const [phase, setPhase] = useState<Phase>('idle');
   const [preview, setPreview] = useState<UploadPreview | null>(null);
+  const [batchId, setBatchId] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   function pickFile() {
@@ -20,19 +22,94 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
     fileRef.current?.click();
   }
 
-  function onFile(name: string) {
+  async function onFile(name: string) {
     if (!channel || !name) return;
     setFileName(name);
     setPhase('loading');
     setPreview(null);
-    // Simulasi baca file di server (mode demo atau preview awal).
+    setUploadError(null);
+
+    const file = fileRef.current?.files?.[0];
+    if (mode === 'live' && file) {
+      try {
+        const { supabaseBrowser } = await import('@/lib/supabase/client');
+        const supabase = supabaseBrowser();
+        const session = (await supabase?.auth.getSession())?.data.session;
+        const token = session?.access_token;
+
+        const formData = new FormData();
+        formData.append('file', file);
+        const chKey = channel === 'Shopee' ? 'shopee' : channel === 'TikTok Shop' ? 'tiktok_shop' : 'tokopedia';
+        formData.append('channel', chKey);
+
+        const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.muaraai.com';
+        const url = API_BASE.includes('api.muaraai.com')
+          ? `${API_BASE}/v1/laku/v1/imports`
+          : `${API_BASE}/v1/imports`;
+
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          body: formData,
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setBatchId(data.import_batch_id);
+          setPreview({
+            channel,
+            fileName: name,
+            rowsRead: data.rows_read ?? 0,
+            rowsNew: data.new ?? 0,
+            skuFillRate: data.sku_fill_rate ? Math.round(data.sku_fill_rate * 100) : 100,
+            problems: (data.problems || []).map((p: Record<string, unknown>) => ({
+              row: typeof p.row === 'number' ? p.row : 0,
+              issue: String(p.reason || p.problem || 'Baris bermasalah'),
+              action: 'Periksa format baris dan unggah ulang.',
+            })),
+          });
+          setPhase('preview');
+          return;
+        } else {
+          const errData = await res.json().catch(() => null);
+          const msg = errData?.detail?.error?.message || errData?.error?.message || 'Gagal membaca file di server backend.';
+          setUploadError(msg);
+          setPhase('idle');
+          return;
+        }
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Koneksi error';
+        setUploadError('Koneksi ke backend gagal: ' + msg);
+        setPhase('idle');
+        return;
+      }
+    }
+
+    // Default Demo Simulation
     window.setTimeout(() => {
       setPreview(mockPreview(channel, name));
       setPhase('preview');
-    }, mode === 'live' ? 1800 : 1400);
+    }, 1400);
   }
 
-  function confirm() {
+  async function confirm() {
+    if (mode === 'live' && batchId) {
+      try {
+        const { supabaseBrowser } = await import('@/lib/supabase/client');
+        const supabase = supabaseBrowser();
+        const token = (await supabase?.auth.getSession())?.data.session?.access_token;
+        const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.muaraai.com';
+        const url = API_BASE.includes('api.muaraai.com')
+          ? `${API_BASE}/v1/laku/v1/imports/${batchId}/confirm`
+          : `${API_BASE}/v1/imports/${batchId}/confirm`;
+        await fetch(url, {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+      } catch {
+        /* abaikan */
+      }
+    }
     setPhase('done');
     if (onUploaded) {
       window.setTimeout(onUploaded, 1800);
@@ -40,7 +117,7 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
   }
 
   function reset() {
-    setPhase('idle'); setPreview(null); setFileName('');
+    setPhase('idle'); setPreview(null); setFileName(''); setBatchId(null); setUploadError(null);
     if (fileRef.current) fileRef.current.value = '';
   }
 
@@ -81,6 +158,11 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
               <small>{fileName || 'Maksimal 90 hari riwayat pesanan'}</small>
             </button>
             {!channel && <p className="form-hint">Pilih channel dulu supaya kolom file bisa dipetakan dengan benar.</p>}
+            {uploadError && (
+              <p className="negative-note" style={{ marginTop: '10px', color: 'var(--critical)', background: 'var(--critical-bg)', padding: '10px 14px', borderRadius: 'var(--r-sm)', fontSize: '13px' }} role="alert">
+                ⚠️ {uploadError}
+              </p>
+            )}
           </div>
         </li>
 
