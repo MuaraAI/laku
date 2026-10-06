@@ -40,7 +40,7 @@ def _err(e: ImportPipelineError) -> HTTPException:
     detail: dict = {"error": {"code": e.code, "message": e.message}}
     if e.extra:
         detail["error"].update(e.extra)
-    return HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=detail)
+    return HTTPException(status_code=422, detail=detail)
 
 
 def _batch_not_found() -> HTTPException:
@@ -65,7 +65,7 @@ async def upload_import(
     # --- Layer 0: content-length pre-check (M4) — tolak SEBELUM baca body ke RAM
     declared = request.headers.get("content-length")
     if declared and declared.isdigit() and int(declared) > MAX_UPLOAD_SIZE_BYTES + 64 * 1024:
-        raise HTTPException(status_code=status.HTTP_413_CONTENT_TOO_LARGE, detail={
+        raise HTTPException(status_code=413, detail={
             "error": {
                 "code": "FILE_TOO_LARGE",
                 "message": f"Ukuran file melebihi batas {MAX_UPLOAD_SIZE_BYTES // (1024*1024)} MB.",
@@ -77,7 +77,7 @@ async def upload_import(
     filename = file.filename or ""
     ext = PurePosixPath(filename).suffix.lower()
     if ext not in ALLOWED_EXTENSIONS:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail={
+        raise HTTPException(status_code=422, detail={
             "error": {
                 "code": "INVALID_EXTENSION",
                 "message": f"Ekstensi file tidak didukung: '{ext}'. Gunakan .csv atau .xlsx",
@@ -87,7 +87,7 @@ async def upload_import(
 
     content_type = (file.content_type or "").lower()
     if content_type and content_type not in ALLOWED_MIME_TYPES:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail={
+        raise HTTPException(status_code=422, detail={
             "error": {
                 "code": "INVALID_MIME_TYPE",
                 "message": f"Tipe file tidak didukung: '{content_type}'.",
@@ -97,7 +97,7 @@ async def upload_import(
     # --- Layer 2: size (in-memory, tidak pernah ke disk — ADR-2) ---
     raw_bytes = await file.read()
     if len(raw_bytes) > MAX_UPLOAD_SIZE_BYTES:
-        raise HTTPException(status_code=status.HTTP_413_CONTENT_TOO_LARGE, detail={
+        raise HTTPException(status_code=413, detail={
             "error": {
                 "code": "FILE_TOO_LARGE",
                 "message": (f"Ukuran file ({len(raw_bytes):,} bytes) melebihi batas "
@@ -109,12 +109,12 @@ async def upload_import(
     # --- Layer 3: row cap + konten ---
     validation = validate_uploaded_file(raw_bytes, ext, channel)
     if validation.get("error"):
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+        raise HTTPException(status_code=422,
                             detail={"error": validation["error"]})
 
     row_count = validation["row_count"]
     if row_count > MAX_ROWS_PER_FILE:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail={
+        raise HTTPException(status_code=422, detail={
             "error": {
                 "code": "ROW_CAP_EXCEEDED",
                 "message": (f"File berisi {row_count:,} baris (maks {MAX_ROWS_PER_FILE:,}). "
