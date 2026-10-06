@@ -9,7 +9,7 @@ export default function Why() {
     <Block>
       <section className="inner why-grid" id="mengapa" aria-labelledby="why-title">
         <div className="sec-head">
-          <SectionTag no="03">{why.tag}</SectionTag>
+          <SectionTag>{why.tag}</SectionTag>
           <Headline id="why-title" parts={why.title} />
           <p data-reveal="">{why.body}</p>
           <div className="principles" data-reveal="">
