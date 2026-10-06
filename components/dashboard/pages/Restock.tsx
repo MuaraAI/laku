@@ -8,7 +8,7 @@ import {
   fmtNum, fmtIDR, fmtDays, type Product, type StatusKey, type Channel, STATUS,
 } from '../data';
 import { StatusBadge, OverlayBadges, WhyPanel, Num } from '../components';
-import { IconWhy } from '../icons';
+import { IconWhy, IconSearch, IconClose } from '../icons';
 
 interface ApiRecommendationItem {
   product_id: string;
@@ -98,6 +98,8 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
   const [why, setWhy] = useState<Product | null>(null);
   const [liveProducts, setLiveProducts] = useState<Product[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<'all' | 'critical' | 'reorder' | 'stop'>('all');
 
   useEffect(() => {
     if (mode === 'live') {
@@ -122,6 +124,27 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
 
   const actionable = useMemo(() => sortedActionable(activeProducts), [activeProducts]);
   const stop = useMemo(() => stopBuying(activeProducts), [activeProducts]);
+
+  const filteredActionable = useMemo(() => {
+    return actionable.filter((p) => {
+      if (filter === 'critical' && p.status !== 'CRITICAL') return false;
+      if (filter === 'reorder' && p.status !== 'REORDER') return false;
+      if (filter === 'stop') return false;
+      if (!search.trim()) return true;
+      const q = search.trim().toLowerCase();
+      return p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q);
+    });
+  }, [actionable, search, filter]);
+
+  const filteredStop = useMemo(() => {
+    if (filter === 'critical' || filter === 'reorder') return [];
+    return stop.filter((p) => {
+      if (!search.trim()) return true;
+      const q = search.trim().toLowerCase();
+      return p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q);
+    });
+  }, [stop, search, filter]);
+
   const todayStr = useMemo(() => {
     try {
       return new Intl.DateTimeFormat('id-ID', {
@@ -140,6 +163,8 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
   const restockValue = activeProducts.reduce((s, p) => s + (overlaysOf(p).negative ? 0 : p.suggestedQty * p.price), 0);
   const staleCount = activeProducts.filter((p) => overlaysOf(p).stale).length;
 
+  const totalFiltered = filteredActionable.length + filteredStop.length;
+
   return (
     <div className="page">
       <header className="page-head" data-reveal>
@@ -149,12 +174,12 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
       </header>
 
       <section className="kpi-strip" data-reveal="kids" aria-label="Ringkasan restock">
-        <div className="kpi kpi-critical">
+        <div className="kpi kpi-critical" onClick={() => setFilter(filter === 'critical' ? 'all' : 'critical')} style={{ cursor: 'pointer' }}>
           <span className="kpi-label">{STATUS.CRITICAL.label}</span>
           <Num strong>{fmtNum(criticalCount)}</Num>
           <span className="kpi-sub">SKU habis sebelum pesanan tiba</span>
         </div>
-        <div className="kpi kpi-reorder">
+        <div className="kpi kpi-reorder" onClick={() => setFilter(filter === 'reorder' ? 'all' : 'reorder')} style={{ cursor: 'pointer' }}>
           <span className="kpi-label">{STATUS.REORDER.label}</span>
           <Num strong>{fmtNum(reorderCount)}</Num>
           <span className="kpi-sub">SKU mendekati titik pesan</span>
@@ -170,6 +195,58 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
           <span className="kpi-sub">SKU dengan data usang &gt;7 hari</span>
         </div>
       </section>
+
+      <div className="filter-controls" data-reveal>
+        <div className="search-box">
+          <IconSearch size={16} />
+          <input
+            className="search-input"
+            type="text"
+            placeholder="Cari nama produk atau SKU…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          {search && (
+            <button className="search-clear" onClick={() => setSearch('')} aria-label="Hapus pencarian">
+              <IconClose size={14} />
+            </button>
+          )}
+        </div>
+        <div className="filter-pills" role="radiogroup" aria-label="Filter status">
+          <button
+            role="radio"
+            aria-checked={filter === 'all'}
+            className={`filter-pill${filter === 'all' ? ' active' : ''}`}
+            onClick={() => setFilter('all')}
+          >
+            Semua
+          </button>
+          <button
+            role="radio"
+            aria-checked={filter === 'critical'}
+            className={`filter-pill pill-critical${filter === 'critical' ? ' active' : ''}`}
+            onClick={() => setFilter('critical')}
+          >
+            Segera pesan ({criticalCount})
+          </button>
+          <button
+            role="radio"
+            aria-checked={filter === 'reorder'}
+            className={`filter-pill pill-reorder${filter === 'reorder' ? ' active' : ''}`}
+            onClick={() => setFilter('reorder')}
+          >
+            Waktunya pesan ({reorderCount})
+          </button>
+          <button
+            role="radio"
+            aria-checked={filter === 'stop'}
+            className={`filter-pill${filter === 'stop' ? ' active' : ''}`}
+            onClick={() => setFilter('stop')}
+          >
+            Berhenti beli ({stop.length})
+          </button>
+        </div>
+      </div>
 
       {loading ? (
         <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
@@ -191,24 +268,35 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
             </button>
           )}
         </div>
+      ) : totalFiltered === 0 ? (
+        <div className="stock-empty" data-reveal>
+          <p>Tidak ada produk yang cocok dengan pencarian <strong>&ldquo;{search}&rdquo;</strong>.</p>
+          <button className="btn btn-outline" onClick={() => { setSearch(''); setFilter('all'); }} style={{ minHeight: '36px', fontSize: '13px' }}>
+            Reset pencarian
+          </button>
+        </div>
       ) : (
         <>
-          <section aria-labelledby="perlu-dipesan">
-            <h2 id="perlu-dipesan" className="section-title">Perlu dipesan ({actionable.length})</h2>
-            <ul className="stock-list">
-              {actionable.map((p) => <StockRow key={p.sku} p={p} onWhy={setWhy} />)}
-            </ul>
-          </section>
+          {filteredActionable.length > 0 && (
+            <section aria-labelledby="perlu-dipesan">
+              <h2 id="perlu-dipesan" className="section-title">Perlu dipesan ({filteredActionable.length})</h2>
+              <ul className="stock-list">
+                {filteredActionable.map((p) => <StockRow key={p.sku} p={p} onWhy={setWhy} />)}
+              </ul>
+            </section>
+          )}
 
-          <section className="stop-zone" data-reveal aria-labelledby="berhenti-beli">
-            <div className="stop-head">
-              <h2 id="berhenti-beli" className="section-title">Berhenti beli ({stop.length})</h2>
-              <p className="stop-sub">Stok berlebih atau tidak laku — tahan dulu uangnya, jangan pesan ulang.</p>
-            </div>
-            <ul className="stock-list stock-list-muted">
-              {stop.map((p) => <StockRow key={p.sku} p={p} onWhy={setWhy} />)}
-            </ul>
-          </section>
+          {filteredStop.length > 0 && (
+            <section className="stop-zone" data-reveal aria-labelledby="berhenti-beli">
+              <div className="stop-head">
+                <h2 id="berhenti-beli" className="section-title">Berhenti beli ({filteredStop.length})</h2>
+                <p className="stop-sub">Stok berlebih atau tidak laku — tahan dulu uangnya, jangan pesan ulang.</p>
+              </div>
+              <ul className="stock-list stock-list-muted">
+                {filteredStop.map((p) => <StockRow key={p.sku} p={p} onWhy={setWhy} />)}
+              </ul>
+            </section>
+          )}
         </>
       )}
 
