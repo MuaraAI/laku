@@ -17,18 +17,18 @@ columns:
     match: "Nama Produk|Product Name"
     required: true
   variation:
-    match: "Variasi|Variation"
+    match: "Variasi|Nama Variasi|Variation"
   sku:
-    match: "SKU|Nomor SKU"
+    match: "SKU|Nomor SKU|Nomor Referensi SKU|SKU Induk"
   qty:
-    match: "Jumlah|Quantity"
+    match: "Jumlah|Quantity|Qty"
     type: int
     required: true
   list_price:
-    match: "Harga Awal|Original Price"
+    match: "Harga Awal|Original Price|Unit Price"
     type: money
   paid_price:
-    match: "Harga Setelah Diskon|Selling Price"
+    match: "Harga Setelah Diskon|Selling Price|Net Price"
     type: money
   seller_discount:
     match: "Diskon Penjual|Seller Discount|Voucher Penjual"
@@ -37,18 +37,28 @@ columns:
     match: "Status Pesanan|Order Status"
     map:
       "SELESAI": completed
+      "COMPLETED": completed
       "PESANAN DIPROSES": in_progress
       "DIKIRIM": in_progress
       "PEMBAYARAN DITERIMA": in_progress
+      "PERLU DIKIRIM": in_progress
+      "SEDANG DIPROSES": in_progress
+      "IN PROGRESS": in_progress
+      "PROCESSING": in_progress
+      "SHIPPED": in_progress
       "DIBATALKAN": cancelled
-      "PENGEMBALIAN": returned
       "PESANAN DIBATALKAN": cancelled
+      "CANCELLED": cancelled
+      "PENGEMBALIAN": returned
+      "PESANAN DIKEMBALIKAN": returned
+      "REFUNDED": returned
+      "RETURNED": returned
   sold_at:
-    match: "Waktu Pesanan Dibuat|Waktu Pesanan Dibayar"
+    match: "Waktu Pesanan Dibuat|Waktu Pesanan Dibayar|Order Time|Order Date"
     type: datetime
     tz: "Asia/Jakarta"
   buyer_kabupaten:
-    match: "Kabupaten/Kota|City"
+    match: "Kabupaten/Kota|Kota/Kabupaten|City"
   buyer_province:
     match: "Provinsi|State"
 

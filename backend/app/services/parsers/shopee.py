@@ -137,15 +137,17 @@ def parse_rows(
         if qty is None or qty <= 0:
             row_problems.append(f"qty tidak valid ({val('qty')!r})")
 
-        list_price = _parse_money(val("list_price"))
-        if list_price is None:
-            row_problems.append("harga awal tidak terbaca")
-
-        # status map
+        # status map — normalisasi case: export asli pakai Title Case ("Selesai")
         status_raw = val("status")
-        status = status_map.get(status_raw.strip())
+        status = status_map.get(status_raw.strip().upper()) or status_map.get(status_raw.strip())
         if status_raw and status is None:
             row_problems.append(f"status tak dikenal: {status_raw!r}")
+
+        list_price = _parse_money(val("list_price"))
+        # Export asli Shopee mengosongkan kolom harga utk order dibatalkan —
+        # baris tsb gak masuk demand, jadi cukup di-skip (bukan problem).
+        if list_price is None and status not in ("cancelled", "unpaid"):
+            row_problems.append("harga awal tidak terbaca")
 
         # tanggal
         sold_at = _parse_dt(val("sold_at"), tz)
@@ -180,6 +182,11 @@ def parse_rows(
     return result
 
 
+def load_status_keys(config: dict) -> list[str]:
+    """Kunci status map (untuk validasi alignment baris ragged)."""
+    return list(config["columns"]["status"].get("map", {}).keys())
+
+
 def parse_shopee(raw_bytes: bytes, config: dict) -> ParseResult:
     """Parse export Shopee CSV → rows canonical + problems. In-memory, PII dibuang."""
     # decode dulu untuk ambil fieldnames (header) — DictReader perlu untuk rows
@@ -195,9 +202,47 @@ def parse_shopee(raw_bytes: bytes, config: dict) -> ParseResult:
         result.problems.append({"row": 0, "column": "-", "reason": "encoding tidak dikenali"})
         return result
     delimiter = detect_delimiter(text[:2000])
-    reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
-    fieldnames = list(reader.fieldnames or [])
-    rows = list(reader)
+    reader = csv.reader(io.StringIO(text), delimiter=delimiter)
+    all_rows = list(reader)
+    if not all_rows:
+        result = ParseResult()
+        result.problems.append({"row": 0, "column": "-", "reason": "file kosong"})
+        return result
+    fieldnames = [h.strip() for h in all_rows[0]]
+    status_upper = {k.strip().upper() for k in load_status_keys(config)}
+    rows: list[dict] = []
+    for cells in all_rows[1:]:
+        if not any(c.strip() for c in cells):
+            continue
+        if len(cells) != len(fieldnames):
+            # Export asli Shopee: baris cancelled punya sel kosong ekstra di
+            # tengah (kolom SKU/Resi tidak konsisten) — bukan shift murni.
+            # Skor tiap kemungkinan buang-1-sel-kosong (posisi i) + shift kiri/
+            # kanan: status dikenal, harga & qty numerik. Pilih skor tertinggi.
+            import re as _re
+
+            def _score(v: list[str]) -> int:
+                if len(v) != len(fieldnames):
+                    return -1
+                d = dict(zip(fieldnames, (c.strip() for c in v)))
+                s = 0
+                if d.get("Status Pesanan", "").strip().upper() in status_upper:
+                    s += 4
+                for col, pat in (("Harga Awal", r"^\d+([.,]\d+)?$"),
+                                 ("Harga Setelah Diskon", r"^\d+([.,]\d+)?$"),
+                                 ("Jumlah", r"^\d+$")):
+                    if _re.match(pat, d.get(col, "")):
+                        s += 2
+                if d.get("No. Pesanan", "").strip():
+                    s += 1
+                return s
+
+            variants = [cells] + [
+                cells[:i] + cells[i + 1:]                      # buang 1 sel kosong
+                for i, c in enumerate(cells) if c.strip() == ""
+            ] + [cells[1:], cells[:-1]]                        # shift kiri/kanan
+            cells = max(variants, key=_score)
+        rows.append(dict(zip(fieldnames, (c.strip() for c in cells))))
     return parse_rows(rows, config, start_row=2, headers=fieldnames)
 
 
@@ -216,36 +261,54 @@ def parse_shopee_xlsx(raw_bytes: bytes, config: dict) -> ParseResult:
         result.problems.append({"row": 0, "column": "-", "reason": f"file XLSX rusak/tidak terbaca: {e}"})
         return result
 
-    ws = wb.active
-    if ws is None:
+    # Multi-sheet aware (format B): workbook bisa berisi sheet README/Stock/
+    # Settlement — hanya sheet yang kolomnya match config order yang diparse.
+    order_col = re.compile(f"^{config['columns']['order_id']['match']}$", re.IGNORECASE)
+    candidate_sheets = []
+    for ws in wb.worksheets:
+        it = ws.iter_rows(max_row=1, values_only=True)
+        try:
+            first = next(it, None)
+        except Exception:
+            first = None
+        headers0 = [str(c).strip() if c is not None else "" for c in (first or [])]
+        if any(order_col.match(h) for h in headers0):
+            candidate_sheets.append(ws)
+    if not candidate_sheets:
+        candidate_sheets = [wb.active] if wb.active is not None else []
+
+    if not candidate_sheets:
         wb.close()
         result.problems.append({"row": 0, "column": "-", "reason": "file XLSX tidak memiliki sheet"})
         return result
 
-    raw_rows: list[dict] = []
-    row_flags: dict[int, set[str]] = {}
-    headers: list[str] = []
-    for i, row in enumerate(ws.iter_rows(values_only=True)):
-        if i == 0:
-            headers = [str(c).strip() if c is not None else "" for c in row]
-            continue
-        if all(c is None or (isinstance(c, str) and c.strip() == "") for c in row):
-            continue  # baris kosong — bukan data, bukan problem
-        cells = {headers[j]: c for j, c in enumerate(row) if j < len(headers)}
-        flags: set[str] = set()
-        for col in ("Nomor Pesanan", "Nomor SKU"):
-            v = cells.get(col)
-            if isinstance(v, (int, float)) and not isinstance(v, bool):
-                flags.add("numeric_order_id" if "Pesanan" in col else "numeric_sku")
-        if flags:
-            row_flags[len(raw_rows)] = flags
-        raw_rows.append({k: ("" if v is None else str(v).strip()) for k, v in cells.items()})
+    for ws in candidate_sheets:
+        raw_rows: list[dict] = []
+        row_flags: dict[int, set[str]] = {}
+        headers: list[str] = []
+        for i, row in enumerate(ws.iter_rows(values_only=True)):
+            if i == 0:
+                headers = [str(c).strip() if c is not None else "" for c in row]
+                continue
+            if all(c is None or (isinstance(c, str) and c.strip() == "") for c in row):
+                continue  # baris kosong — bukan data, bukan problem
+            cells = {headers[j]: c for j, c in enumerate(row) if j < len(headers)}
+            flags: set[str] = set()
+            for col in ("Nomor Pesanan", "Nomor SKU", "No. Pesanan"):
+                v = cells.get(col)
+                if isinstance(v, (int, float)) and not isinstance(v, bool):
+                    flags.add("numeric_order_id" if "esanan" in col else "numeric_sku")
+            if flags:
+                row_flags[len(raw_rows)] = flags
+            raw_rows.append({k: ("" if v is None else str(v).strip()) for k, v in cells.items()})
+        try:
+            parsed = parse_rows(raw_rows, config, start_row=2, row_flags=row_flags,
+                                headers=headers)
+        except ValueError:
+            continue  # sheet bukan format order — skip
+        result.rows.extend(parsed.rows)
+        result.problems.extend(parsed.problems)
+        result.rows_read += parsed.rows_read
+        result.skipped_columns.extend(parsed.skipped_columns)
     wb.close()
-
-    parsed = parse_rows(raw_rows, config, start_row=2, row_flags=row_flags,
-                        headers=headers)
-    result.rows = parsed.rows
-    result.problems = parsed.problems
-    result.rows_read = parsed.rows_read
-    result.skipped_columns = parsed.skipped_columns
     return result
