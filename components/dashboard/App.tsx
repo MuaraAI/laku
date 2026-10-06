@@ -29,8 +29,15 @@ export default function App() {
 
   useEffect(() => {
     try {
-      if (typeof window !== 'undefined' && localStorage.getItem(ONBOARDED_KEY) === '1') {
-        setOnboarded(true);
+      if (typeof window !== 'undefined') {
+        if (localStorage.getItem(ONBOARDED_KEY) === '1') {
+          setOnboarded(true);
+        }
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlMode = urlParams.get('mode');
+        if (urlMode === 'live' || urlMode === 'demo') {
+          setMode(urlMode);
+        }
       }
     } catch {
       /* abaikan */
@@ -46,9 +53,19 @@ export default function App() {
           const { data } = await supabase.auth.getSession();
           if (data.session?.user?.email) {
             setUserEmail(data.session.user.email);
+            // Pengguna yang sudah login otomatis diarahkan ke mode live (Toko Saya),
+            // kecuali jika URL secara eksplisit meminta ?mode=demo
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('mode') !== 'demo') {
+              setMode('live');
+            }
           }
           supabase.auth.onAuthStateChange((_event, session) => {
-            setUserEmail(session?.user?.email ?? null);
+            const email = session?.user?.email ?? null;
+            setUserEmail(email);
+            if (email && new URLSearchParams(window.location.search).get('mode') !== 'demo') {
+              setMode('live');
+            }
           });
         }
       } catch {
@@ -139,7 +156,7 @@ export default function App() {
               className={`mode-btn ${mode === 'live' ? 'active' : ''}`}
               onClick={() => {
                 if (!userEmail) {
-                  window.location.href = '/login';
+                  window.location.href = `/login?next=${encodeURIComponent('/dashboard?mode=live')}`;
                 } else {
                   setMode('live');
                 }
