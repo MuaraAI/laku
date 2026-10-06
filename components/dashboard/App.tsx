@@ -71,7 +71,7 @@ export default function App() {
             <rect className="m-stock" x="24" y="33" width="14" height="14" rx="2" />
             <path className="m-l" d="M17 17V50H48" />
           </svg>
-          <span className="wordmark-text">LAKU<small>MuaraAI · MVP</small></span>
+          <span className="wordmark-text">LAKU<small>Restock Engine</small></span>
         </a>
         <nav className="side-nav" aria-label="Navigasi utama" onMouseLeave={() => setHoverIdx(null)}>
           {hoverIdx !== null && (
@@ -84,13 +84,12 @@ export default function App() {
               onMouseEnter={() => setHoverIdx(i)}>
               {n.icon({ size: 19 })}
               <span>{n.label}</span>
-              <span className="side-no num">0{i + 1}</span>
             </button>
           ))}
         </nav>
         <div className="side-foot">
-          <p className="side-note"><span className="demo-chip">Data demo</span> Disimpan hanya di browser ini.</p>
-          <p className="side-note num num-left">Deadline MVP · 08 Okt 2026</p>
+          <p className="side-note"><span className="demo-chip">Toko Demo</span> Warung Sembako Bu Rina</p>
+          <p className="side-note num num-left">v1.0.0 · MuaraAI</p>
         </div>
       </aside>
 
