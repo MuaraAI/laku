@@ -15,11 +15,11 @@ from app.services.recap import ChannelCoverage, RecapLine, compute_recap, get_me
 
 router = APIRouter(prefix="/v1/recap", tags=["recap"])
 
-FIXTURES = Path(__file__).parent.parent / "mock" / "fixtures"
+FIXTURES = Path(__file__).parent.parent.parent / "mock" / "fixtures"
 
 
 @router.get("", status_code=status.HTTP_200_OK)
-async def get_recap(
+def get_recap(
     days: int = Query(30, ge=1, le=365),
     identity: Identity = Depends(get_identity),
 ):
@@ -42,6 +42,6 @@ async def get_recap(
 
 
 @router.get("/metrics-help", status_code=status.HTTP_200_OK)
-async def metrics_help():
+def metrics_help():
     """Static definitions for metrics explanations (bottom-sheet UI)."""
     return get_metrics_help()

@@ -2,6 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.deps.settings import get_settings
+from app.middleware.rate_limit import RateLimitMiddleware
 
 _dev_docs = get_settings().env == "dev"
 
@@ -30,6 +31,7 @@ app.include_router(stock_router)
 
 settings = get_settings()
 
+app.add_middleware(RateLimitMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,

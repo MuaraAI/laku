@@ -17,4 +17,5 @@ def _force_memory_stores(monkeypatch):
     monkeypatch.setattr(s, "supabase_url", "", raising=False)
     monkeypatch.setattr(s, "supabase_anon_key", "", raising=False)
     monkeypatch.setattr(s, "supabase_service_key", "", raising=False)
+    monkeypatch.setattr(s, "rate_limit_enabled", False, raising=False)
     yield

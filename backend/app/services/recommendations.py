@@ -7,6 +7,8 @@ from __future__ import annotations
 
 from datetime import date, datetime, timedelta, timezone
 
+JAKARTA = timezone(timedelta(hours=7))  # WIB — fixed UTC+7, tanpa DST
+
 from app.services.engine import EngineInput, Recommendation, compute
 from app.services.stock_ledger import compute_stock
 
@@ -35,14 +37,15 @@ def _stale(store, seller_id: str, today: date) -> bool:
 
 def build_recommendations(store, seller_id: str, today: date | None = None) -> dict:
     """Semua produk seller → list rekomendasi sorted urgensi (api.md MVP)."""
-    today = today or datetime.now(timezone.utc).date()
+    # "hari ini" = WIB: kalau UTC, sale jam 00:00-06:59 WIB dapat age=-1 → hilang dari demand (M13)
+    today = today or datetime.now(JAKARTA).date()
     stale = _stale(store, seller_id, today)
-    sales = store.fetch_eligible_sales(seller_id)
+    sales = store.fetch_eligible_sales(seller_id)  # H6: sudah 1x di sini — pass ke compute_stock
 
     items: list[dict] = []
     counts: dict[str, int] = {}
     for p in store.list_products(seller_id):
-        stock = compute_stock(store, seller_id, p)
+        stock = compute_stock(store, seller_id, p, sales=sales)
 
         # daily units 30 hari terakhir (index 0 = hari ini mundur)
         daily = [0] * 30

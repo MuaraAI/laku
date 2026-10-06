@@ -135,7 +135,7 @@ async def upload_import(
 # GET /v1/imports — riwayat import
 # ---------------------------------------------------------------------------
 @router.get("")
-async def list_imports(limit: int = Query(50, ge=1, le=200), identity: Identity = Depends(get_identity)):
+def list_imports(limit: int = Query(50, ge=1, le=200), identity: Identity = Depends(get_identity)):
     seller_id = require_owner(identity).seller_id or ""
     return {"items": import_pipeline.list_imports(_get_store(), seller_id, limit)}
 
@@ -144,7 +144,7 @@ async def list_imports(limit: int = Query(50, ge=1, le=200), identity: Identity 
 # GET /v1/imports/{id}/preview
 # ---------------------------------------------------------------------------
 @router.get("/{batch_id}/preview")
-async def preview_import(batch_id: str, identity: Identity = Depends(get_identity)):
+def preview_import(batch_id: str, identity: Identity = Depends(get_identity)):
     seller_id = require_owner(identity).seller_id or ""
     try:
         return import_pipeline.get_preview(_get_store(), seller_id, batch_id)
@@ -158,7 +158,7 @@ async def preview_import(batch_id: str, identity: Identity = Depends(get_identit
 # POST /v1/imports/{id}/confirm — commit staging → order_lines
 # ---------------------------------------------------------------------------
 @router.post("/{batch_id}/confirm")
-async def confirm_import(batch_id: str, identity: Identity = Depends(get_identity)):
+def confirm_import(batch_id: str, identity: Identity = Depends(get_identity)):
     seller_id = require_owner(identity).seller_id or ""
     try:
         return import_pipeline.confirm_import(_get_store(), seller_id, batch_id)
@@ -176,7 +176,7 @@ async def confirm_import(batch_id: str, identity: Identity = Depends(get_identit
 # DELETE /v1/imports/{id} — cancel + purge staging
 # ---------------------------------------------------------------------------
 @router.delete("/{batch_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def cancel_import(batch_id: str, identity: Identity = Depends(get_identity)):
+def cancel_import(batch_id: str, identity: Identity = Depends(get_identity)):
     seller_id = require_owner(identity).seller_id or ""
     try:
         import_pipeline.cancel_import(_get_store(), seller_id, batch_id)
@@ -191,7 +191,7 @@ async def cancel_import(batch_id: str, identity: Identity = Depends(get_identity
 # GET /v1/imports/{id}/problems
 # ---------------------------------------------------------------------------
 @router.get("/{batch_id}/problems")
-async def get_problems(batch_id: str, identity: Identity = Depends(get_identity)):
+def get_problems(batch_id: str, identity: Identity = Depends(get_identity)):
     seller_id = require_owner(identity).seller_id or ""
     try:
         return import_pipeline.get_problems(_get_store(), seller_id, batch_id)

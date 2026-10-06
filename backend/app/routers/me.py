@@ -53,7 +53,7 @@ def _get_seller_row(seller_id: str) -> dict | None:
 # GET /v1/me/onboarding-status
 # ---------------------------------------------------------------------------
 @router.get("/onboarding-status", status_code=status.HTTP_200_OK)
-async def onboarding_status(identity: Identity = Depends(get_identity)):
+def onboarding_status(identity: Identity = Depends(get_identity)):
     """Status langkah onboarding untuk wizard FR-30."""
     settings = get_settings()
     if settings.demo_mode:
@@ -109,7 +109,7 @@ class SellerSettings(BaseModel):
 
 
 @router.post("/settings", status_code=status.HTTP_200_OK)
-async def update_settings(
+def update_settings(
     body: SellerSettings,
     identity: Identity = Depends(get_identity),
 ):
@@ -142,7 +142,7 @@ class ChannelsBody(BaseModel):
 
 
 @router.post("/channels", status_code=status.HTTP_200_OK)
-async def set_channels(
+def set_channels(
     body: ChannelsBody,
     identity: Identity = Depends(get_identity),
 ):
