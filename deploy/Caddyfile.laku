@@ -1,0 +1,26 @@
+# Caddy block — Laku API (production)
+#
+# PENTING (audit 6 Okt): `api.muaraai.com` SUDAH terdefinisi di Caddyfile aktif
+# (Muara AI gateway: /v1/ubsi-api/* -> :8300). Caddy MENOLAK duplikat site
+# address, jadi blok di bawah TIDAK boleh di-paste sebagai site block baru.
+#
+# Cara pakai:
+#   1. Buka /etc/caddy/Caddyfile, cari blok `api.muaraai.com {`
+#   2. Paste HANYA blok `handle_path` di bawah ke DALAM blok itu,
+#      sebelum catch-all `handle { ... }` milik gateway.
+#   3. caddy validate --config /etc/caddy/Caddyfile && systemctl reload caddy
+#
+# Kontrak publik: https://api.muaraai.com/v1/laku/* -> FastAPI 127.0.0.1:8400
+#   /v1/laku/health      -> /health
+#   /v1/laku/v1/imports  -> /v1/imports
+#
+# Security headers TIDAK perlu diulang: blok gateway sudah `import security_headers`.
+
+	# --- Laku API (restock engine) — strip /v1/laku prefix, proxy ke PM2 :8400 ---
+	handle_path /v1/laku/* {
+		# layer-1 dari validasi 3 lapis upload (FR-1): cap body 10MB
+		request_body {
+			max_size 10MB
+		}
+		reverse_proxy 127.0.0.1:8400
+	}

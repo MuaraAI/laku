@@ -1,0 +1,68 @@
+# Shopee export column mapping — status: UNVERIFIED (screen-recorded YouTube, docs/formats/research-notes.md)
+# WAJIB diverifikasi dengan sample asli Raken. Kalau ada kolom beda → ubah file ini saja, JANGAN kode parser.
+channel: shopee
+source_system: shopee_seller_center
+display_name: Shopee
+price_basis: list_price_before_discount
+sold_at_semantics: paid           # default: paid kalau ada, else created — konfirmasi dari sample
+voucher_level: line
+skip_empty_columns: true          # TEMUAN RISET: Shopee export punya kolom kosong di tengah
+
+columns:
+  order_id:
+    match: "Nomor Pesanan|No\\.? Pesanan|Order ID|Invoice"
+    required: true
+    type: id_long                 # 16 digit — rawan notasi ilmiah Excel (FR-7)
+  product_name:
+    match: "Nama Produk|Product Name"
+    required: true
+  variation:
+    match: "Variasi|Nama Variasi|Variation"
+  sku:
+    match: "SKU|Nomor SKU|Nomor Referensi SKU|SKU Induk"
+  qty:
+    match: "Jumlah|Quantity|Qty"
+    type: int
+    required: true
+  list_price:
+    match: "Harga Awal|Original Price|Unit Price"
+    type: money
+  paid_price:
+    match: "Harga Setelah Diskon|Selling Price|Net Price"
+    type: money
+  seller_discount:
+    match: "Diskon Penjual|Seller Discount|Voucher Penjual"
+    type: money
+  status:
+    match: "Status Pesanan|Order Status"
+    map:
+      "SELESAI": completed
+      "COMPLETED": completed
+      "PESANAN DIPROSES": in_progress
+      "DIKIRIM": in_progress
+      "PEMBAYARAN DITERIMA": in_progress
+      "PERLU DIKIRIM": in_progress
+      "SEDANG DIPROSES": in_progress
+      "IN PROGRESS": in_progress
+      "PROCESSING": in_progress
+      "SHIPPED": in_progress
+      "DIBATALKAN": cancelled
+      "PESANAN DIBATALKAN": cancelled
+      "CANCELLED": cancelled
+      "PENGEMBALIAN": returned
+      "PESANAN DIKEMBALIKAN": returned
+      "REFUNDED": returned
+      "RETURNED": returned
+  sold_at:
+    match: "Waktu Pesanan Dibuat|Waktu Pesanan Dibayar|Order Time|Order Date"
+    type: datetime
+    tz: "Asia/Jakarta"
+  buyer_kabupaten:
+    match: "Kabupaten/Kota|Kota/Kabupaten|City"
+  buyer_province:
+    match: "Provinsi|State"
+
+pii_drop:                         # diderive dulu (region), lalu kolom asli dibuang
+  - "Nama Penerima|Buyer Name"
+  - "Telepon|Phone"
+  - "Alamat|Address"

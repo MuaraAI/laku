@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="512" height="512">
+  <title>Laku</title>
+  <!-- 01 Segi delapan: bentuk rambu STOP, tahu kapan berhenti beli -->
+  <path d="M19.8 2H44.2L62 19.8V44.2L44.2 62H19.8L2 44.2V19.8Z" fill="#ffffff" stroke="#072033" stroke-width="3.5" stroke-linejoin="round"/>
+  <!-- 04 Kotak putus-putus: restock yang sudah dihitung tapi belum datang -->
+  <rect x="24" y="14" width="14" height="14" rx="2" fill="none" stroke="#072033" stroke-width="2.4" stroke-dasharray="3.2 2.4"/>
+  <!-- 03 Kotak biru: stok di rak hari ini (05: celah 5 satuan = lead time 5 hari) -->
+  <rect x="24" y="33" width="14" height="14" rx="2" fill="#0369a1" stroke="#072033" stroke-width="2"/>
+  <!-- 02 Siku rak: huruf L untuk Laku, penyangga rak -->
+  <path d="M17 17V50H48" fill="none" stroke="#072033" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
