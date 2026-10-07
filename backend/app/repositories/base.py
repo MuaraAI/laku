@@ -8,6 +8,30 @@ from typing import Any
 from fastapi import HTTPException
 
 
+def fetch_all_paginated(query: Any, page_size: int = 1000) -> list[dict]:
+    """Fetch all rows from a Supabase PostgREST query using pagination.
+
+    Overcomes PostgREST default ceiling of 1000 rows per request (PGRST_MAX_ROWS).
+    """
+    if not hasattr(query, "range"):
+        resp = query.execute() if hasattr(query, "execute") else getattr(query, "data", [])
+        data = getattr(resp, "data", resp)
+        return data if isinstance(data, list) else []
+
+    rows: list[dict] = []
+    offset = 0
+    while True:
+        resp = query.range(offset, offset + page_size - 1).execute()
+        batch = getattr(resp, "data", []) or []
+        if not batch:
+            break
+        rows.extend(batch)
+        if len(batch) < page_size:
+            break
+        offset += page_size
+    return rows
+
+
 class SellerRepository:
     """Base repository dengan scoping wajib per seller.
 
