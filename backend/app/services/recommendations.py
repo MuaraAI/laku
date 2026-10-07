@@ -11,20 +11,42 @@ JAKARTA = timezone(timedelta(hours=7))  # WIB — fixed UTC+7, tanpa DST
 
 from app.services.engine import EngineInput, Recommendation, compute
 from app.services.stock_ledger import compute_stock
+from app.services.wib import to_wib_date
 
 STATE_ORDER = {"CRITICAL": 0, "REORDER": 1, "OK": 2, "OVERSTOCK": 3, "DEAD": 4, "INSUFFICIENT_DATA": 5}
 STALE_DAYS = 7
+DEFAULT_LEAD_TIME_DAYS = 5  # sama dengan default kolom sellers.lead_time_days → dianggap "asumsi"
+
+
+def _engine_params(settings: dict) -> dict:
+    """Pengaturan seller (tabel sellers) → argumen EngineInput; kosong = default engine."""
+    out: dict = {}
+    for key in ("review_days", "cycle_days", "overstock_days"):
+        if settings.get(key) is not None:
+            out[key] = int(settings[key])
+    if settings.get("service_level") is not None:
+        out["service_level"] = float(settings["service_level"])
+    return out
+
+
+def _price_and_channel(lines: list[dict], today: date) -> tuple[float | None, str | None]:
+    """Harga jual rata-rata (30 hari terakhir, fallback semua) & kanal terbanyak — dari order_lines."""
+    recent = [s for s in lines if (d := _to_date(s.get("sold_at"))) and 0 <= (today - d).days < 30]
+    basis = recent or lines
+    qty = sum(int(s.get("qty") or 0) for s in basis if s.get("unit_price") is not None)
+    value = sum(int(s.get("qty") or 0) * float(s["unit_price"]) for s in basis if s.get("unit_price") is not None)
+    price = round(value / qty) if qty > 0 else None
+    channels: dict[str, int] = {}
+    for s in lines:
+        if s.get("sales_channel"):
+            channels[s["sales_channel"]] = channels.get(s["sales_channel"], 0) + int(s.get("qty") or 0)
+    channel = max(channels, key=channels.get) if channels else None
+    return price, channel
 
 
 def _to_date(v) -> date | None:
-    if v is None:
-        return None
-    if isinstance(v, date):
-        return v
-    try:
-        return datetime.fromisoformat(str(v).replace("Z", "+00:00")).date()
-    except ValueError:
-        return None
+    # tanggal WIB, bukan tanggal UTC dari string DB (M13 lanjutan)
+    return to_wib_date(v)
 
 
 def _stale(sales: list[dict], today: date) -> bool:
@@ -40,6 +62,11 @@ def build_recommendations(store, seller_id: str, today: date | None = None) -> d
     today = today or datetime.now(JAKARTA).date()
     sales = store.fetch_eligible_sales(seller_id)
     stale = _stale(sales, today)
+    # pengaturan seller (POST /v1/me/settings) dulu tidak pernah sampai ke engine — selalu default 5/7/14/60/0.95
+    get_settings = getattr(store, "get_seller_settings", None)
+    seller = (get_settings(seller_id) if callable(get_settings) else {}) or {}
+    params = _engine_params(seller)
+    seller_lead = seller.get("lead_time_days")
 
     items: list[dict] = []
     counts: dict[str, int] = {}
@@ -50,9 +77,8 @@ def build_recommendations(store, seller_id: str, today: date | None = None) -> d
         daily = [0] * 60
         first_sale: date | None = None
         newest_sale: date | None = None
-        for s in sales:
-            if (s.get("sku") or "") != (p.get("sku") or ""):
-                continue
+        product_sales = [s for s in sales if (s.get("sku") or "") == (p.get("sku") or "")]
+        for s in product_sales:
             d = _to_date(s.get("sold_at"))
             if d is None:
                 continue
@@ -67,7 +93,15 @@ def build_recommendations(store, seller_id: str, today: date | None = None) -> d
             if first_sale else (30 if any(daily) else 0)
         )
 
+        # lead time: override per produk > pengaturan seller > default (= asumsi, badge di UI)
+        product_lead = stock.get("lead_time_days")
+        lead_time = int(product_lead if product_lead is not None
+                        else seller_lead if seller_lead is not None else DEFAULT_LEAD_TIME_DAYS)
+        lead_assumed = product_lead is None and (seller_lead is None or int(seller_lead) == DEFAULT_LEAD_TIME_DAYS)
+
         rec: Recommendation = compute(EngineInput(
+            lead_time_days=lead_time,
+            **params,
             daily_units=daily,
             history_days=history_days,
             on_hand=int(stock["on_hand"]) if stock.get("stock_set_up") and stock.get("on_hand") is not None else 0,
@@ -80,11 +114,17 @@ def build_recommendations(store, seller_id: str, today: date | None = None) -> d
         if stock.get("mismatch") and "NEGATIVE" not in rec.overlays:
             rec.overlays.append("NEGATIVE")
 
+        rec.inputs.setdefault("lead_time_days", lead_time)
+        rec.inputs["lead_time_assumed"] = lead_assumed
+        price, channel = _price_and_channel(product_sales, today)
+
         counts[rec.state] = counts.get(rec.state, 0) + 1
         items.append({
             "product_id": p["id"],
             "name": p.get("name"),
             "sku": p.get("sku"),
+            "channel": channel,
+            "price": price,
             "state": rec.state,
             "overlays": rec.overlays,
             "reorder_point": rec.reorder_point,

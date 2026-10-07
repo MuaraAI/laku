@@ -13,9 +13,10 @@ from __future__ import annotations
 import re
 import uuid
 from abc import ABC, abstractmethod
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 
 from app.repositories.base import fetch_all_paginated
+from app.services.wib import to_wib_date, today_wib
 
 MONEY_RE = re.compile(r"[^\d.,-]")
 
@@ -25,20 +26,13 @@ MOVEMENT_TYPES = ("receipt", "adjustment", "writeoff")
 
 
 def _today() -> date:
-    return datetime.now().date()
+    # opening_date default = hari ini WIB (server VPS jalan di UTC)
+    return today_wib()
 
 
 def _sold_at_to_date(sold_at) -> date | None:
-    if sold_at is None:
-        return None
-    if isinstance(sold_at, datetime):
-        return sold_at.date()
-    if isinstance(sold_at, date):
-        return sold_at
-    try:
-        return datetime.fromisoformat(str(sold_at)).date()
-    except ValueError:
-        return None
+    # dibandingkan dengan opening_date (tanggal WIB) → konversi ke WIB dulu
+    return to_wib_date(sold_at)
 
 
 # ---------------------------------------------------------------------------
@@ -99,7 +93,12 @@ class StockStore(ABC):
     # sales (read view order_lines)
     @abstractmethod
     def fetch_eligible_sales(self, seller_id: str) -> list[dict]:
-        """[{sku, qty, sold_at}] — hanya status completed|in_progress."""
+        """[{sku, qty, sold_at, unit_price, sales_channel}] — hanya status completed|in_progress."""
+
+    # seller params untuk engine (lead time, R, C, O, service level)
+    def get_seller_settings(self, seller_id: str) -> dict:
+        """Kolom pengaturan dari tabel sellers; {} = pakai default engine (ditandai asumsi)."""
+        return {}
 
 
 class StockMemoryStore(StockStore):
@@ -172,6 +171,8 @@ class StockMemoryStore(StockStore):
                 "sku": line.get("sku"),
                 "qty": line.get("qty", 0),
                 "sold_at": line.get("sold_at"),
+                "unit_price": line.get("unit_price", line.get("list_price")),
+                "sales_channel": line.get("sales_channel"),
             })
         return out
 
@@ -289,11 +290,22 @@ class StockSupabaseStore(StockStore):
     def fetch_eligible_sales(self, seller_id: str) -> list[dict]:
         query = (
             self.client.table("order_lines")
-            .select("sku, qty, sold_at")
+            .select("sku, qty, sold_at, unit_price, sales_channel")
             .eq("seller_id", seller_id)
             .in_("status", list(ELIGIBLE_STATUS))
         )
         return fetch_all_paginated(query)
+
+    def get_seller_settings(self, seller_id: str) -> dict:
+        rows = (
+            self.client.table("sellers")
+            .select("lead_time_days, review_days, cycle_days, overstock_days, service_level")
+            .eq("id", seller_id)
+            .limit(1)
+            .execute()
+            .data
+        )
+        return rows[0] if rows else {}
 
 
 # ---------------------------------------------------------------------------
@@ -356,6 +368,7 @@ def compute_stock(store: StockStore, seller_id: str, product: dict,
         "eligible_sales": sales_total,
         "mismatch": on_hand < 0,  # FR-43: tampil, jangan clamp
         "on_order": 0,  # P1 purchase-order-lite
+        "lead_time_days": item.get("lead_time_days"),  # override per produk (saldo awal / template)
     }
 
 
@@ -400,7 +413,7 @@ def record_movement(store: StockStore, seller_id: str, product_id: str,
         "product_id": product_id,
         "type": mtype,
         "qty": qty,
-        "at": datetime.now().isoformat(),
+        "at": datetime.now(timezone.utc).isoformat(),  # aware: naive bergantung TZ server
         "note": note,
         "by_user": by_user,
     }

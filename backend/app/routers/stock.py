@@ -4,8 +4,12 @@ from __future__ import annotations
 
 from pathlib import PurePosixPath
 
+from datetime import date
+from typing import Literal
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ValidationError, field_validator
+from starlette.concurrency import run_in_threadpool
 
 from app.config import ALLOWED_EXTENSIONS, MAX_UPLOAD_SIZE_BYTES
 from app.deps.auth import Identity, get_identity, require_owner, require_seller_member
@@ -52,19 +56,39 @@ def _err(e: StockError) -> HTTPException:
 
 
 class OpeningSingle(BaseModel):
-    name: str
-    sku: str
-    qty: int
-    cost_price: float | None = None
-    lead_time_days: int | None = None
-    opening_date: str | None = None  # ISO date, default hari ini
+    # batasan di sini = batasan kolom DB (CHECK opening_qty/cost_price >= 0) → 422 jelas, bukan 500
+    name: str = Field(min_length=1, max_length=200)
+    sku: str = Field(min_length=1, max_length=100)
+    qty: int = Field(ge=0, le=10_000_000)
+    cost_price: float | None = Field(default=None, ge=0)
+    lead_time_days: int | None = Field(default=None, ge=1, le=60)
+    opening_date: str | None = None  # ISO date, default hari ini (WIB)
+
+    @field_validator("name", "sku")
+    @classmethod
+    def _strip(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("tidak boleh kosong")
+        return v
+
+    @field_validator("opening_date")
+    @classmethod
+    def _iso_date(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        try:
+            date.fromisoformat(v)
+        except ValueError:
+            raise ValueError("format tanggal harus YYYY-MM-DD")
+        return v
 
 
 class MovementIn(BaseModel):
-    product_id: str
-    type: str  # receipt | adjustment | writeoff
-    qty: int
-    note: str | None = None
+    product_id: str = Field(min_length=1)
+    type: Literal["receipt", "adjustment", "writeoff"]
+    qty: int = Field(ge=-10_000_000, le=10_000_000)
+    note: str | None = Field(default=None, max_length=500)
 
 
 @router.get("")
@@ -93,7 +117,7 @@ def stock_detail(product_id: str, identity: Identity = Depends(get_identity)):
 
 
 @router.post("/movements")
-async def record_movement(body: MovementIn, identity: Identity = Depends(get_identity)):
+def record_movement(body: MovementIn, identity: Identity = Depends(get_identity)):
     """Catat mutasi: receipt (+), writeoff (−), adjustment (±). on_hand recompute."""
     seller_id = require_seller_member(identity).seller_id or ""
     try:
@@ -145,24 +169,38 @@ async def set_opening_endpoint(
                           "message": f"Ukuran file melebihi {MAX_UPLOAD_SIZE_BYTES // (1024*1024)} MB."}
             })
         try:
-            return stock_ledger.import_template(store, seller_id, raw, ext)
+            return await run_in_threadpool(stock_ledger.import_template, store, seller_id, raw, ext)
         except StockError as e:
             raise _err(e)
 
     # --- Mode single produk (JSON) ---
     try:
-        body = OpeningSingle(**await request.json())
+        payload = await request.json()
     except Exception:
+        payload = None
+    if not isinstance(payload, dict):
         raise HTTPException(status_code=422, detail={
             "error": {"code": "EMPTY_REQUEST",
                       "message": "Kirim JSON {name, sku, qty} atau multipart file template."}
         })
     try:
-        return stock_ledger.set_opening(
-            store, seller_id,
-            name=body.name, sku=body.sku, qty=body.qty,
-            cost_price=body.cost_price, lead_time_days=body.lead_time_days,
-            opening_date=body.opening_date,
+        body = OpeningSingle(**payload)
+    except ValidationError as ve:
+        # sebut field yang salah (dulu semua error jadi "Kirim JSON {name, sku, qty}")
+        first = ve.errors()[0]
+        field = ".".join(str(p) for p in first.get("loc", ()))
+        raise HTTPException(status_code=422, detail={
+            "error": {"code": "VALIDATION_ERROR", "message": f"{field}: {first.get('msg', 'tidak valid')}",
+                      "field": field}
+        })
+    try:
+        return await run_in_threadpool(
+            lambda: stock_ledger.set_opening(
+                store, seller_id,
+                name=body.name, sku=body.sku, qty=body.qty,
+                cost_price=body.cost_price, lead_time_days=body.lead_time_days,
+                opening_date=body.opening_date,
+            )
         )
     except StockError as e:
         raise _err(e)
