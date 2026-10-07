@@ -1,4 +1,5 @@
 """Laku API — entry point."""
+from http import HTTPStatus
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,18 +20,11 @@ app = FastAPI(
     openapi_url="/openapi.json" if _dev_docs else None,
 )
 
-_STATUS_DEFAULT_CODES = {
-    400: "BAD_REQUEST",
-    401: "UNAUTHORIZED",
-    403: "FORBIDDEN",
-    404: "NOT_FOUND",
-    409: "CONFLICT",
-    413: "FILE_TOO_LARGE",
-    422: "UNPROCESSABLE_CONTENT",
-    429: "RATE_LIMITED",
-    500: "INTERNAL_SERVER_ERROR",
-    503: "SERVICE_UNAVAILABLE",
-}
+def _status_code_name(code: int) -> str:
+    try:
+        return HTTPStatus(code).name
+    except ValueError:
+        return "HTTP_ERROR"
 
 
 @app.exception_handler(StarletteHTTPException)
@@ -42,14 +36,14 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         detail_payload = detail
     elif isinstance(detail, dict):
         error_payload = {
-            "code": detail.get("code", _STATUS_DEFAULT_CODES.get(exc.status_code, "HTTP_ERROR")),
+            "code": detail.get("code", _status_code_name(exc.status_code)),
             "message": detail.get("message", "Terjadi kesalahan."),
             **{k: v for k, v in detail.items() if k not in ("code", "message")},
         }
         detail_payload = detail
     else:
         error_payload = {
-            "code": _STATUS_DEFAULT_CODES.get(exc.status_code, "HTTP_ERROR"),
+            "code": _status_code_name(exc.status_code),
             "message": str(detail),
         }
         detail_payload = str(detail)

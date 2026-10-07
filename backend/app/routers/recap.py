@@ -5,17 +5,13 @@ Owner-only endpoint: Operator receives 403 Forbidden.
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.deps.auth import Identity, get_identity, require_owner
 from app.deps.settings import get_settings
-from app.services.recap import ChannelCoverage, RecapLine, compute_recap, get_metrics_help
+from app.services.recap import RecapLine, compute_recap, get_metrics_help
 
 router = APIRouter(prefix="/v1/recap", tags=["recap"])
-
-FIXTURES = Path(__file__).parent.parent.parent / "mock" / "fixtures"
 
 
 @router.get("", status_code=status.HTTP_200_OK)
@@ -27,18 +23,8 @@ def get_recap(
     require_owner(identity)
     settings = get_settings()
 
-    # Fixture seed HANYA di demo mode — prod misconfig harus fail, bukan serve angka karangan
-    if settings.demo_mode and not settings.supabase_url:
-        fixture_path = FIXTURES / "recap.json"
-        if fixture_path.exists():
-            with open(fixture_path, encoding="utf-8") as f:
-                data = json.load(f)
-            data["period"]["days"] = days
-            return data
-
     if settings.supabase_url and settings.supabase_service_key and identity.seller_id:
         from datetime import datetime, timedelta, timezone
-        from app.services.recap import RecapLine
         from supabase import create_client
         client = create_client(settings.supabase_url, settings.supabase_service_key)
         cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()

@@ -3,7 +3,7 @@
 // lead time (badge "asumsi") → saldo awal stok (opsional, bisa skip) → dashboard.
 
 import { useRef, useState } from 'react';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, buildApiUrl } from '@/lib/api';
 import { CHANNELS, UPLOAD_GUIDE, DEFAULT_LEAD_TIME_DAYS, fmtNum, type Channel } from '../data';
 import { AssumsiBadge } from '../components';
 import { IconChevron, IconUpload, IconWarning, IconCheck } from '../icons';
@@ -37,10 +37,7 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
         const chKey = channel === 'Shopee' ? 'shopee' : channel === 'TikTok Shop' ? 'tiktok_shop' : 'tokopedia';
         formData.append('channel', chKey);
 
-        const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.muaraai.com';
-        const url = API_BASE.includes('api.muaraai.com')
-          ? `${API_BASE}/v1/laku/v1/imports`
-          : `${API_BASE}/v1/imports`;
+        const url = buildApiUrl('/v1/imports');
 
         const res = await fetch(url, {
           method: 'POST',
@@ -50,9 +47,7 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
 
         if (res.ok) {
           const data = await res.json();
-          const confirmUrl = API_BASE.includes('api.muaraai.com')
-            ? `${API_BASE}/v1/laku/v1/imports/${data.import_batch_id}/confirm`
-            : `${API_BASE}/v1/imports/${data.import_batch_id}/confirm`;
+          const confirmUrl = buildApiUrl(`/v1/imports/${data.import_batch_id}/confirm`);
           await fetch(confirmUrl, {
             method: 'POST',
             headers: token ? { Authorization: `Bearer ${token}` } : {},
