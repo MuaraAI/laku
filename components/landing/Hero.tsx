@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import { hero, routes } from "@/constants/id";
 import { AssumptionBadge, Headline, Icon } from "./primitives";
+import SupplyMap from "./SupplyMap";
 
 export default function Hero() {
   return (
@@ -30,9 +30,9 @@ export default function Hero() {
           </a>
         </div>
 
-        {/* the stock pile: same illustration as the login panel */}
-        <div className="hero-visual" data-reveal="" aria-hidden="true">
-          <Image className="hero-crates" src="/illustrations/stock-crates.svg" alt="" width={357} height={394} priority unoptimized />
+        {/* supplier routes across Indonesia into one warehouse: same map as the login panel */}
+        <div className="hero-visual" data-reveal="">
+          <SupplyMap tone="light" />
         </div>
 
         {/* supplier → warehouse: the line draws, then one parcel makes the trip */}

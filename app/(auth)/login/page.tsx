@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import LoginCard from "@/components/auth/LoginCard";
-import Image from "next/image";
 import { Icon, LakuMark } from "@/components/landing/primitives";
+import SupplyMap from "@/components/landing/SupplyMap";
 import { footer, hero, login, nav, routes } from "@/constants/id";
 
 export const metadata: Metadata = { title: login.metaTitle };
@@ -36,7 +36,7 @@ export default async function LoginPage({
             )}
           </p>
           <p className="auth-aside-sub">{login.aside.sub}</p>
-          <Image className="auth-crates" src="/illustrations/stock-crates.svg" alt="" width={357} height={394} priority unoptimized />
+          <SupplyMap tone="dark" className="auth-map" />
         </div>
         <p className="auth-aside-foot">{footer.copyright}</p>
       </aside>

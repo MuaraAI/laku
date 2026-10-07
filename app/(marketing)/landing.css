@@ -63,17 +63,17 @@
    ========================================================== */
 .hero { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; padding: clamp(40px, 7vw, 96px) var(--pad) clamp(40px, 6vw, 72px); }
 .hero > .route, .hero > .route-cap, .hero > .hero-note { justify-self: stretch; }
-/* desktop: copy left, crates right, route + notes across the bottom */
+/* desktop: copy left, map right, route + notes across the bottom */
 @media (min-width: 1000px) {
   .hero { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); column-gap: clamp(40px, 4vw, 64px); align-items: start; }
   .hero > :not(.hero-visual):not(.route):not(.route-cap):not(.hero-note) { grid-column: 1; }
-  .hero > .hero-visual { grid-column: 2; grid-row: 1 / span 4; align-self: center; justify-self: center; margin-top: 0; }
+  .hero > .hero-visual { grid-column: 2; grid-row: 1 / span 4; align-self: center; justify-self: stretch; margin-top: 0; }
   .hero > .route, .hero > .route-cap, .hero > .hero-note { grid-column: 1 / -1; }
 }
 .hero h1 { margin-top: 20px; max-width: 18ch; font-size: clamp(2.25rem, .9rem + 5vw, 4.75rem); line-height: 1.02; letter-spacing: -.025em; }
 .hero h1 .soft { color: var(--text-muted); }
 @media (min-width: 640px) { .hero h1 { max-width: none; } .hero h1 .soft { display: block; } }
-/* two lines in the copy column next to the crates */
+/* two lines in the copy column next to the map */
 @media (min-width: 1000px) { .hero h1 { font-size: min(4vw, 3.4rem); } }
 .hero .sub { margin-top: 22px; max-width: 36rem; font-size: clamp(1.0625rem, .95rem + .45vw, 1.25rem); color: var(--text-secondary); line-height: 1.5; text-wrap: pretty; }
 
@@ -94,10 +94,8 @@
 .btn-flood:hover .go-win .ms + .ms, .btn-flood:focus-visible .go-win .ms + .ms { transform: none; transition-delay: .08s; }
 @media (min-width: 560px) { .hero-cta .btn { flex: 0 0 auto; } .hero-cta .btn-primary { min-width: 200px; } .hero-cta .btn-outline { gap: 24px; } }
 
-/* crate pile in the right column (below the actions on mobile) */
-.hero-visual { margin-top: 40px; justify-self: center; }
-.hero-crates { display: block; width: clamp(180px, 52vw, 240px); height: auto; image-rendering: pixelated; }
-@media (min-width: 1000px) { .hero-crates { width: clamp(300px, 28vw, 380px); } }
+/* supply map in the right column (below the actions on mobile) */
+.hero-visual { margin-top: 40px; justify-self: stretch; width: 100%; }
 
 /* route: pins at both ends, a track between them carries the line and the parcel */
 .route { width: 100%; margin-top: clamp(48px, 7vw, 80px); display: flex; align-items: center; gap: 12px; }
