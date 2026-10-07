@@ -73,7 +73,7 @@ export function WhyPanel({ product, onClose }: { product: Product | null; onClos
   if (!product) return null;
   const p = product;
   const o = overlaysOf(p);
-  const demandLead = p.avgDaily * p.leadTimeDays;
+  const demandLead = Math.max(0, Math.round(p.rop - p.safetyStock)) || Math.round(p.avgDaily * p.leadTimeDays);
 
   return (
     <div className={`panel-backdrop${closing ? ' closing' : ''}`} onClick={close} role="presentation">
@@ -111,7 +111,7 @@ export function WhyPanel({ product, onClose }: { product: Product | null; onClos
             </li>
             <li>
               <span className="why-label">{dashboard.whyPanel.demandLead.label}</span>
-              <Num strong>{fmtNum1(p.avgDaily)} × {fmtNum(p.leadTimeDays)} = {fmtNum1(demandLead)} unit</Num>
+              <Num strong>{fmtNum1(p.avgDaily)} × {fmtNum(p.leadTimeDays)} ≈ {fmtNum(demandLead)} unit</Num>
               <span className="why-desc">{dashboard.whyPanel.demandLead.desc}</span>
             </li>
             <li>
@@ -121,10 +121,7 @@ export function WhyPanel({ product, onClose }: { product: Product | null; onClos
             </li>
             <li className="why-total">
               <span className="why-label">{dashboard.whyPanel.rop.label}</span>
-              <Num strong>{fmtNum1(demandLead)} + {fmtNum(p.safetyStock)} = {fmtNum(p.rop)} unit</Num>
-              {Math.abs(demandLead + p.safetyStock - Math.round(demandLead + p.safetyStock)) > 1e-9 && (
-                <span className="why-desc">{dashboard.whyPanel.rop.roundedNote}</span>
-              )}
+              <Num strong>{fmtNum(demandLead)} + {fmtNum(p.safetyStock)} = {fmtNum(p.rop)} unit</Num>
               <span className="why-desc">
                 {p.onHand <= p.rop
                   ? dashboard.whyPanel.rop.statusBelow(p.onHand)
