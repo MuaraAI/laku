@@ -215,8 +215,11 @@ def parse_rows(
             sold_at = datetime.now(timezone.utc)
 
         # --- PII: derive region lalu JANGAN simpan teks mentah ---
-        kab = val("buyer_kabupaten") or None
-        prov = val("buyer_province") or None
+        # B1 (pentest 7 Okt): region juga teks bebas dari file — sanitasi sama
+        # seperti sku, supaya sel berawalan =,+,-,@ tidak pernah tersimpan
+        # verbatim (pedang dua mata saat fitur export Excel dibangun).
+        kab = _safe_cell(val("buyer_kabupaten")) or None
+        prov = _safe_cell(val("buyer_province")) or None
         # nama/telepon/alamat: TIDAK dibaca sama sekali — allowlist by design.
 
         if row_problems:
@@ -284,7 +287,9 @@ def parse_shopee(raw_bytes: bytes, config: dict) -> ParseResult:
     fieldnames = [h.strip() for h in all_rows[0]]
     status_upper = {k.strip().upper() for k in load_status_keys(config)}
     rows: list[dict] = []
-    for cells in all_rows[1:]:
+    result_problems: list[dict] = []  # B2: baris ragged tak terselamatkan heuristic
+    for row_idx, cells in enumerate(all_rows[1:], start=2):
+        problem_row_no = row_idx  # nomor baris fisik di file (1-based, header = 1)
         if not any(c.strip() for c in cells):
             continue
         if len(cells) != len(fieldnames):
@@ -317,9 +322,34 @@ def parse_shopee(raw_bytes: bytes, config: dict) -> ParseResult:
                     cells[:i] + cells[i + 1:]                      # buang 1 sel kosong
                     for i, c in enumerate(cells) if c.strip() == ""
                 ] + [cells[1:], cells[:-1]]                        # shift kiri/kanan
-                cells = max(variants, key=_score)
+                best = max(variants, key=_score)
+                # B2 (pentest 7 Okt): heuristic hanya boleh menyelamatkan baris
+                # yang meyakinkan (status dikenal ATAU harga numerik = skor >= 4).
+                # Selain itu → problem-row, bukan dipaksa masuk dengan kolom
+                # tergeser diam-diam (SKU bisa terisi potongan payload).
+                if _score(best) >= 4:
+                    cells = best
+                else:
+                    result_problems.append({
+                        "row": problem_row_no,
+                        "column": "-",
+                        "reason": ("jumlah kolom tidak cocok dengan header — "
+                                   "file kemungkinan bukan export asli marketplace; "
+                                   "export ulang tanpa mengubah struktur kolom"),
+                    })
+                    continue
+            else:
+                result_problems.append({
+                    "row": problem_row_no,
+                    "column": "-",
+                    "reason": ("struktur baris menyimpang terlalu jauh dari header — "
+                               "file kemungkinan bukan export asli marketplace"),
+                })
+                continue
         rows.append(dict(zip(fieldnames, (c.strip() for c in cells))))
-    return parse_rows(rows, config, start_row=2, headers=fieldnames)
+    result = parse_rows(rows, config, start_row=2, headers=fieldnames)
+    result.problems = result_problems + result.problems
+    return result
 
 
 def parse_shopee_xlsx(raw_bytes: bytes, config: dict) -> ParseResult:
