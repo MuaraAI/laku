@@ -4,6 +4,8 @@
 // font JetBrains Mono + tabular-nums + rata kanan (class .num di styles.css).
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { dashboard } from '@/constants/id';
+
 export type StatusKey =
   | 'CRITICAL'
   | 'REORDER'
@@ -21,12 +23,12 @@ export interface StatusSpec {
 }
 
 export const STATUS: Record<StatusKey, StatusSpec> = {
-  CRITICAL:          { key: 'CRITICAL',          label: 'Segera pesan',    icon: 'alert' },
-  REORDER:           { key: 'REORDER',           label: 'Waktunya pesan',  icon: 'bell' },
-  OK:                { key: 'OK',                label: 'Aman',            icon: 'check' },
-  OVERSTOCK:         { key: 'OVERSTOCK',         label: 'Stok berlebih',   icon: 'boxes' },
-  DEAD:              { key: 'DEAD',              label: 'Tidak laku',      icon: 'moon' },
-  INSUFFICIENT_DATA: { key: 'INSUFFICIENT_DATA', label: 'Data belum cukup',icon: 'hourglass' },
+  CRITICAL:          { key: 'CRITICAL',          label: dashboard.status.CRITICAL.label,    icon: 'alert' },
+  REORDER:           { key: 'REORDER',           label: dashboard.status.REORDER.label,     icon: 'bell' },
+  OK:                { key: 'OK',                label: dashboard.status.OK.label,          icon: 'check' },
+  OVERSTOCK:         { key: 'OVERSTOCK',         label: dashboard.status.OVERSTOCK.label,   icon: 'boxes' },
+  DEAD:              { key: 'DEAD',              label: dashboard.status.DEAD.label,        icon: 'moon' },
+  INSUFFICIENT_DATA: { key: 'INSUFFICIENT_DATA', label: dashboard.status.INSUFFICIENT_DATA.label, icon: 'hourglass' },
 };
 
 export type Channel = 'Shopee' | 'TikTok Shop' | 'Tokopedia';
@@ -200,22 +202,6 @@ export function mockPreview(channel: Channel, fileName: string): UploadPreview {
 
 // ── Onboarding copy ──────────────────────────────────────────────────────────
 
-export const UPLOAD_GUIDE: Record<Channel, string[]> = {
-  Shopee: [
-    'Buka Seller Centre → Penjualan Saya → Unduh laporan pesanan.',
-    'Pilih rentang tanggal maksimal 90 hari terakhir.',
-    'Ekspor sebagai CSV atau XLSX, lalu unggah di sini.',
-  ],
-  'TikTok Shop': [
-    'Buka Seller Center → Pesanan → Ekspor riwayat pesanan.',
-    'Pilih status "Selesai" agar hitungan laku akurat.',
-    'Unduh file XLSX, lalu unggah di sini.',
-  ],
-  Tokopedia: [
-    'Buka Seller Dashboard → Statistik → Unduh laporan penjualan.',
-    'Pilih periode maksimal 90 hari terakhir.',
-    'Simpan sebagai CSV, lalu unggah di sini.',
-  ],
-};
+export const UPLOAD_GUIDE: Record<Channel, string[]> = dashboard.onboarding.step2.guides;
 
 export const DEFAULT_LEAD_TIME_DAYS = 5; // asumsi bawaan — wajib badge "asumsi"

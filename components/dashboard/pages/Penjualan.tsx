@@ -3,6 +3,7 @@
 
 import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { apiFetch } from '@/lib/api';
+import { dashboard } from '@/constants/id';
 import { SALES, CHANNEL_SPLIT, DATA_FRESHNESS, fmtIDR, fmtNum, fmtNum1, type Channel } from '../data';
 import { Num, SementaraChip } from '../components';
 import { IconWarning } from '../icons';
@@ -179,8 +180,8 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
   return (
     <div className="page">
       <header className="page-head" data-reveal>
-        <p className="kicker"><b>Rekap penjualan</b></p>
-        <h1 className="page-title">Penjualan</h1>
+        <p className="kicker"><b>{dashboard.sales.kicker}</b></p>
+        <h1 className="page-title">{dashboard.sales.title}</h1>
         <div className="period-selector" role="tablist" aria-label="Pilih periode">
           {PERIODS.map((p) => (
             <button key={p} role="tab" aria-selected={period === p}
@@ -198,13 +199,11 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
           <div>
             {staleChannels.length > 0 && (
               <p>
-                Data <strong>{staleChannels.map((c) => c.channel).join(', ')}</strong> terakhir
-                {' '}<Num>{fmtNum(staleChannels[0].daysAgo)}</Num> hari lalu. Unggah ulang laporan supaya rekomendasi restock akurat.
+                {dashboard.sales.coverageStale(staleChannels.map((c) => c.channel).join(', '), staleChannels[0].daysAgo)}
               </p>
             )}
             <p>
-              Transaksi <span className="num">7</span> hari terakhir masih <SementaraChip />. Angka bisa berubah
-              karena pesanan belum selesai, retur, atau pembatalan.
+              {dashboard.sales.coverageTemp}
             </p>
           </div>
         </div>
@@ -212,54 +211,54 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
 
       <section className="kpi-strip" data-reveal="kids" aria-label="Ringkasan omzet">
         <div className="kpi">
-          <span className="kpi-label">Omzet kotor</span>
+          <span className="kpi-label">{dashboard.sales.kpi.gross}</span>
           <Num strong key={period}>{fmtIDR(omzetKotor)}</Num>
-          <span className="kpi-sub">{period} hari terakhir, semua channel</span>
+          <span className="kpi-sub">{dashboard.sales.kpi.grossSub(period)}</span>
         </div>
         <div className="kpi">
-          <span className="kpi-label">Penjualan bersih</span>
+          <span className="kpi-label">{dashboard.sales.kpi.net}</span>
           <Num strong key={period}>{fmtIDR(penjualanBersih)}</Num>
-          <span className="kpi-sub">Setelah potongan platform &amp; retur</span>
+          <span className="kpi-sub">{dashboard.sales.kpi.netSub}</span>
         </div>
         <div className="kpi">
-          <span className="kpi-label">Transaksi</span>
+          <span className="kpi-label">{dashboard.sales.kpi.orders}</span>
           <Num strong key={period}>{fmtNum(transaksi)}</Num>
-          <span className="kpi-sub">Pesanan tercatat</span>
+          <span className="kpi-sub">{dashboard.sales.kpi.ordersSub}</span>
         </div>
         <div className="kpi">
-          <span className="kpi-label">Rata-rata harian</span>
+          <span className="kpi-label">{dashboard.sales.kpi.dailyAvg}</span>
           <Num strong key={period}>{fmtIDR(rataHarian)}</Num>
-          <span className="kpi-sub">Omzet kotor per hari</span>
+          <span className="kpi-sub">{dashboard.sales.kpi.dailyAvgSub}</span>
         </div>
       </section>
 
       {recapError ? (
         <div className="stock-empty" role="alert" style={{ marginTop: '14px', border: '1px solid var(--critical-bg)', background: 'var(--critical-bg)' }}>
-          <p style={{ color: 'var(--critical)', fontWeight: 600 }}>Gagal memuat rekap penjualan: {recapError}</p>
-          <button className="btn btn-primary" onClick={fetchRecap} type="button">Coba Lagi</button>
+          <p style={{ color: 'var(--critical)', fontWeight: 600 }}>{dashboard.sales.errorTitle(recapError)}</p>
+          <button className="btn btn-primary" onClick={fetchRecap} type="button">{dashboard.common.retry}</button>
         </div>
       ) : isLive && transaksi === 0 ? (
         <div className="stock-empty" data-reveal style={{ marginTop: '14px' }}>
-          <p>Belum ada transaksi penjualan tercatat untuk Toko Saya dalam {period} hari terakhir.</p>
+          <p>{dashboard.sales.emptyLiveTitle(period)}</p>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-            Impor data pesanan dari Shopee, TikTok Shop, atau Tokopedia lewat menu <strong>Upload</strong> untuk melihat rekap omzet dan grafik tren penjualan.
+            {dashboard.sales.emptyLiveDesc}
           </p>
         </div>
       ) : (
         <>
           <section aria-labelledby="tren">
-            <h2 id="tren" className="section-title">Tren omzet kotor</h2>
+            <h2 id="tren" className="section-title">{dashboard.sales.trendTitle}</h2>
             {isLive && liveTrendData.length < 2 ? (
-              <p className="stock-empty">Grafik tren muncul setelah ada penjualan di minimal dua hari berbeda.</p>
+              <p className="stock-empty">{dashboard.sales.trendEmpty}</p>
             ) : (
               <TrendChart period={period} customData={isLive ? liveTrendData : null} />
             )}
           </section>
 
           <section aria-labelledby="per-channel">
-            <h2 id="per-channel" className="section-title">Per channel</h2>
+            <h2 id="per-channel" className="section-title">{dashboard.sales.channelTitle}</h2>
             {activeSplit.length === 0 && (
-              <p className="stock-empty">Rincian per channel belum tersedia untuk periode ini.</p>
+              <p className="stock-empty">{dashboard.sales.channelEmpty}</p>
             )}
             <ul className="channel-split" data-reveal="kids">
               {activeSplit.map((c) => (
