@@ -11,7 +11,7 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Location](https://img.shields.io/badge/Location-Pontianak%2C_Indonesia-072033)](https://laku.muaraai.com)
 
-[**🌐 Buka Aplikasi Live**](https://laku.muaraai.com) • [**📊 Coba Dashboard Demo**](https://laku.muaraai.com/dashboard) • [**⚡ Telemetri Real-Time API**](https://api.muaraai.com/v1/laku/stats) • [**📖 Dokumentasi API**](https://api.muaraai.com/v1/laku/health)
+[**🌐 Buka Aplikasi Live**](https://laku.muaraai.com) • [**📊 Coba Dashboard Demo**](https://laku.muaraai.com/dashboard) • [**⚡ Telemetri Real-Time API**](https://api.muaraai.com/v1/laku/v1/stats) • [**📖 Status Kesehatan API**](https://api.muaraai.com/v1/laku/health)
 
 </div>
 
@@ -68,11 +68,11 @@ laku/
 ├── constants/id.ts             # Sumber kebenaran copy UI Bahasa Indonesia terpusat
 ├── backend/                    # Core Engine Service (FastAPI)
 │   ├── app/routers/            # Endpoints: /imports, /recommendations, /stock, /recap, /me, /stats
-│   ├── app/services/           # Engine §9A, Recap §9D, Ledger, Parsers (Shopee, TikTok)
-│   ├── app/middleware/         # Rate limiting token bucket in-memory
+│   ├── app/services/           # Engine §9A, Recap §9D, Ledger, Parsers (Shopee, TikTok, Tokopedia)
+│   ├── app/middleware/         # Rate limiting token bucket in-memory (XFF anti-spoofing)
 │   ├── configs/channels/       # Pemetaan kolom marketplace deklaratif (YAML)
-│   ├── supabase/migrations/    # Skema SQL 0001–0010 + RLS policies + RPC functions
-│   └── tests/                  # Test suite pytest (139 passing tests)
+│   ├── supabase/migrations/    # Skema SQL 0001–0012 + RLS policies + RPC functions
+│   └── tests/                  # Test suite pytest (143 passing tests)
 ├── DESIGN.md                   # Spesifikasi resmi Design System v1.0.0 (Ledger Rail)
 └── docs/                       # PRD v3.1, Implementation Plan, Panduan Deploy
 ```
@@ -130,7 +130,7 @@ API akan aktif di `http://127.0.0.1:8400` dengan endpoint kesehatan di `/health`
 Laku menerapkan disiplin **Test-Driven Development (TDD)** dengan pengetesan perilaku eksternal:
 
 ```bash
-# Menjalankan seluruh test suite backend (139 tests)
+# Menjalankan seluruh test suite backend (143 tests)
 cd backend
 source .venv/bin/activate
 pytest tests/ -v

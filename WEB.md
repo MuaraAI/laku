@@ -19,10 +19,12 @@ app/
   theme.css             semantic tokens (satu-satunya tempat hex)
   icon.svg              favicon (mark Laku)
   (marketing)/          landing `/`, `/tos`, `/privacy` + landing.css
-  (auth)/login/         login Google (Supabase)
-  auth/callback/        tukar kode OAuth → cookie sesi, lalu ke `/dashboard`
-components/landing/     section landing (client hanya yang interaktif)
-constants/id.ts         semua copy UI Bahasa Indonesia
+  (auth)/login/         login Google OAuth & Email Magic Link / OTP (Supabase)
+  auth/callback/        tukar kode OAuth / token_hash OTP → cookie sesi, lalu ke `/dashboard`
+  (dashboard)/          dashboard terpadu (/dashboard) dengan mode Demo & Live
+components/dashboard/  komponen dashboard (Restock, Penjualan, Upload, Setup)
+components/landing/    section landing (client hanya yang interaktif)
+constants/id.ts        seluruh copy UI Bahasa Indonesia terpusat (Single Source of Truth)
 lib/supabase/           client browser/server Supabase (@supabase/ssr)
 lib/motion.ts           helper client kecil
 ```
@@ -35,27 +37,26 @@ Token juga tersedia sebagai utility Tailwind: `bg-paper`, `text-ink`, `bg-critic
 
 ## Halaman
 
-| Route | Isi | Owner |
+| Route | Isi | Fitur Utama |
 |---|---|---|
-| `/` | Landing (hero, fitur, cara kerja, CTA) | Raken |
-| `/login` | Google OAuth via Supabase | Jio |
-| `/tos`, `/privacy` | Syarat & Kebijakan Privasi (draf, final dari Raken) | Raken |
-| `/dashboard` | Restock home (ranking + badge state) | Jio |
-| `/dashboard/upload` | Import CSV/XLSX + preview/confirm | Jio |
-| `/dashboard/stok` | Ledger stok | Jio |
-| `/dashboard/penjualan` | Recap + coverage banner | Raken + Jio |
+| `/` | Landing (hero, fitur, cara kerja, harga, CTA) | SupplyMap, Rute Logistik, Value Props |
+| `/login` | Login Google OAuth & Email OTP 6-digit | Zero-scroll 100dvh desktop, Resend SMTP |
+| `/tos`, `/privacy` | Syarat & Ketentuan, Kebijakan Privasi | Kepatuhan UU PDP No. 27/2022, Pontianak |
+| `/dashboard` | Dashboard Multi-Marketplace Terpadu | Mode Demo (Bu Rina) vs Live Toko Saya |
 
 ## Konvensi (wajib — lihat ../AGENTS.md)
 
 - Semantic token dari `theme.css` (`var(--surface)`), bukan hex.
-- Copy UI Bahasa Indonesia di `constants/id.ts`.
+- Copy UI Bahasa Indonesia terpusat di `constants/id.ts`.
 - Angka bisnis: JetBrains Mono `tabular-nums`, rata kanan.
-- Light mode only (MVP). Mobile: bottom tabs ≤5, touch ≥44px.
+- Light mode only (MVP). Mobile: touch target ≥44px.
 
 ## Koneksi API
 
-Frontend konsumsi mock server `backend/mock` selama backend asli dikembangkan:
+Frontend terhubung ke backend FastAPI produksi di VPS Caddy:
 
 ```bash
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8400
+NEXT_PUBLIC_API_BASE_URL=https://api.muaraai.com
+# Lokal dev:
+# NEXT_PUBLIC_API_BASE_URL=http://localhost:8400
 ```
