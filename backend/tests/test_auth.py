@@ -114,3 +114,52 @@ def test_repository_scopes_every_query():
     assert rows == [{"id": "r1", "seller_id": "s-mine"}]
     # scoping wajib: seller_id selalu jadi filter pertama di setiap query
     assert captured.get("seller_id") == "s-mine"
+
+
+def test_verify_token_supports_es256(monkeypatch):
+    """Pastikan token Supabase dengan algoritma ES256 (ECC) valid dan ter-decode."""
+    from app.deps.auth import verify_token, _JWKS_CACHE
+    from app.deps.settings import get_settings
+    from cryptography.hazmat.primitives.asymmetric import ec
+    from cryptography.hazmat.primitives import serialization
+    import jwt
+    import time
+
+    # Generate ES256 EC key pair
+    private_key = ec.generate_private_key(ec.SECP256R1())
+    public_key = private_key.public_key()
+    pub_numbers = public_key.public_numbers()
+
+    import base64
+
+    def int_to_b64(val: int) -> str:
+        b = val.to_bytes((val.bit_length() + 7) // 8, byteorder="big")
+        return base64.urlsafe_b64encode(b).decode("utf-8").rstrip("=")
+
+    kid = "test-es256-kid"
+    jwk_dict = {
+        "kty": "EC",
+        "crv": "P-256",
+        "kid": kid,
+        "x": int_to_b64(pub_numbers.x),
+        "y": int_to_b64(pub_numbers.y),
+        "use": "sig",
+        "alg": "ES256",
+    }
+
+    token = jwt.encode(
+        {"sub": "user-es256-123", "aud": "authenticated", "exp": int(time.time()) + 3600},
+        private_key,
+        algorithm="ES256",
+        headers={"kid": kid},
+    )
+
+    s = get_settings()
+    monkeypatch.setattr(s, "supabase_url", "https://test.supabase.co", raising=False)
+    _JWKS_CACHE["keys"] = {"keys": [jwk_dict]}
+    _JWKS_CACHE["fetched_at"] = time.time()
+
+    payload = verify_token(token)
+    assert payload["sub"] == "user-es256-123"
+    assert payload["aud"] == "authenticated"
+
