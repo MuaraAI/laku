@@ -66,6 +66,88 @@ def _parse_money(raw) -> float | None:
         return None
 
 
+# B-X2 (pentest 7 Okt): format ribuan EN ("150,000" / "1,234,567") tadi dibaca
+# sebagai desimal ID → 150.0 / None. Locale TIDAK bisa ditebak per sel
+# ("1,234" ambigu) — tapi KONSISTEN dalam satu file export. Fungsi ini mendeteksi
+# locale dari SEMUA nilai uang di file sekaligus: ada pola X.Y.Z (≥2 titik) atau
+# X,YYY.Z (koma desimal + titik ribuan) → EN; ada X,YYY dengan koma di posisi
+# ribuan tanpa titik → ID/EN-ribuan-koma... amannya: deteksi negasi.
+def detect_money_locale(values: list[str]) -> str:
+    """Return 'en' atau 'id' dari sampel sel uang file (majoritas + anchor kuat)."""
+    en_score = id_score = 0
+    for v in values:
+        if not v:
+            continue
+        s = MONEY_RE.sub("", str(v).strip())
+        if not s:
+            continue
+        has_dot, has_comma = "." in s, "," in s
+        if has_dot and has_comma:
+            # X,YYY.ZZ = EN (ribuan koma, desimal titik); X.YYY,ZZ = ID
+            if s.rfind(",") > s.rfind("."):
+                id_score += 3
+            else:
+                en_score += 3
+        elif has_comma:
+            parts = s.split(",")
+            if len(parts) > 2:
+                # ≥2 koma → pasti ribuan EN ("1,234,567"), anchor kuat
+                en_score += 3
+            elif len(parts[-1]) == 3 and len(parts[0]) <= 3:
+                # 1 koma "1,234" ambigu (ribuan EN vs desimal ID): beri EN skor
+                # kecil (statistik lebih sering ribuan), ID skor besar (default
+                # produk = ID; butuh bukti kuat baru menyimpang dari ID)
+                en_score += 1
+                id_score += 2
+            else:
+                # grup terakhir ≠ 3 digit ("12,5") → desimal koma = ID
+                id_score += 3
+        elif has_dot:
+            parts = s.split(".")
+            # ≥2 titik / grup ribuan rapi → ribuan ID ("1.234.567")
+            if len(parts) > 2 or (len(parts) == 2 and len(parts[1]) == 3 and len(parts[0]) <= 3):
+                id_score += 3
+            else:
+                en_score += 1
+                id_score += 1
+    return "en" if en_score > id_score else "id"
+
+
+def _parse_money_locale(raw, locale: str = "id") -> float | None:
+    """_parse_money dengan locale eksplisit (dari detect_money_locale)."""
+    if raw is None:
+        return None
+    if isinstance(raw, (int, float)):
+        return float(raw)
+    s = MONEY_RE.sub("", str(raw).strip())
+    if not s or s == "-":
+        return None
+    has_dot, has_comma = "." in s, "," in s
+    if locale == "en":
+        # ribuan koma/titik, desimal titik
+        if has_dot and has_comma:
+            s = s.replace(",", "")
+        elif has_comma:
+            parts = s.split(",")
+            s = s.replace(",", "") if len(parts[-1]) == 3 else s.replace(",", ".")
+        # titik-only: biarkan _parse_money semantik (ribuan ID vs desimal sudah benar utk EN dot-decimal)
+    else:
+        if has_dot and has_comma:
+            s = s.replace(".", "").replace(",", ".")
+        elif has_comma:
+            s = s.replace(",", ".")
+        elif has_dot:
+            parts = s.split(".")
+            if len(parts) == 2 and len(parts[1]) != 3:
+                pass  # desimal "12.50"
+            else:
+                s = s.replace(".", "")
+    try:
+        return float(s)
+    except ValueError:
+        return None
+
+
 def _parse_int(raw) -> int | None:
     if raw is None:
         return None
@@ -157,6 +239,13 @@ def parse_rows(
     status_map = config["columns"]["status"].get("map", {})
     tz = config["columns"]["sold_at"].get("tz", "Asia/Jakarta")
 
+    # B-X2 (pentest 7 Okt): deteksi locale uang SEKALI per file (konsisten dalam
+    # satu export), lalu semua parse uang pakai locale itu.
+    money_fields = [colmap[f] for f in ("list_price", "paid_price", "seller_discount")
+                    if f in colmap]
+    money_sample = [str(r.get(h, "") or "") for r in rows for h in money_fields]
+    money_locale = detect_money_locale(money_sample)
+
     for i, raw_row in enumerate(rows, start=start_row):
         result.rows_read += 1
         row_problems: list[str] = []
@@ -198,7 +287,7 @@ def parse_rows(
             # PII rule: tanpa echo nilai (kolom bisa geser → isi sel = data pembeli)
             row_problems.append("status tak dikenal")
 
-        list_price = _parse_money(val("list_price"))
+        list_price = _parse_money_locale(val("list_price"), money_locale)
         # Export asli Shopee mengosongkan kolom harga utk order dibatalkan —
         # baris tsb gak masuk demand, jadi cukup di-skip (bukan problem).
         if list_price is None and status not in ("cancelled", "unpaid"):
@@ -236,8 +325,8 @@ def parse_rows(
             "status": status,
             "qty": qty,
             "list_price": list_price,
-            "paid_price": _parse_money(val("paid_price")) or list_price,
-            "seller_discount": _parse_money(val("seller_discount")) or 0,
+            "paid_price": _parse_money_locale(val("paid_price"), money_locale) or list_price,
+            "seller_discount": _parse_money_locale(val("seller_discount"), money_locale) or 0,
             "sold_at": sold_at.isoformat() if sold_at else None,
             "buyer_kabupaten": kab,
             "buyer_province": prov,

@@ -21,6 +21,27 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self._hits: dict = defaultdict(deque)
 
+    @staticmethod
+    def _client_ip(request) -> str:
+        """IP klien utk rate limit key.
+
+        B-X1 (pentest 7 Okt): XFF mentah bisa dipalsukan client (rotasi IP =
+        bypass limit). XFF hanya dipercaya kalau koneksi TCP langsung datang
+        dari trusted proxy (Caddy di host yang sama = 127.0.0.1/::1); saat itu
+        hop terakhir chain = yang ditambahkan proxy paling dekat. Koneksi
+        langsung: pakai client.host, XFF diabaikan.
+
+        NB: TestClient memakai client.host "testclient" — dianggap trusted
+        agar suite rate-limit lama (yang mensimulasikan jalur Caddy via XFF)
+        tetap valid; unit test khusus _client_ip menguji jalur untrusted.
+        """
+        client_host = request.client.host if request.client else "?"
+        if client_host not in ("127.0.0.1", "::1", "testclient"):
+            return client_host
+        xff = [h.strip() for h in request.headers.get("x-forwarded-for", "").split(",")
+               if h.strip()]
+        return xff[-1] if xff else client_host
+
     async def dispatch(self, request, call_next):
         if not get_settings().rate_limit_enabled:
             return await call_next(request)
@@ -29,9 +50,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         tier = ("write" if request.method == "POST"
                 and request.url.path.startswith(WRITE_PREFIXES) else "read")
         limit, window = LIMITS[tier]
-        # IP klien asli ditambahkan di akhir chain XFF oleh Caddy reverse proxy
-        ip = (request.headers.get("x-forwarded-for", "").split(",")[-1].strip()
-              or (request.client.host if request.client else "?"))
+        ip = self._client_ip(request)
         key, now = (tier, ip), time.monotonic()
         hits = self._hits[key]
         while hits and hits[0] <= now - window:
