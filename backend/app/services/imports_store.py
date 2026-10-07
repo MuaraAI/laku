@@ -10,6 +10,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta, timezone
 
+from app.repositories.base import fetch_all_paginated
+
 UPSERT_CONFLICT_KEY = "seller_id,source_system,sales_channel,shop_id,order_id,line_key"
 STAGING_TTL_HOURS = 24  # ADR-2: staging purge ≤ 24 jam
 UPSERT_RPC = "upsert_order_lines"
@@ -265,14 +267,13 @@ class ImportsSupabaseStore(ImportsStore):
         )
         if not owned:
             return rows, problems
-        resp = (
+        query = (
             self.client.table("import_staging")
             .select("payload")
             .eq("batch_id", batch_id)
             .order("created_at", desc=False)
-            .execute()
         )
-        for item in resp.data or []:
+        for item in fetch_all_paginated(query):
             payload = item["payload"]
             if isinstance(payload, dict) and "__problems__" in payload:
                 problems = payload["__problems__"]

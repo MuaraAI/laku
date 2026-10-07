@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, Query, status
 
 from app.deps.auth import Identity, get_identity, require_owner
 from app.deps.settings import get_settings
+from app.repositories.base import fetch_all_paginated
 from app.services.recap import RecapLine, compute_recap, get_metrics_help
 
 router = APIRouter(prefix="/v1/recap", tags=["recap"])
@@ -28,14 +29,13 @@ def get_recap(
         from supabase import create_client
         client = create_client(settings.supabase_url, settings.supabase_service_key)
         cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
-        resp = (
+        query = (
             client.table("order_lines")
             .select("order_id, line_key, sales_channel, status, qty, unit_price, discount_amount, allocated_discount, sold_at")
             .eq("seller_id", identity.seller_id)
             .gte("sold_at", cutoff)
-            .execute()
         )
-        raw_rows = resp.data or []
+        raw_rows = fetch_all_paginated(query)
         recap_lines = [
             RecapLine(
                 order_id=r["order_id"],

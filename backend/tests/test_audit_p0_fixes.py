@@ -69,3 +69,46 @@ def test_nan_non_finite_engine_safe():
     rec = compute(inp)
     assert rec.state == "INSUFFICIENT_DATA"
     assert "non-finite" in rec.inputs.get("note", "")
+
+
+def test_fetch_all_paginated_multi_page():
+    from app.repositories.base import fetch_all_paginated
+
+    # Mock query builder simulating PostgREST range behaviour
+    total_items = [{"id": i} for i in range(2500)]
+
+    class MockQuery:
+        def __init__(self):
+            self._start = 0
+            self._end = 999
+
+        def range(self, start, end):
+            self._start = start
+            self._end = end
+            return self
+
+        def execute(self):
+            class Resp:
+                data = []
+            r = Resp()
+            r.data = total_items[self._start : self._end + 1]
+            return r
+
+    q = MockQuery()
+    results = fetch_all_paginated(q, page_size=1000)
+    assert len(results) == 2500
+    assert [r["id"] for r in results] == list(range(2500))
+
+
+def test_fetch_all_paginated_fallback_no_range():
+    from app.repositories.base import fetch_all_paginated
+
+    class NoRangeQuery:
+        def execute(self):
+            class Resp:
+                data = [{"id": 1}, {"id": 2}]
+            return Resp()
+
+    results = fetch_all_paginated(NoRangeQuery())
+    assert len(results) == 2
+

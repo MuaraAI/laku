@@ -15,6 +15,8 @@ import uuid
 from abc import ABC, abstractmethod
 from datetime import date, datetime
 
+from app.repositories.base import fetch_all_paginated
+
 MONEY_RE = re.compile(r"[^\d.,-]")
 
 # Status order yang mengurangi stok (A9 / FR-27)
@@ -285,16 +287,13 @@ class StockSupabaseStore(StockStore):
         )
 
     def fetch_eligible_sales(self, seller_id: str) -> list[dict]:
-        rows = (
+        query = (
             self.client.table("order_lines")
             .select("sku, qty, sold_at")
             .eq("seller_id", seller_id)
             .in_("status", list(ELIGIBLE_STATUS))
-            .execute()
-            .data
-            or []
         )
-        return rows
+        return fetch_all_paginated(query)
 
 
 # ---------------------------------------------------------------------------
