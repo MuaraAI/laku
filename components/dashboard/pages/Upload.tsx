@@ -3,6 +3,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { buildApiUrl } from '@/lib/api';
+import { dashboard } from '@/constants/id';
 import { CHANNELS, mockPreview, fmtNum, fmtNum1, type Channel, type UploadPreview } from '../data';
 import { Num } from '../components';
 import { IconFile, IconUpload, IconWarning } from '../icons';
@@ -75,7 +76,7 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
             problems: (data.problems || []).map((p: Record<string, unknown>) => ({
               row: typeof p.row === 'number' ? p.row : 0,
               issue: String(p.reason || p.problem || 'Baris bermasalah'),
-              action: 'Periksa format baris dan unggah ulang.',
+              action: dashboard.upload.defaultActionNote,
             })),
           });
           setPhase('preview');
@@ -150,7 +151,7 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
         <li className={channel ? 'step done' : 'step active'}>
           <span className="step-no num">1</span>
           <div>
-            <h2 className="step-title">Pilih channel</h2>
+            <h2 className="step-title">{dashboard.upload.step1Title}</h2>
             <div className="channel-picker" role="radiogroup" aria-label="Pilih channel marketplace">
               {CHANNELS.map((c) => (
                 <button key={c} role="radio" aria-checked={channel === c}
@@ -166,15 +167,15 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
         <li className={phase !== 'idle' ? 'step done' : channel ? 'step active' : 'step'}>
           <span className="step-no num">2</span>
           <div>
-            <h2 className="step-title">Pilih file CSV / XLSX</h2>
+            <h2 className="step-title">{dashboard.upload.step2Title}</h2>
             <input ref={fileRef} type="file" accept=".csv,.xlsx" className="visually-hidden"
               onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f.name); }} />
             <button className="dropzone" onClick={pickFile} disabled={!channel}>
               <IconUpload size={20} />
-              <span>{channel ? 'Klik untuk pilih file laporan' : 'Pilih channel dulu di langkah 1'}</span>
-              <small>{fileName || 'Maksimal 90 hari riwayat pesanan'}</small>
+              <span>{channel ? dashboard.upload.pickPrompt : dashboard.upload.pickWait}</span>
+              <small>{fileName || dashboard.upload.pickHint}</small>
             </button>
-            {!channel && <p className="form-hint">Pilih channel dulu supaya kolom file bisa dipetakan dengan benar.</p>}
+            {!channel && <p className="form-hint">{dashboard.upload.pickWarn}</p>}
             {uploadError && (
               <p className="negative-note" style={{ marginTop: '10px', color: 'var(--critical)', background: 'var(--critical-bg)', padding: '10px 14px', borderRadius: 'var(--r-sm)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }} role="alert">
                 <IconWarning size={15} />
@@ -188,12 +189,12 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
           <li className="step active" aria-busy="true" aria-live="polite">
             <span className="step-no num">3</span>
             <div className="skeleton-block">
-              <h2 className="step-title">Membaca file…</h2>
+              <h2 className="step-title">{dashboard.upload.step3Loading}</h2>
               {/* rute + paket ala landing: ceritakan pipeline, bukan spinner */}
               <div className="route" aria-hidden="true">
                 <span className="pin"><IconFile size={16} /> {fileName || 'CSV / XLSX'}</span>
                 <span className="track"><span className="packet" /></span>
-                <span className="pin to">Saran restock</span>
+                <span className="pin to">{dashboard.upload.step3Target}</span>
               </div>
               <div className="sk sk-line w60" />
               <div className="sk sk-line w80" />
@@ -208,12 +209,12 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
           <li className="step active">
             <span className="step-no num">3</span>
             <div className="preview-block">
-              <h2 className="step-title">Preview: cek dulu sebelum konfirmasi</h2>
+              <h2 className="step-title">{dashboard.upload.previewTitle}</h2>
               <p className="preview-file"><IconFile size={15} /> <span className="num num-left">{preview.fileName}</span> · {preview.channel}</p>
               <div className="kpi-strip kpi-compact">
-                <div className="kpi"><span className="kpi-label">Baris dibaca</span><Num strong>{fmtNum(preview.rowsRead)}</Num></div>
-                <div className="kpi"><span className="kpi-label">Baris baru</span><Num strong>{fmtNum(preview.rowsNew)}</Num></div>
-                <div className="kpi"><span className="kpi-label">SKU fill rate</span><Num strong>{fmtNum1(preview.skuFillRate)}%</Num></div>
+                <div className="kpi"><span className="kpi-label">{dashboard.upload.kpiRowsRead}</span><Num strong>{fmtNum(preview.rowsRead)}</Num></div>
+                <div className="kpi"><span className="kpi-label">{dashboard.upload.kpiRowsNew}</span><Num strong>{fmtNum(preview.rowsNew)}</Num></div>
+                <div className="kpi"><span className="kpi-label">{dashboard.upload.kpiSkuFillRate}</span><Num strong>{fmtNum1(preview.skuFillRate)}%</Num></div>
               </div>
               {preview.problems.length > 0 && (
                 <div className="problem-table-wrap">
@@ -233,8 +234,8 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
                 </div>
               )}
               <div className="preview-actions">
-                <button className="btn btn-primary" onClick={confirm} disabled={confirming} aria-busy={confirming}>{confirming ? 'Menyimpan…' : 'Konfirmasi & simpan'}</button>
-                <button className="btn btn-ghost" onClick={reset}>Batal, ganti file</button>
+                <button className="btn btn-primary" onClick={confirm} disabled={confirming} aria-busy={confirming}>{confirming ? dashboard.common.saving : dashboard.upload.confirmBtn}</button>
+                <button className="btn btn-ghost" onClick={reset}>{dashboard.upload.cancelBtn}</button>
               </div>
             </div>
           </li>

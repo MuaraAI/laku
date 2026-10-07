@@ -2,6 +2,7 @@
 // angka bisnis (mono tabular, rata kanan), chip overlay, dan panel "Mengapa".
 
 import { useEffect, useRef, useState } from 'react';
+import { dashboard } from '@/constants/id';
 import { STATUS, type Product, overlaysOf, fmtNum, fmtNum1, fmtIDR } from './data';
 import { StatusIcon, IconClose, IconSync, IconScale } from './icons';
 
@@ -75,64 +76,65 @@ export function WhyPanel({ product, onClose }: { product: Product | null; onClos
 
   return (
     <div className={`panel-backdrop${closing ? ' closing' : ''}`} onClick={close} role="presentation">
-      <div className="why-panel" role="dialog" aria-modal="true" aria-label={`Mengapa angka restock ${p.name}`}
+      <div className="why-panel" role="dialog" aria-modal="true" aria-label={dashboard.whyPanel.ariaLabel(p.name)}
         ref={ref} tabIndex={-1} onClick={(e) => e.stopPropagation()}>
         <div className="panel-head">
           <div>
-            <p className="panel-kicker">Mengapa angka ini?</p>
+            <p className="panel-kicker">{dashboard.whyPanel.kicker}</p>
             <h3 className="panel-title">{p.name}</h3>
             <p className="panel-sub num num-left">{p.sku} · {p.channel}</p>
           </div>
-          <button className="icon-btn" onClick={close} aria-label="Tutup panel"><IconClose size={18} /></button>
+          <button className="icon-btn" onClick={close} aria-label={dashboard.whyPanel.closeAria}><IconClose size={18} /></button>
         </div>
 
         {o.negative ? (
           <div className="panel-note negative-note">
-            <strong>Stok tercatat minus (<Num>{fmtNum(p.onHand)}</Num> unit).</strong>
-            {' '}Laku menyembunyikan saran restock dulu. Cocokkan stok aktual lewat halaman Upload atau stok opname,
-            lalu perbarui saldo supaya rekomendasi bisa dihitung lagi.
+            <strong>{dashboard.whyPanel.negativeWarning.lead(p.onHand)}</strong>
+            {' '}{dashboard.whyPanel.negativeWarning.body}
           </div>
         ) : (
           <ol className="why-steps">
             <li>
-              <span className="why-label">Penjualan rata-rata per hari</span>
+              <span className="why-label">{dashboard.whyPanel.avgDaily.label}</span>
               <Num strong>{fmtNum1(p.avgDaily)} unit/hari</Num>
-              <span className="why-desc">Dihitung dari riwayat pesanan yang sudah diunggah.</span>
+              <span className="why-desc">{dashboard.whyPanel.avgDaily.desc}</span>
             </li>
             <li>
-              <span className="why-label">Lead time supplier {p.leadTimeAssumed && <AssumsiBadge />}</span>
+              <span className="why-label">{dashboard.whyPanel.leadTime.label} {p.leadTimeAssumed && <AssumsiBadge />}</span>
               <Num strong>{fmtNum(p.leadTimeDays)} hari</Num>
               <span className="why-desc">
                 {p.leadTimeAssumed
-                  ? 'Nilai bawaan aplikasi. Konfirmasi lead time asli supplier supaya hitungan pas.'
-                  : 'Sudah dikonfirmasi saat onboarding.'}
+                  ? dashboard.whyPanel.leadTime.assumedDesc
+                  : dashboard.whyPanel.leadTime.confirmedDesc}
               </span>
             </li>
             <li>
-              <span className="why-label">Kebutuhan selama lead time</span>
+              <span className="why-label">{dashboard.whyPanel.demandLead.label}</span>
               <Num strong>{fmtNum1(p.avgDaily)} × {fmtNum(p.leadTimeDays)} = {fmtNum1(demandLead)} unit</Num>
-              <span className="why-desc">Perkiraan stok yang habis sebelum pesanan baru tiba.</span>
+              <span className="why-desc">{dashboard.whyPanel.demandLead.desc}</span>
             </li>
             <li>
-              <span className="why-label">Stok pengaman</span>
+              <span className="why-label">{dashboard.whyPanel.safetyStock.label}</span>
               <Num strong>+{fmtNum(p.safetyStock)} unit</Num>
-              <span className="why-desc">Bantalan kalau penjualan tiba-tiba naik atau supplier telat.</span>
+              <span className="why-desc">{dashboard.whyPanel.safetyStock.desc}</span>
             </li>
             <li className="why-total">
-              <span className="why-label">Titik pesan ulang (ROP)</span>
+              <span className="why-label">{dashboard.whyPanel.rop.label}</span>
               <Num strong>{fmtNum1(demandLead)} + {fmtNum(p.safetyStock)} = {fmtNum(p.rop)} unit</Num>
               {Math.abs(demandLead + p.safetyStock - Math.round(demandLead + p.safetyStock)) > 1e-9 && (
-                <span className="why-desc">Dibulatkan ke atas, karena stok dihitung per unit utuh.</span>
+                <span className="why-desc">{dashboard.whyPanel.rop.roundedNote}</span>
               )}
               <span className="why-desc">
-                Stok saat ini <Num>{fmtNum(p.onHand)}</Num> unit, {p.onHand <= p.rop ? 'sudah di bawah titik pesan. Waktunya order.' : 'masih di atas titik pesan.'}
+                {p.onHand <= p.rop
+                  ? dashboard.whyPanel.rop.statusBelow(p.onHand)
+                  : dashboard.whyPanel.rop.statusAbove(p.onHand)}
               </span>
             </li>
             {p.suggestedQty > 0 && (
               <li className="why-total accent">
-                <span className="why-label">Saran jumlah pesanan</span>
+                <span className="why-label">{dashboard.whyPanel.suggested.label}</span>
                 <Num strong>{fmtNum(p.suggestedQty)} unit · ≈ {fmtIDR(p.suggestedQty * p.price)}</Num>
-                <span className="why-desc">Cukup untuk ±30 hari ke depan berdasarkan laju penjualan sekarang.</span>
+                <span className="why-desc">{dashboard.whyPanel.suggested.desc}</span>
               </li>
             )}
           </ol>

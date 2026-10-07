@@ -2,6 +2,7 @@
 // routing internal berbasis state (preview statis tanpa server rewrite).
 
 import { useEffect, useState, useMemo } from 'react';
+import { dashboard } from '@/constants/id';
 import RevealObserver from '@/components/landing/RevealObserver';
 import { RestockPage } from './pages/Restock';
 import { PenjualanPage } from './pages/Penjualan';
@@ -149,10 +150,10 @@ export default function App() {
       // Di Demo: menu Setup SELALU ADA di navigasi ("di demo, seharusnya ya ada").
       // Jika belum wizard (!demoOnboarded), tab lain terkunci.
       return [
-        { key: 'setup' as PageKey, label: 'Setup', icon: (p: { size?: number }) => <IconSetup {...p} />, locked: false },
-        { key: 'restock' as PageKey, label: 'Restock', icon: (p: { size?: number }) => <IconRestock {...p} />, locked: !demoOnboarded },
-        { key: 'penjualan' as PageKey, label: 'Penjualan', icon: (p: { size?: number }) => <IconSales {...p} />, locked: !demoOnboarded },
-        { key: 'upload' as PageKey, label: 'Upload', icon: (p: { size?: number }) => <IconUpload {...p} />, locked: !demoOnboarded },
+        { key: 'setup' as PageKey, label: dashboard.sidebar.nav.setup, icon: (p: { size?: number }) => <IconSetup {...p} />, locked: false },
+        { key: 'restock' as PageKey, label: dashboard.sidebar.nav.restock, icon: (p: { size?: number }) => <IconRestock {...p} />, locked: !demoOnboarded },
+        { key: 'penjualan' as PageKey, label: dashboard.sidebar.nav.penjualan, icon: (p: { size?: number }) => <IconSales {...p} />, locked: !demoOnboarded },
+        { key: 'upload' as PageKey, label: dashboard.sidebar.nav.upload, icon: (p: { size?: number }) => <IconUpload {...p} />, locked: !demoOnboarded },
       ];
     }
 
@@ -160,18 +161,18 @@ export default function App() {
     // Jika belum selesai setup (!liveOnboarded), tab lain terkunci.
     if (!liveOnboarded) {
       return [
-        { key: 'setup' as PageKey, label: 'Setup', icon: (p: { size?: number }) => <IconSetup {...p} />, locked: false },
-        { key: 'restock' as PageKey, label: 'Restock', icon: (p: { size?: number }) => <IconRestock {...p} />, locked: true },
-        { key: 'penjualan' as PageKey, label: 'Penjualan', icon: (p: { size?: number }) => <IconSales {...p} />, locked: true },
-        { key: 'upload' as PageKey, label: 'Upload', icon: (p: { size?: number }) => <IconUpload {...p} />, locked: true },
+        { key: 'setup' as PageKey, label: dashboard.sidebar.nav.setup, icon: (p: { size?: number }) => <IconSetup {...p} />, locked: false },
+        { key: 'restock' as PageKey, label: dashboard.sidebar.nav.restock, icon: (p: { size?: number }) => <IconRestock {...p} />, locked: true },
+        { key: 'penjualan' as PageKey, label: dashboard.sidebar.nav.penjualan, icon: (p: { size?: number }) => <IconSales {...p} />, locked: true },
+        { key: 'upload' as PageKey, label: dashboard.sidebar.nav.upload, icon: (p: { size?: number }) => <IconUpload {...p} />, locked: true },
       ];
     }
 
     // Khusus yang sudah login: setelah setup, tab Setup HILANG!
     return [
-      { key: 'restock' as PageKey, label: 'Restock', icon: (p: { size?: number }) => <IconRestock {...p} />, locked: false },
-      { key: 'penjualan' as PageKey, label: 'Penjualan', icon: (p: { size?: number }) => <IconSales {...p} />, locked: false },
-      { key: 'upload' as PageKey, label: 'Upload', icon: (p: { size?: number }) => <IconUpload {...p} />, locked: false },
+      { key: 'restock' as PageKey, label: dashboard.sidebar.nav.restock, icon: (p: { size?: number }) => <IconRestock {...p} />, locked: false },
+      { key: 'penjualan' as PageKey, label: dashboard.sidebar.nav.penjualan, icon: (p: { size?: number }) => <IconSales {...p} />, locked: false },
+      { key: 'upload' as PageKey, label: dashboard.sidebar.nav.upload, icon: (p: { size?: number }) => <IconUpload {...p} />, locked: false },
     ];
   }, [mode, demoOnboarded, liveOnboarded]);
 
@@ -181,13 +182,13 @@ export default function App() {
   const currentPage: PageKey = isLocked ? 'setup' : pageAvailable ? page : 'restock';
 
   const storeName = mode === 'demo'
-    ? 'Warung Bu Rina'
+    ? dashboard.sidebar.demoStoreName
     : userEmail
     ? `Toko ${userEmail.split('@')[0]}`
-    : 'Toko Saya';
+    : dashboard.sidebar.defaultLiveName;
 
   const body = mode === 'live' && !authChecked ? (
-    <p className="page-loading" role="status">Memeriksa sesi login…</p>
+    <p className="page-loading" role="status">{dashboard.common.loadingSession}</p>
   ) : currentPage === 'setup' ? (
     <OnboardingPage onFinish={finishOnboarding} mode={mode} />
   ) : currentPage === 'penjualan' ? (
@@ -246,14 +247,14 @@ export default function App() {
                 {userEmail}
               </span>
               <button className="user-logout" onClick={handleLogout}>
-                Keluar
+                {dashboard.sidebar.logoutBtn}
               </button>
             </div>
           ) : (
             <div className="side-user demo-user">
-              <span className="user-email">Mode Demo (Tamu)</span>
+              <span className="user-email">{dashboard.sidebar.demoModeGuest}</span>
               <a className="user-logout user-login-link" href="/login">
-                Masuk
+                {dashboard.sidebar.loginBtn}
               </a>
             </div>
           )}
@@ -278,7 +279,7 @@ export default function App() {
                   role="radio"
                   aria-checked={mode === 'demo'}
                 >
-                  Demo
+                  {dashboard.sidebar.toggleDemo}
                 </button>
                 <button
                   className={`mode-btn ${mode === 'live' ? 'active' : ''}`}
@@ -289,7 +290,7 @@ export default function App() {
                       switchMode('live');
                     }
                   }}
-                  title={!userEmail ? 'Login untuk buka Toko Saya' : 'Beralih ke Toko Saya'}
+                  title={!userEmail ? dashboard.sidebar.loginRequiredTitle : dashboard.sidebar.switchToLiveTitle}
                   type="button"
                   role="radio"
                   aria-checked={mode === 'live'}

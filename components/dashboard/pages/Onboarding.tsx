@@ -4,11 +4,12 @@
 
 import { useRef, useState } from 'react';
 import { apiFetch, buildApiUrl } from '@/lib/api';
-import { CHANNELS, UPLOAD_GUIDE, DEFAULT_LEAD_TIME_DAYS, fmtNum, type Channel } from '../data';
+import { dashboard } from '@/constants/id';
+import { CHANNELS, UPLOAD_GUIDE, DEFAULT_LEAD_TIME_DAYS, type Channel } from '../data';
 import { AssumsiBadge } from '../components';
 import { IconChevron, IconUpload, IconWarning, IconCheck } from '../icons';
 
-const STEP_TITLES = ['Channel', 'Panduan upload', 'Upload awal', 'Lead time', 'Saldo awal stok', 'Selesai'];
+const STEP_TITLES = dashboard.onboarding.stepTitles;
 
 export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => void; mode?: 'demo' | 'live' }) {
   const [step, setStep] = useState(0);
@@ -91,7 +92,7 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
   // "Pakai asumsi dulu" keeps the default and saves nothing; only an explicit confirm writes the seller's lead time
   async function handleConfirmLeadTime(isConfirmed: boolean) {
     setStepError(null);
-    if (isConfirmed && !leadTimeValid) return setStepError('Lead time harus antara 1 dan 60 hari.');
+    if (isConfirmed && !leadTimeValid) return setStepError(dashboard.onboarding.step4.errRange);
     if (isConfirmed && mode === 'live') {
       setSaving(true);
       const res = await apiFetch('/v1/me/settings', {
@@ -112,7 +113,7 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
     const qty = Number.parseInt(stockDraft, 10);
     const sku = stockSku.trim();
     const name = stockName.trim() || sku;
-    if (!sku || !Number.isFinite(qty) || qty < 0) return setStepError('Isi SKU dan jumlah stok, atau pilih "Skip, isi nanti".');
+    if (!sku || !Number.isFinite(qty) || qty < 0) return setStepError(dashboard.onboarding.step5.errValidation);
     if (mode === 'live') {
       setSaving(true);
       const res = await apiFetch('/v1/stock/opening', {
@@ -136,8 +137,8 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
     <div className="page onboarding">
       <header className="page-head" data-reveal>
         <p className="kicker"><b>Setup awal</b></p>
-        <h1 className="page-title">Kenalkan, ini Laku</h1>
-        <p className="page-sub">Enam langkah singkat supaya Laku bisa mulai menyarankan restock dari data penjualanmu.</p>
+        <h1 className="page-title">{dashboard.onboarding.title}</h1>
+        <p className="page-sub">{dashboard.onboarding.sub}</p>
       </header>
 
       <nav className="wizard-dots" aria-label="Langkah onboarding">
@@ -151,8 +152,8 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
       <div className="wizard-card" key={step}>
         {step === 0 && (
           <section>
-            <h2 className="step-title">Jualan di mana saja?</h2>
-            <p className="step-sub">Pilih channel utama dulu. Channel lain bisa ditambah lewat halaman Upload nanti.</p>
+            <h2 className="step-title">{dashboard.onboarding.step1.title}</h2>
+            <p className="step-sub">{dashboard.onboarding.step1.sub}</p>
             <div className="channel-picker">
               {CHANNELS.map((c) => (
                 <button key={c} className={`channel-opt${channel === c ? ' active' : ''}`} onClick={() => setChannel(c)}>{c}</button>
@@ -160,7 +161,7 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
             </div>
             <div className="wizard-actions">
               <button className="btn btn-primary" disabled={!channel} onClick={() => setStep(1)}>
-                Lanjut <IconChevron size={15} />
+                {dashboard.onboarding.step3.continue} <IconChevron size={15} />
               </button>
             </div>
           </section>
@@ -173,7 +174,7 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
               {UPLOAD_GUIDE[channel].map((g) => <li key={g}>{g}</li>)}
             </ol>
             <div className="wizard-actions">
-              <button className="btn btn-ghost" onClick={() => setStep(0)}>Kembali</button>
+              <button className="btn btn-ghost" onClick={() => setStep(0)}>{dashboard.common.back}</button>
               <button className="btn btn-primary" onClick={() => setStep(2)}>Sudah punya filenya <IconChevron size={15} /></button>
             </div>
           </section>
@@ -181,7 +182,7 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
 
         {step === 2 && channel && (
           <section>
-            <h2 className="step-title">Upload laporan pertama</h2>
+            <h2 className="step-title">{dashboard.onboarding.step3.title}</h2>
             <input ref={fileRef} type="file" accept=".csv,.xlsx" className="visually-hidden"
               onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(f); }} />
             {uploading ? (
@@ -191,12 +192,12 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
                 <div className="sk sk-row short" />
               </div>
             ) : uploaded ? (
-              <p className="done-note"><span className="num num-left">{fileName}</span> {mode === 'live' ? 'berhasil diimpor ke tokomu.' : 'terbaca. Preview lengkap bisa dicek di halaman Upload.'}</p>
+              <p className="done-note"><span className="num num-left">{fileName}</span> {mode === 'live' ? dashboard.onboarding.step3.doneLive(fileName) : dashboard.onboarding.step3.doneDemo(fileName)}</p>
             ) : (
               <button className="dropzone" onClick={() => fileRef.current?.click()}>
                 <IconUpload size={20} />
-                <span>Pilih file CSV / XLSX dari {channel}</span>
-                <small>Maksimal 90 hari riwayat pesanan</small>
+                <span>{dashboard.onboarding.step3.pickTitle(channel)}</span>
+                <small>{dashboard.onboarding.step3.maxHint}</small>
               </button>
             )}
             {uploadError && (
@@ -206,10 +207,10 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
               </p>
             )}
             <div className="wizard-actions">
-              <button className="btn btn-ghost" onClick={() => setStep(1)}>Kembali</button>
-              <button className="btn btn-ghost" onClick={() => setStep(3)}>Lewati dulu</button>
+              <button className="btn btn-ghost" onClick={() => setStep(1)}>{dashboard.common.back}</button>
+              <button className="btn btn-ghost" onClick={() => setStep(3)}>{dashboard.onboarding.step3.skip}</button>
               <button className="btn btn-primary" disabled={!uploaded} onClick={() => setStep(3)}>
-                Lanjut <IconChevron size={15} />
+                {dashboard.onboarding.step3.continue} <IconChevron size={15} />
               </button>
             </div>
           </section>
@@ -217,29 +218,27 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
 
         {step === 3 && (
           <section>
-            <h2 className="step-title">Konfirmasi lead time supplier</h2>
+            <h2 className="step-title">{dashboard.onboarding.step4.title}</h2>
             <p className="step-sub">
-              Lead time = lama barang tiba setelah kamu pesan ke supplier. Laku memakai angka ini untuk
-              menghitung titik pesan ulang (ROP).
+              {dashboard.onboarding.step4.sub}
             </p>
             <div className="leadtime-box">
               <label className="field">
-                <span className="field-label">Lead time (hari) {!confirmed && <AssumsiBadge />}</span>
+                <span className="field-label">{dashboard.onboarding.step4.label} {!confirmed && <AssumsiBadge />}</span>
                 <input type="number" inputMode="numeric" min={1} max={60} value={leadTimeDraft}
                   onChange={(e) => { setLeadTimeDraft(e.target.value); setStepError(null); }}
                   className="input num" aria-describedby="lt-hint" aria-invalid={!leadTimeValid} />
               </label>
               <p id="lt-hint" className="form-hint">
-                Default <span className="num">{DEFAULT_LEAD_TIME_DAYS}</span> hari adalah asumsi bawaan.
-                Ganti sesuai kenyataan supplier-mu, lalu konfirmasi.
+                {dashboard.onboarding.step4.hint(DEFAULT_LEAD_TIME_DAYS)}
               </p>
             </div>
             {stepErrorNote}
             <div className="wizard-actions">
-              <button className="btn btn-ghost" onClick={() => { setStepError(null); setStep(2); }}>Kembali</button>
-              <button className="btn btn-ghost" onClick={() => handleConfirmLeadTime(false)} disabled={saving}>Pakai asumsi dulu</button>
+              <button className="btn btn-ghost" onClick={() => { setStepError(null); setStep(2); }}>{dashboard.common.back}</button>
+              <button className="btn btn-ghost" onClick={() => handleConfirmLeadTime(false)} disabled={saving}>{dashboard.onboarding.step4.assumeBtn}</button>
               <button className="btn btn-primary" onClick={() => handleConfirmLeadTime(true)} disabled={saving || !leadTimeValid} aria-busy={saving}>
-                {saving ? 'Menyimpan…' : <>Konfirmasi <span className="num">{fmtNum(leadTime)}</span> hari <IconChevron size={15} /></>}
+                {saving ? dashboard.common.saving : <>{dashboard.onboarding.step4.confirmBtn(leadTime)} <IconChevron size={15} /></>}
               </button>
             </div>
           </section>
@@ -247,34 +246,33 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
 
         {step === 4 && (
           <section>
-            <h2 className="step-title">Saldo awal stok <span className="chip chip-opsional">opsional</span></h2>
+            <h2 className="step-title">{dashboard.onboarding.step5.title} <span className="chip chip-opsional">{dashboard.onboarding.step5.optionalChip}</span></h2>
             <p className="step-sub">
-              Kalau kamu tahu stok fisik barang terlaris sekarang, isi di sini supaya saran restock
-              langsung akurat. Bisa di-skip dan diisi belakangan.
+              {dashboard.onboarding.step5.sub}
             </p>
             <div className="onb-stock-fields">
               <label className="field">
-                <span className="field-label">SKU</span>
-                <input type="text" value={stockSku} placeholder="mis. KOP-GUL-250" autoCapitalize="characters" spellCheck={false}
+                <span className="field-label">{dashboard.onboarding.step5.skuLabel}</span>
+                <input type="text" value={stockSku} placeholder={dashboard.onboarding.step5.skuPlaceholder} autoCapitalize="characters" spellCheck={false}
                   onChange={(e) => { setStockSku(e.target.value); setStepError(null); }} className="input num" />
               </label>
               <label className="field">
-                <span className="field-label">Nama produk <span className="chip chip-opsional">opsional</span></span>
-                <input type="text" value={stockName} placeholder="mis. Kopi Gula Aren 250ml"
+                <span className="field-label">{dashboard.onboarding.step5.nameLabel} <span className="chip chip-opsional">{dashboard.onboarding.step5.optionalChip}</span></span>
+                <input type="text" value={stockName} placeholder={dashboard.onboarding.step5.namePlaceholder}
                   onChange={(e) => setStockName(e.target.value)} className="input" />
               </label>
               <label className="field">
-                <span className="field-label">Stok fisik sekarang (unit)</span>
+                <span className="field-label">{dashboard.onboarding.step5.qtyLabel}</span>
                 <input type="number" inputMode="numeric" min={0} value={stockDraft} placeholder="0"
                   onChange={(e) => { setStockDraft(e.target.value); setStepError(null); }} className="input num" />
               </label>
             </div>
             {stepErrorNote}
             <div className="wizard-actions">
-              <button className="btn btn-ghost" onClick={() => { setStepError(null); setStep(3); }}>Kembali</button>
-              <button className="btn btn-ghost" onClick={() => { setStepError(null); setStep(5); }}>Skip, isi nanti</button>
+              <button className="btn btn-ghost" onClick={() => { setStepError(null); setStep(3); }}>{dashboard.common.back}</button>
+              <button className="btn btn-ghost" onClick={() => { setStepError(null); setStep(5); }}>{dashboard.onboarding.step5.skipBtn}</button>
               <button className="btn btn-primary" onClick={handleConfirmStock} disabled={saving} aria-busy={saving}>
-                {saving ? 'Menyimpan…' : <>Simpan &amp; lanjut <IconChevron size={15} /></>}
+                {saving ? dashboard.common.saving : <>{dashboard.onboarding.step5.saveBtn} <IconChevron size={15} /></>}
               </button>
             </div>
           </section>
@@ -285,13 +283,12 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
             <div className="finish-icon" aria-hidden="true">
               <IconCheck size={40} />
             </div>
-            <h2 className="step-title">Siap. Dashboard restock-mu sudah menunggu.</h2>
+            <h2 className="step-title">{dashboard.onboarding.step6.title}</h2>
             <p className="step-sub">
-              Laku akan menandai barang yang harus <em>segera dipesan</em>, yang masih <em>aman</em>,
-              dan yang sebaiknya <em>berhenti dibeli</em>. Unggah laporan rutin supaya angkanya tetap segar.
+              {dashboard.onboarding.step6.sub}
             </p>
             <div className="wizard-actions">
-              <button className="btn btn-primary btn-lg" onClick={onFinish}>Masuk ke Dashboard</button>
+              <button className="btn btn-primary btn-lg" onClick={onFinish}>{dashboard.onboarding.step6.finishBtn}</button>
             </div>
           </section>
         )}
