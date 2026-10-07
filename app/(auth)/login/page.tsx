@@ -51,19 +51,11 @@ export default async function LoginPage({
             <LakuMark />
             <span className="logo-name">{nav.brandName}</span>
           </Link>
-          <div>
+          <div className="auth-header">
             <h1>{login.title}</h1>
             <p className="auth-sub">{login.sub}</p>
           </div>
           <LoginCard initialError={initialError} nextDestination={next} />
-          <ul className="auth-notes">
-            {login.notes.map((n) => (
-              <li key={n}>
-                <Icon name="check" />
-                {n}
-              </li>
-            ))}
-          </ul>
           <p className="auth-consent">
             {login.consentLead}
             <Link href={routes.tos}>{login.consentTos}</Link>
