@@ -1,14 +1,13 @@
 "use client";
 
-// Dashboard Laku — port dari laku-dashboard/ (Vite SPA) ke Next.js root.
-// Routing internal via useState (tanpa router lib — YAGNI untuk MVP).
-// CSS ter-scope di bawah wrapper .dash (lihat dashboard.css).
+// Dashboard mode DEMO — data contoh tanpa login. Path terpisah dari /dashboard
+// (Toko Saya / live) supaya kedua mode punya URL masing-masing.
 
 import { useEffect } from "react";
 import DashboardApp from "@/components/dashboard/App";
 import "@/app/(dashboard)/dashboard.css";
 
-export default function DashboardPage() {
+export default function DemoDashboardPage() {
   // sinkronkan bahasa dokumen saat dashboard aktif (dashboard pakai bahasa Indonesia)
   useEffect(() => {
     document.documentElement.lang = "id";
@@ -16,7 +15,7 @@ export default function DashboardPage() {
 
   return (
     <div className="dash">
-      <DashboardApp mode="live" />
+      <DashboardApp mode="demo" />
     </div>
   );
 }

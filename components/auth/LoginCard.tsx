@@ -32,7 +32,7 @@ export default function LoginCard({
   const [cooldown, setCooldown] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const targetNext = safeNext(nextDestination ?? null, "/dashboard?mode=live");
+  const targetNext = safeNext(nextDestination ?? null, "/dashboard");
   const redirectTo = () => `${location.origin}/auth/callback?next=${encodeURIComponent(targetNext)}`;
 
   useEffect(() => {

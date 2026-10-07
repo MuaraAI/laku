@@ -42,7 +42,8 @@ Token juga tersedia sebagai utility Tailwind: `bg-paper`, `text-ink`, `bg-critic
 | `/` | Landing (hero, fitur, cara kerja, harga, CTA) | SupplyMap, Rute Logistik, Value Props |
 | `/login` | Login Google OAuth & Email OTP 6-digit | Zero-scroll 100dvh desktop, Resend SMTP |
 | `/tos`, `/privacy` | Syarat & Ketentuan, Kebijakan Privasi | Kepatuhan UU PDP No. 27/2022, Pontianak |
-| `/dashboard` | Dashboard Multi-Marketplace Terpadu | Mode Demo (Bu Rina) vs Live Toko Saya |
+| `/dashboard` | Dashboard Toko Saya (Live, Multi-Marketplace Terpadu) | Butuh login; data real per seller |
+| `/demo-dashboard` | Dashboard mode Demo (toko contoh Bu Rina, tamu) | Tanpa login; data contoh |
 
 ## Konvensi (wajib — lihat ../AGENTS.md)
 

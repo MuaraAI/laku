@@ -16,78 +16,76 @@ type PageKey = 'restock' | 'penjualan' | 'upload' | 'setup';
 const ONBOARDED_KEY_PREFIX = 'laku-onboarded-';
 const DEMO_ONBOARDED_KEY = 'laku-onboarded-demo';
 
-export default function App() {
+export default function App({ mode }: { mode: 'demo' | 'live' }) {
   const [page, setPage] = useState<PageKey>('restock');
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
-  const [mode, setMode] = useState<'demo' | 'live'>('demo');
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [liveOnboarded, setLiveOnboarded] = useState<boolean>(true);
   const [demoOnboarded, setDemoOnboarded] = useState<boolean>(true);
   // live mode waits for the session check so pages never call the API without a token
-  const [authChecked, setAuthChecked] = useState(false);
+  const [authChecked, setAuthChecked] = useState(mode === 'demo');
 
+  // redirect kompatibilitas: URL lama /dashboard?mode=demo & /demo-dashboard?mode=live
   useEffect(() => {
     try {
-      if (typeof window !== 'undefined') {
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlMode = urlParams.get('mode');
-        if (urlMode === 'live' || urlMode === 'demo') {
-          setMode(urlMode);
-        }
-        const isDemoDone = localStorage.getItem(DEMO_ONBOARDED_KEY) === '1';
-        setDemoOnboarded(isDemoDone);
+      const url = new URL(window.location.href);
+      const urlMode = url.searchParams.get('mode');
+      if (mode === 'demo' && urlMode === 'live') {
+        url.pathname = '/dashboard';
+        url.searchParams.delete('mode');
+        window.location.replace(url.toString());
+      } else if (mode === 'live' && urlMode === 'demo') {
+        url.pathname = '/demo-dashboard';
+        url.searchParams.delete('mode');
+        window.location.replace(url.toString());
       }
     } catch {
       /* abaikan */
     }
-  }, []);
+  }, [mode]);
 
   useEffect(() => {
+    if (mode !== 'demo') return;
+    try {
+      setDemoOnboarded(localStorage.getItem(DEMO_ONBOARDED_KEY) === '1');
+    } catch {
+      /* abaikan */
+    }
+  }, [mode]);
+
+  useEffect(() => {
+    if (mode !== 'live') return;
     let unsub: (() => void) | undefined;
     let redirecting = false;
     async function loadUser() {
       try {
         const { supabaseBrowser } = await import('@/lib/supabase/client');
         const supabase = supabaseBrowser();
-        const wantsLive = new URLSearchParams(window.location.search).get('mode') === 'live';
         if (!supabase) {
-          // login is not configured here, so "Toko Saya" cannot exist: stay on the demo
-          if (wantsLive) setMode('demo');
+          // login is not configured here, so "Toko Saya" cannot exist: back to the demo
+          window.location.replace('/demo-dashboard');
           return;
         }
-        if (supabase) {
-          const { data } = await supabase.auth.getSession();
-          const email = data.session?.user?.email ?? null;
-          if (!email && wantsLive) {
-            // /dashboard?mode=live while logged out: sign in first, then come back to the live store
-            redirecting = true;
-            window.location.replace(`/login?next=${encodeURIComponent('/dashboard?mode=live')}`);
-            return;
-          }
-          setUserEmail(email);
-
-          if (email) {
-            const isDone = localStorage.getItem(`${ONBOARDED_KEY_PREFIX}${email}`) === '1';
-            setLiveOnboarded(isDone);
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('mode') !== 'demo') {
-              setMode('live');
-            }
-          }
-
-          const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-            const sEmail = session?.user?.email ?? null;
-            setUserEmail(sEmail);
-            if (sEmail) {
-              const isDone = localStorage.getItem(`${ONBOARDED_KEY_PREFIX}${sEmail}`) === '1';
-              setLiveOnboarded(isDone);
-              if (new URLSearchParams(window.location.search).get('mode') !== 'demo') {
-                setMode('live');
-              }
-            }
-          });
-          unsub = () => authListener?.subscription?.unsubscribe();
+        const { data } = await supabase.auth.getSession();
+        const email = data.session?.user?.email ?? null;
+        if (!email) {
+          // /dashboard while logged out: sign in first, then come back to the live store
+          redirecting = true;
+          window.location.replace(`/login?next=${encodeURIComponent('/dashboard')}`);
+          return;
         }
+        setUserEmail(email);
+        const isDone = localStorage.getItem(`${ONBOARDED_KEY_PREFIX}${email}`) === '1';
+        setLiveOnboarded(isDone);
+
+        const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+          const sEmail = session?.user?.email ?? null;
+          setUserEmail(sEmail);
+          if (sEmail) {
+            setLiveOnboarded(localStorage.getItem(`${ONBOARDED_KEY_PREFIX}${sEmail}`) === '1');
+          }
+        });
+        unsub = () => authListener?.subscription?.unsubscribe();
       } catch {
         /* abaikan */
       } finally {
@@ -98,7 +96,7 @@ export default function App() {
     return () => {
       unsub?.();
     };
-  }, []);
+  }, [mode]);
 
   useEffect(() => { window.scrollTo({ top: 0 }); }, [page]);
 
@@ -133,18 +131,6 @@ export default function App() {
   }
 
   const isLocked = mode === 'demo' ? !demoOnboarded : !liveOnboarded;
-
-  // keep ?mode= in the address bar in step with the toggle, so a reload opens the same store
-  function switchMode(next: 'demo' | 'live') {
-    setMode(next);
-    try {
-      const url = new URL(window.location.href);
-      url.searchParams.set('mode', next);
-      window.history.replaceState(null, '', url);
-    } catch {
-      /* abaikan */
-    }
-  }
 
   const navItems = useMemo(() => {
     if (mode === 'demo') {
@@ -275,7 +261,7 @@ export default function App() {
               <div className="mode-toggle-group" role="radiogroup" aria-label="Pilih mode data">
                 <button
                   className={`mode-btn ${mode === 'demo' ? 'active' : ''}`}
-                  onClick={() => switchMode('demo')}
+                  onClick={() => { window.location.href = '/demo-dashboard'; }}
                   type="button"
                   role="radio"
                   aria-checked={mode === 'demo'}
@@ -286,9 +272,9 @@ export default function App() {
                   className={`mode-btn ${mode === 'live' ? 'active' : ''}`}
                   onClick={() => {
                     if (!userEmail) {
-                      window.location.href = `/login?next=${encodeURIComponent('/dashboard?mode=live')}`;
+                      window.location.href = `/login?next=${encodeURIComponent('/dashboard')}`;
                     } else {
-                      switchMode('live');
+                      window.location.href = '/dashboard';
                     }
                   }}
                   title={!userEmail ? dashboard.sidebar.loginRequiredTitle : dashboard.sidebar.switchToLiveTitle}
@@ -296,7 +282,7 @@ export default function App() {
                   role="radio"
                   aria-checked={mode === 'live'}
                 >
-                  Toko Saya
+                  {dashboard.sidebar.toggleLive}
                 </button>
               </div>
             </div>

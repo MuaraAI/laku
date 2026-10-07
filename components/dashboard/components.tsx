@@ -157,7 +157,7 @@ export function ApiErrorNote({ text, message, onRetry, retryLabel, style }: {
     <div className="stock-empty api-error" role="alert" style={style}>
       <p className="api-error-text">{text}</p>
       {needsLogin ? (
-        <a className="btn btn-primary" href={`/login?next=${encodeURIComponent('/dashboard?mode=live')}`}>{apiErrors.loginAgain}</a>
+        <a className="btn btn-primary" href={`/login?next=${encodeURIComponent('/dashboard')}`}>{apiErrors.loginAgain}</a>
       ) : (
         <button className="btn btn-primary" onClick={onRetry} type="button">{retryLabel}</button>
       )}
