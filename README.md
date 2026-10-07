@@ -106,7 +106,7 @@ laku/
 │   ├── app/middleware/         # Rate limiting token bucket
 │   ├── configs/channels/       # Pemetaan kolom marketplace (YAML)
 │   ├── supabase/migrations/    # Skema SQL + RLS policies + RPC
-│   └── tests/                  # Test suite pytest (174 tests)
+│   └── tests/                  # Test suite pytest (187 tests)
 ├── DESIGN.md                   # Spesifikasi Design System (Ledger Rail)
 └── docs/                       # Materi proposal & submission SIFEST 2026
 ```
@@ -164,7 +164,7 @@ API aktif di `http://127.0.0.1:8400`, cek kesehatan di `/health`.
 Test berfokus pada perilaku eksternal: parser fixtures, dedup idempoten, engine golden test, RLS isolation, dan role guard.
 
 ```bash
-# Seluruh test suite backend (174 tests)
+# Seluruh test suite backend (187 tests)
 cd backend && pytest tests/ -v
 
 # Build & lint frontend

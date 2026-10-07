@@ -407,6 +407,21 @@ def record_movement(store: StockStore, seller_id: str, product_id: str,
     if qty == 0 or (mtype in ("receipt", "writeoff") and qty <= 0):
         raise StockError("INVALID_QTY", "Qty mutasi harus tidak nol (receipt/writeoff positif, adjustment bisa negatif).")
 
+    # B-X3 (pentest 7 Okt): adjustment negatif yang membuat on_hand minus
+    # ditolak 422 — sebelumnya ledger langsung korek (on_hand -40) tanpa
+    # peringatan. Sengaja dibedakan dari mismatch FR-43 (selisih ledger vs
+    # sales yang terjadi karena data, tampil sebagai flag): kesalahan input
+    # manusia dihentikan di pintu, bukan disimpan.
+    if mtype == "adjustment" and qty < 0:
+        stock_now = compute_stock(store, seller_id, product)
+        if stock_now["on_hand"] is not None and stock_now["on_hand"] + qty < 0:
+            raise StockError(
+                "INSUFFICIENT_STOCK",
+                (f"Adjustment {qty} membuat stok jadi "
+                 f"{stock_now['on_hand'] + qty} (minus). "
+                 "Gunakan stock opname / saldo awal jika jumlah fisik memang beda."),
+            )
+
     movement = {
         "product_id": product_id,
         "type": mtype,
