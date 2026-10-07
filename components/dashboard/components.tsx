@@ -2,6 +2,7 @@
 // angka bisnis (mono tabular, rata kanan), chip overlay, dan panel "Mengapa".
 
 import { useEffect, useRef, useState } from 'react';
+import { apiErrors } from '@/constants/id';
 import { dashboard } from '@/constants/id';
 import { STATUS, type Product, overlaysOf, fmtNum, fmtNum1, fmtIDR } from './data';
 import { StatusIcon, IconClose, IconSync, IconScale } from './icons';
@@ -140,6 +141,26 @@ export function WhyPanel({ product, onClose }: { product: Product | null; onClos
           </ol>
         )}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Kotak error API dengan aksi yang masuk akal: sesi habis (401) → "Masuk lagi" (coba ulang tidak
+ * akan berhasil); selain itu → "Coba lagi".
+ */
+export function ApiErrorNote({ text, message, onRetry, retryLabel, style }: {
+  text: string; message: string; onRetry: () => void; retryLabel: string; style?: React.CSSProperties;
+}) {
+  const needsLogin = message === apiErrors.unauthorized;
+  return (
+    <div className="stock-empty api-error" role="alert" style={style}>
+      <p className="api-error-text">{text}</p>
+      {needsLogin ? (
+        <a className="btn btn-primary" href={`/login?next=${encodeURIComponent('/dashboard?mode=live')}`}>{apiErrors.loginAgain}</a>
+      ) : (
+        <button className="btn btn-primary" onClick={onRetry} type="button">{retryLabel}</button>
+      )}
     </div>
   );
 }
