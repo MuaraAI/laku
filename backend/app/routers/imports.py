@@ -6,6 +6,7 @@ import uuid
 from pathlib import PurePosixPath
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile, File, Form, status
+from starlette.concurrency import run_in_threadpool
 
 from app.config import (
     ALLOWED_EXTENSIONS,
@@ -62,6 +63,16 @@ async def upload_import(
     seller_id = require_owner(identity).seller_id or ""
     store = _get_store()
 
+    # channel dicek sebelum file dibaca — salah pilih channel tidak perlu nunggu parse 20k baris
+    if channel not in import_pipeline.SUPPORTED_CHANNELS:
+        raise HTTPException(status_code=422, detail={
+            "error": {
+                "code": "UNSUPPORTED_CHANNEL",
+                "message": f"Channel '{channel}' belum didukung. Pilih: Shopee, TikTok Shop, atau Tokopedia.",
+                "allowed": sorted(import_pipeline.SUPPORTED_CHANNELS),
+            }
+        })
+
     # --- Layer 0: content-length pre-check (M4) — tolak SEBELUM baca body ke RAM
     declared = request.headers.get("content-length")
     if declared and declared.isdigit() and int(declared) > MAX_UPLOAD_SIZE_BYTES + 64 * 1024:
@@ -106,8 +117,13 @@ async def upload_import(
             }
         })
 
-    # --- Layer 3: row cap + konten ---
-    validation = validate_uploaded_file(raw_bytes, ext, channel)
+    if not raw_bytes:
+        raise HTTPException(status_code=422, detail={
+            "error": {"code": "EMPTY_FILE", "message": "File kosong — pilih file export yang berisi data."}
+        })
+
+    # --- Layer 3: row cap + konten --- (CPU-bound → threadpool, event loop tetap melayani seller lain)
+    validation = await run_in_threadpool(validate_uploaded_file, raw_bytes, ext, channel)
     if validation.get("error"):
         raise HTTPException(status_code=422,
                             detail={"error": validation["error"]})
@@ -126,7 +142,9 @@ async def upload_import(
 
     # --- Parse + staging + preview (pipeline B2) ---
     try:
-        return import_pipeline.upload_import(store, seller_id, raw_bytes, ext, channel, source_system)
+        return await run_in_threadpool(
+            import_pipeline.upload_import, store, seller_id, raw_bytes, ext, channel, source_system
+        )
     except ImportPipelineError as e:
         raise _err(e)
 
@@ -183,6 +201,10 @@ def cancel_import(batch_id: str, identity: Identity = Depends(get_identity)):
     except ImportPipelineError as e:
         if e.code == "BATCH_NOT_FOUND":
             raise _batch_not_found()
+        if e.code == "ALREADY_COMMITTED":
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail={
+                "error": {"code": "ALREADY_COMMITTED", "message": e.message}
+            })
         raise _err(e)
     return None
 

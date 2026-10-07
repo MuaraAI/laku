@@ -757,3 +757,53 @@ export const dashboard = {
   },
 };
 
+
+/** Halaman error global (app/not-found.tsx, app/error.tsx, app/global-error.tsx) + banner offline. */
+export const errorPages = {
+  notFound: {
+    metaTitle: "Halaman tidak ditemukan — Laku",
+    code: "404",
+    title: "Halaman ini tidak ada di rak kami.",
+    body: "Tautannya mungkin salah ketik atau halamannya sudah dipindah. Coba mulai lagi dari beranda.",
+  },
+  crash: {
+    code: "500",
+    title: "Ada yang tidak beres di halaman ini.",
+    body: "Kesalahan sudah tercatat. Coba muat ulang; kalau masih terjadi, kabari kami di",
+    retry: "Coba lagi",
+  },
+  home: "Kembali ke beranda",
+  dashboard: "Buka dashboard",
+  offline: "Anda sedang offline. Data terbaru belum bisa dimuat — sambungkan internet lalu coba lagi.",
+  backOnline: "Koneksi kembali. Muat ulang data kalau angka belum berubah.",
+};
+
+/** Pesan error API untuk pengguna (lib/api.ts). Server boleh menimpa dengan pesan yang lebih spesifik. */
+export const apiErrors = {
+  offline: "Tidak ada koneksi internet. Periksa jaringan Anda lalu coba lagi.",
+  timeout: "Server terlalu lama merespons. Coba lagi sebentar lagi.",
+  network: "Tidak bisa terhubung ke server Laku. Coba lagi beberapa saat lagi.",
+  badRequest: "Permintaan tidak valid. Periksa isian Anda.",
+  unauthorized: "Sesi login Anda sudah berakhir. Silakan masuk lagi.",
+  forbidden: "Akun ini tidak punya akses untuk tindakan ini.",
+  notFound: "Data yang diminta tidak ditemukan.",
+  conflict: "Data ini sudah diproses sebelumnya.",
+  tooLarge: "File terlalu besar. Maksimal 10 MB per file — pecah berdasarkan rentang tanggal.",
+  validation: "Ada isian yang belum benar. Periksa lagi lalu kirim ulang.",
+  rateLimited: (s: number | null) =>
+    s ? `Terlalu banyak permintaan. Coba lagi dalam ${s} detik.` : "Terlalu banyak permintaan. Coba lagi sebentar lagi.",
+  server: "Server Laku sedang bermasalah. Tim kami sudah diberi tahu — coba lagi sebentar lagi.",
+  unavailable: "Server Laku sedang tidak bisa dijangkau (pemeliharaan atau gangguan). Coba lagi beberapa menit lagi.",
+  unknown: "Terjadi kesalahan yang tidak terduga. Coba lagi.",
+  loginAgain: "Masuk lagi",
+};
+
+/** Validasi file di browser sebelum upload (A14: ≤10 MB, CSV/XLSX). */
+export const uploadRules = {
+  maxBytes: 10 * 1024 * 1024,
+  accept: ".csv,.xlsx",
+  badType: (name: string) => `“${name}” bukan file CSV atau XLSX. Unduh ulang laporan dari Seller Center dalam format CSV/XLSX.`,
+  tooLarge: (mb: string) => `File ${mb} MB melebihi batas 10 MB. Pecah laporan per rentang tanggal lalu unggah satu per satu.`,
+  empty: "File kosong (0 byte). Unduh ulang laporan dari Seller Center.",
+  noChannel: "Pilih channel dulu supaya kolom file bisa dipetakan dengan benar.",
+};

@@ -3,7 +3,7 @@
 // lead time (badge "asumsi") → saldo awal stok (opsional, bisa skip) → dashboard.
 
 import { useRef, useState } from 'react';
-import { apiFetch, buildApiUrl } from '@/lib/api';
+import { apiFetch, apiUpload, validateUploadFile } from '@/lib/api';
 import { dashboard } from '@/constants/id';
 import { CHANNELS, UPLOAD_GUIDE, DEFAULT_LEAD_TIME_DAYS, type Channel } from '../data';
 import { AssumsiBadge } from '../components';
@@ -32,53 +32,33 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function handleFileUpload(file: File) {
+    const invalid = validateUploadFile(file);
+    if (invalid) {
+      setUploadError(invalid);
+      if (fileRef.current) fileRef.current.value = '';
+      return;
+    }
     setFileName(file.name);
     setUploading(true);
     setUploadError(null);
 
     if (mode === 'live') {
-      try {
-        const { supabaseBrowser } = await import('@/lib/supabase/client');
-        const supabase = supabaseBrowser();
-        const token = (await supabase?.auth.getSession())?.data.session?.access_token;
-        const formData = new FormData();
-        formData.append('file', file);
-        const chKey = channel === 'Shopee' ? 'shopee' : channel === 'TikTok Shop' ? 'tiktok_shop' : 'tokopedia';
-        formData.append('channel', chKey);
-
-        const url = buildApiUrl('/v1/imports');
-
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-          body: formData,
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          const confirmUrl = buildApiUrl(`/v1/imports/${data.import_batch_id}/confirm`);
-          const confirmRes = await fetch(confirmUrl, {
-            method: 'POST',
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-          });
-          // the file is only in the store once the batch is confirmed; a failed confirm is not a success
-          if (confirmRes.ok) setUploaded(true);
-          else {
-            const err = await confirmRes.json().catch(() => null);
-            setUploadError(err?.detail?.error?.message || 'File terbaca, tapi gagal disimpan. Coba unggah lagi.');
-            if (fileRef.current) fileRef.current.value = '';
-          }
-        } else {
-          const errData = await res.json().catch(() => null);
-          setUploadError(errData?.detail?.error?.message || 'Gagal membaca file di server.');
-          if (fileRef.current) fileRef.current.value = '';
-        }
-      } catch {
-        setUploadError('Koneksi ke backend gagal.');
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('channel', channel === 'Shopee' ? 'shopee' : channel === 'TikTok Shop' ? 'tiktok_shop' : 'tokopedia');
+      const res = await apiUpload<{ import_batch_id: string }>('/v1/imports', formData);
+      // the file is only in the store once the batch is confirmed; a failed confirm is not a success
+      const confirmRes = res.data
+        ? await apiFetch(`/v1/imports/${res.data.import_batch_id}/confirm`, { method: 'POST' })
+        : null;
+      setUploading(false);
+      const error = res.error ?? confirmRes?.error ?? null;
+      if (error) {
+        setUploadError(error);
         if (fileRef.current) fileRef.current.value = '';
-      } finally {
-        setUploading(false);
+        return;
       }
+      setUploaded(true);
       return;
     }
 

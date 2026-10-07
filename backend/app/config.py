@@ -19,4 +19,11 @@ ALLOWED_MIME_TYPES = {
     "application/vnd.ms-excel",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     "application/octet-stream",  # fallback — browsers sometimes send this
+    # varian CSV yang dikirim browser/OS nyata (Windows tanpa Excel, Safari, Firefox lama):
+    # tanpa ini file CSV asli ditolak INVALID_MIME_TYPE. Isi tetap divalidasi parser.
+    "application/csv",
+    "application/x-csv",
+    "text/x-csv",
+    "text/comma-separated-values",
+    "text/plain",
 }

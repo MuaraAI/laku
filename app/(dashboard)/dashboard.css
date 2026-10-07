@@ -719,3 +719,10 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .onb-error { margin-top: 12px; display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: var(--r-sm); background: var(--critical-bg); color: var(--critical); font-size: 13px; }
 .onb-stock-fields { display: grid; gap: 12px; }
 @media (min-width: 720px) { .onb-stock-fields { grid-template-columns: 1fr 1.4fr 1fr; } }
+/* API error box (ApiErrorNote) */
+.api-error { border: 1px solid var(--critical-bg); background: var(--critical-bg); }
+.api-error-text { color: var(--critical); font-weight: 600; }
+/* connection banner (OfflineBanner) */
+.net-banner { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; padding: 10px 14px; border-radius: var(--r-md); font-size: 13px; font-weight: 500; }
+.net-banner.is-off { background: var(--critical-bg); color: var(--critical); }
+.net-banner.is-back { background: var(--ok-bg); color: var(--ok); }
