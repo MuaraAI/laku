@@ -34,8 +34,7 @@
   0% { left: 0; opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { left: calc(100% - 14px); opacity: 0; }
 }
 
-/* Ilustrasi peti stok pixel-art (aset landing) untuk momen brand dashboard */
-.crate-mini { display: block; width: 110px; height: auto; image-rendering: pixelated; margin-bottom: 12px; }
+.finish-icon { display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; background: var(--ok-bg); color: var(--ok); margin-bottom: 16px; }
 
 /* ── Reveal ala landing: blok fade-up saat masuk viewport ─────────────────
    Digate class .js (dipasang pre-paint di app/layout.tsx) — reduced-motion
