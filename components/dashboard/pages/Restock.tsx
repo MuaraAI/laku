@@ -294,13 +294,13 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
           border: '1px dashed var(--border-strong)', borderRadius: 'var(--r-lg)',
           display: 'grid', gap: '14px', justifyItems: 'center'
         }}>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 600 }}>Toko Anda Belum Memiliki Data Produk</h3>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 600 }}>Toko Anda belum punya data produk</h3>
           <p style={{ color: 'var(--text-secondary)', maxWidth: '48ch', margin: 0 }}>
-            Unggah file export pesanan (Shopee, TikTok Shop, atau Tokopedia) lewat menu <strong>Upload</strong> agar engine Laku dapat menghitung laju penjualan dan titik pesan ulang (ROP) produk Anda.
+            Unggah file export pesanan dari Shopee, TikTok Shop, atau Tokopedia lewat menu <strong>Upload</strong> agar Laku bisa menghitung laju penjualan dan titik pesan ulang (ROP) produk Anda.
           </p>
           {onGoUpload && (
             <button className="btn btn-primary" onClick={onGoUpload} type="button">
-              Buka Menu Upload Sekarang →
+              Buka menu Upload sekarang →
             </button>
           )}
         </div>
@@ -330,7 +330,7 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
             <section className="stop-zone" data-reveal aria-labelledby="berhenti-beli">
               <div className="stop-head">
                 <h2 id="berhenti-beli" className="section-title">Berhenti beli ({filteredStop.length})</h2>
-                <p className="stop-sub">Stok berlebih atau tidak laku — tahan dulu uangnya, jangan pesan ulang.</p>
+                <p className="stop-sub">Stok berlebih atau tidak laku. Tahan dulu uangnya, jangan pesan ulang.</p>
               </div>
               <ul className="stock-list stock-list-muted">
                 {filteredStop.map((p) => <StockRow key={`${p.sku}-${p.channel}`} p={p} onWhy={setWhy} />)}
