@@ -48,11 +48,13 @@ def _get_live_platform_data() -> tuple[int, int, int, dict]:
         client = create_client(settings.supabase_url, key)
         resp = client.rpc("get_platform_stats").execute()
         data = resp.data or {}
-        sellers = data.get("total_sellers_active", 3)
-        products = data.get("total_products_monitored", 10)
-        orders = data.get("total_orders_analyzed", 52)
-        urgency = data.get("urgency_distribution") or DEFAULT_URGENCY
-        return max(sellers, 1), max(products, 1), max(orders, 1), urgency
+        sellers = data.get("total_sellers_active", 0)
+        products = data.get("total_products_monitored", 0)
+        orders = data.get("total_orders_analyzed", 0)
+        urgency = data.get("urgency_distribution") or {
+            "critical": 0, "reorder": 0, "ok": 0, "overstock": 0, "dead": 0
+        }
+        return int(sellers), int(products), int(orders), urgency
     except Exception as e:
         import logging
         logging.getLogger("laku.stats").warning("get_platform_stats RPC fallback: %s", e)
