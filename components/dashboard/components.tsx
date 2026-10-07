@@ -123,7 +123,9 @@ export function WhyPanel({ product, onClose }: { product: Product | null; onClos
               <span className="why-label">{dashboard.whyPanel.rop.label}</span>
               <Num strong>{fmtNum(demandLead)} + {fmtNum(p.safetyStock)} = {fmtNum(p.rop)} unit</Num>
               <span className="why-desc">
-                {p.onHand <= p.rop
+                {p.stockAssumed
+                  ? "Stok fisik di gudang belum diatur. Saran pesan dihitung dengan asumsi stok kosong."
+                  : p.onHand <= p.rop
                   ? dashboard.whyPanel.rop.statusBelow(p.onHand)
                   : dashboard.whyPanel.rop.statusAbove(p.onHand)}
               </span>

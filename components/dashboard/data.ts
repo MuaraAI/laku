@@ -57,6 +57,8 @@ export interface Product {
   status: StatusKey;
   /** Harga jual rata-rata (Rp). */
   price: number;
+  /** Apakah stok fisik belum pernah diatur oleh seller (asumsi nol). */
+  stockAssumed?: boolean;
 }
 
 export interface OverlayInfo {
