@@ -98,6 +98,19 @@ function StockRow({ p, onWhy }: { p: Product; onWhy: (p: Product) => void }) {
   );
 }
 
+function getTodayFormatted(): string {
+  try {
+    return new Intl.DateTimeFormat('id-ID', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date());
+  } catch {
+    return 'Prioritas Pemesanan';
+  }
+}
+
 export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'live'; onGoUpload?: () => void }) {
   const [why, setWhy] = useState<Product | null>(null);
   const [liveProducts, setLiveProducts] = useState<Product[] | null>(null);
@@ -161,18 +174,7 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
     });
   }, [stop, search, filter]);
 
-  const todayStr = useMemo(() => {
-    try {
-      return new Intl.DateTimeFormat('id-ID', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      }).format(new Date());
-    } catch {
-      return 'Prioritas Pemesanan';
-    }
-  }, []);
+  const todayStr = getTodayFormatted();
 
   const criticalCount = activeProducts.filter((p) => p.status === 'CRITICAL').length;
   const reorderCount = activeProducts.filter((p) => p.status === 'REORDER').length;

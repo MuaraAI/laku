@@ -8,6 +8,13 @@ export interface ApiResult<T> {
   status?: number;
 }
 
+export function buildApiUrl(path: string): string {
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  return API_BASE.includes("api.muaraai.com") && !cleanPath.startsWith("/v1/laku")
+    ? `${API_BASE}/v1/laku${cleanPath}`
+    : `${API_BASE}${cleanPath}`;
+}
+
 /**
  * Fetch data from Laku FastAPI backend with Supabase Bearer token.
  * Returns { data, error, status }.
@@ -34,10 +41,7 @@ export async function apiFetch<T = unknown>(
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    const cleanPath = path.startsWith("/") ? path : `/${path}`;
-    const url = API_BASE.includes("api.muaraai.com") && !cleanPath.startsWith("/v1/laku")
-      ? `${API_BASE}/v1/laku${cleanPath}`
-      : `${API_BASE}${cleanPath}`;
+    const url = buildApiUrl(path);
 
     const signal = options.signal || (typeof AbortSignal !== "undefined" && "timeout" in AbortSignal ? AbortSignal.timeout(15000) : undefined);
 
