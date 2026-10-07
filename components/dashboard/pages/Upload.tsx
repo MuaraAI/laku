@@ -2,6 +2,7 @@
 // preview ringkasan → Konfirmasi. (MVP: parsing disimulasikan di frontend.)
 
 import { useRef, useState, useEffect } from 'react';
+import { buildApiUrl } from '@/lib/api';
 import { CHANNELS, mockPreview, fmtNum, fmtNum1, type Channel, type UploadPreview } from '../data';
 import { Num } from '../components';
 import { IconFile, IconUpload, IconWarning } from '../icons';
@@ -46,10 +47,7 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
         const chKey = channel === 'Shopee' ? 'shopee' : channel === 'TikTok Shop' ? 'tiktok_shop' : 'tokopedia';
         formData.append('channel', chKey);
 
-        const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.muaraai.com';
-        const url = API_BASE.includes('api.muaraai.com')
-          ? `${API_BASE}/v1/laku/v1/imports`
-          : `${API_BASE}/v1/imports`;
+        const url = buildApiUrl('/v1/imports');
 
         const res = await fetch(url, {
           method: 'POST',
@@ -104,10 +102,7 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
         const { supabaseBrowser } = await import('@/lib/supabase/client');
         const supabase = supabaseBrowser();
         const token = (await supabase?.auth.getSession())?.data.session?.access_token;
-        const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.muaraai.com';
-        const url = API_BASE.includes('api.muaraai.com')
-          ? `${API_BASE}/v1/laku/v1/imports/${batchId}/confirm`
-          : `${API_BASE}/v1/imports/${batchId}/confirm`;
+        const url = buildApiUrl(`/v1/imports/${batchId}/confirm`);
         const res = await fetch(url, {
           method: 'POST',
           headers: token ? { Authorization: `Bearer ${token}` } : {},
