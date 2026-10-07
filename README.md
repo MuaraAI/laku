@@ -3,15 +3,39 @@
 <div align="center">
 
 **"Tau apa yang bakal laku, sebelum stokmu habis."**
-*Restock Engine & Inventory Intelligence untuk Seller Multi-Marketplace (Shopee, TikTok Shop, Tokopedia)*
+*Restock Engine untuk Seller Multi-Marketplace (Shopee, TikTok Shop, Tokopedia)*
 
-[![Production Web](https://img.shields.io/badge/Production-laku.muaraai.com-0369A1?style=flat&logo=vercel)](https://laku.muaraai.com)
-[![API Status](https://img.shields.io/badge/API-Operational-059669?style=flat&logo=fastapi)](https://api.muaraai.com/v1/laku/health)
-[![CI Pipeline](https://img.shields.io/badge/CI-Passing-059669?style=flat&logo=githubactions)](https://github.com/MuaraAI/laku/actions)
+[![Production](https://img.shields.io/badge/Production-laku.muaraai.com-0369A1?style=flat&logo=vercel)](https://laku.muaraai.com)
+[![API](https://img.shields.io/badge/API-Operational-059669?style=flat&logo=fastapi)](https://api.muaraai.com/v1/laku/health)
+[![CI](https://img.shields.io/badge/CI-Passing-059669?style=flat&logo=githubactions)](https://github.com/MuaraAI/laku/actions)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Location](https://img.shields.io/badge/Location-Pontianak%2C_Indonesia-072033)](https://laku.muaraai.com)
 
-[**Buka Aplikasi Live**](https://laku.muaraai.com) • [**Coba Dashboard Demo**](https://laku.muaraai.com/dashboard) • [**Telemetri Real-Time API**](https://api.muaraai.com/v1/laku/v1/stats) • [**Status Kesehatan API**](https://api.muaraai.com/v1/laku/health)
+[![Buka Aplikasi](https://img.shields.io/badge/Buka_Aplikasi-laku.muaraai.com-0369A1?style=for-the-badge&logo=vercel)](https://laku.muaraai.com)
+[![Coba Demo](https://img.shields.io/badge/Coba_Demo-Dashboard-7C3AED?style=for-the-badge&logo=googlechrome)](https://laku.muaraai.com/dashboard)
+[![Telemetri](https://img.shields.io/badge/Telemetri-API_Real_Time-059669?style=for-the-badge&logo=fastapi)](https://api.muaraai.com/v1/laku/v1/stats)
+[![Health](https://img.shields.io/badge/Status-API_Health-22C55E?style=for-the-badge&logo=githubactions)](https://api.muaraai.com/v1/laku/health)
+
+</div>
+
+---
+
+## Tim Pengembang
+
+<div align="center">
+
+| | |
+|:---:|:---:|
+| [<img src="https://github.com/Curzyori.png" width="90" alt="Yuken Velino"/>](https://github.com/Curzyori) | [<img src="https://github.com/MyKineID.png" width="90" alt="Jioo"/>](https://github.com/MyKineID) |
+| **[Yuken Velino](https://github.com/Curzyori)** — Kapten Tim | **[Jioo](https://github.com/MyKineID)** — Lead Frontend & UI/UX |
+| Arsitektur sistem, core engine, code review | Desain antarmuka, landing page, aksesibilitas web |
+| 82 commit | 14 commit |
+| [<img src="https://github.com/Seeyaa77.png" width="90" alt="Muhammad Raffli Aldiansyah"/>](https://github.com/Seeyaa77) | [<img src="https://github.com/kabayy-sys.png" width="90" alt="Raken"/>](https://github.com/kabayy-sys) |
+| **[Muhammad Raffli Aldiansyah (Bob)](https://github.com/Seeyaa77)** — Backend & Security | **[Raken](https://github.com/kabayy-sys)** — Product & Business |
+| Audit keamanan, parser marketplace, infrastruktur VPS | Inisiator ide, riset bisnis UMKM, video demo & proposal |
+| 5 commit | 3 commit |
+
+*Universitas Bina Sarana Informatika (UBSI) Kampus Kota Pontianak — jumlah commit per 7 Oktober 2026.*
 
 </div>
 
@@ -21,7 +45,7 @@
 
 Laku adalah restock engine untuk seller UMKM yang jualan di lebih dari satu marketplace sekaligus (pilot: Pontianak, Kalimantan Barat). Cukup unggah file export CSV atau XLSX dari Seller Center, sistem langsung merapikan semua transaksi ke satu database, menghitung laju penjualan, lalu memberi rekomendasi restock yang bisa dipercaya.
 
-Karya ini diajukan untuk **Digital Innovation Challenge SIFEST 2026** — Track Digital Economy, oleh tim **MuaraAI** (Universitas Bina Sarana Informatika Pontianak).
+Karya ini diajukan untuk **Digital Innovation Challenge SIFEST 2026** — Track Digital Economy, oleh tim **MuaraAI**.
 
 ### Masalah yang Diselesaikan
 
@@ -33,7 +57,7 @@ Karya ini diajukan untuk **Digital Innovation Challenge SIFEST 2026** — Track 
 
 1. Seller mengunggah file export penjualan (CSV/XLSX) dari masing-masing marketplace.
 2. Parser merapikan semua transaksi ke satu database. Data duplikat otomatis dikenali dan tidak dihitung dua kali.
-3. Engine menghitung laju penjualan riil (*velocity*), Reorder Point (ROP), dan Safety Stock (SS) memakai formula Silver-Peterson.
+3. Engine menghitung laju penjualan riil (*velocity*), titik pemesanan ulang (ROP), dan stok pengaman (safety stock) memakai rumus inventori standar Silver-Peterson.
 4. Dashboard menampilkan rekomendasi jelas: apa yang harus dipesan, berapa banyak, dan apa yang sebaiknya berhenti dibeli.
 
 ---
@@ -50,18 +74,16 @@ flowchart LR
     subgraph LAKU["Laku"]
         UP["Upload CSV/XLSX"] --> PS["Parser & Normalisasi"]
         PS --> DB[("Supabase PostgreSQL")]
-        DB --> EN["Engine Deterministik<br/>velocity / ROP / safety stock"]
+        DB --> EN["Engine Perhitungan<br/>velocity / ROP / safety stock"]
         EN --> DW["Dashboard Next.js"]
     end
     MKT --> UP
     DW --> SL["Seller UMKM"]
 ```
 
-Prinsip penting: seluruh angka bisnis dihitung formula matematika, bukan AI. AI hanya dipakai di fase terbatas (tool-use), sehingga tidak ada risiko angka karangan.
-
 ### Pilar Utama
 
-1. **100% deterministik.** Semua rekomendasi dihitung formula Silver-Peterson EOQ/ROP (§9A PRD) dan rekap alokasi voucher pro-rata (§9D PRD). Bukan wrapper ChatGPT.
+1. **Perhitungan matematis, bukan tebakan AI.** Semua rekomendasi dihitung dengan rumus inventori standar Silver-Peterson (EOQ/ROP) dan rekap alokasi voucher proporsional. Bukan wrapper ChatGPT, jadi tidak ada angka karangan.
 2. **Privasi pembeli terjaga (UU PDP No. 27/2022).** Nama, nomor telepon, dan alamat mentah dibuang saat parsing dan tidak pernah disimpan di database, log, maupun laporan error. Hanya agregasi wilayah yang disimpan.
 3. **Dedup idempoten lintas marketplace.** Kunci unik 6 kolom: `seller_id + source_system + sales_channel + shop_id + order_id + line_key`. File yang diunggah ulang tidak akan menduplikasi transaksi.
 4. **Dashboard dua mode.** Mode Demo bisa langsung dieksplorasi tanpa login (10 SKU contoh). Mode Toko Saya terhubung ke database asli via JWT Supabase dengan wizard onboarding.
@@ -71,7 +93,7 @@ Prinsip penting: seluruh angka bisnis dihitung formula matematika, bukan AI. AI 
 
 ```
 laku/
-├── app/                        # Next.js 15 App Router (Frontend Web & Dashboard)
+├── app/                        # Next.js 15 App Router (Web & Dashboard)
 │   ├── (marketing)/            # Landing page, Syarat & Ketentuan, Kebijakan Privasi
 │   ├── (auth)/                 # Halaman Login (Google OAuth & Magic Link)
 │   ├── (dashboard)/            # Dashboard terintegrasi (/dashboard)
@@ -80,7 +102,7 @@ laku/
 ├── constants/id.ts             # Sumber teks UI Bahasa Indonesia terpusat
 ├── backend/                    # Core Engine Service (FastAPI)
 │   ├── app/routers/            # Endpoint: /imports, /recommendations, /stock, /recap, /me, /stats
-│   ├── app/services/           # Engine §9A, Recap §9D, Ledger, Parser marketplace
+│   ├── app/services/           # Engine perhitungan, recap, ledger, parser marketplace
 │   ├── app/middleware/         # Rate limiting token bucket
 │   ├── configs/channels/       # Pemetaan kolom marketplace (YAML)
 │   ├── supabase/migrations/    # Skema SQL + RLS policies + RPC
@@ -93,11 +115,11 @@ laku/
 
 | Komponen | Teknologi | Deployment |
 |---|---|---|
-| Frontend Web | Next.js 15 (App Router), TypeScript, Tailwind v4 | Vercel — laku.muaraai.com |
-| Backend API | Python 3.12, FastAPI, Pydantic v2 | VPS, PM2, Caddy Reverse Proxy |
-| Database | Supabase PostgreSQL 17 + Row Level Security | Supabase Cloud (Singapore) |
-| Auth | Supabase Auth (Google OAuth + Magic Link SMTP) | support@laku.muaraai.com |
-| Cache & Task | Redis (database terisolasi) | VPS Linux |
+| Frontend | Next.js 15, TypeScript, Tailwind v4 | Vercel |
+| Backend API | Python 3.12, FastAPI, Pydantic v2 | VPS + PM2 + Caddy |
+| Database | PostgreSQL 17 + Row Level Security | Supabase (Singapore) |
+| Auth | Google OAuth + Magic Link SMTP | Supabase Auth |
+| Cache | Redis (database terisolasi) | VPS Linux |
 | Testing | Pytest, AnyIO, Vitest | GitHub Actions CI |
 
 ---
@@ -139,7 +161,7 @@ API aktif di `http://127.0.0.1:8400`, cek kesehatan di `/health`.
 
 ## Pengujian
 
-Disiplin test berfokus pada perilaku eksternal: parser fixtures, dedup idempoten, engine golden test, RLS isolation, dan role guard.
+Test berfokus pada perilaku eksternal: parser fixtures, dedup idempoten, engine golden test, RLS isolation, dan role guard.
 
 ```bash
 # Seluruh test suite backend (174 tests)
@@ -151,21 +173,6 @@ npm run build
 ```
 
 Semua commit di branch `main` wajib lulus pemeriksaan otomatis GitHub Actions CI.
-
----
-
-## Tim Pengembang (MuaraAI)
-
-| Anggota | GitHub | Peran | Fokus Utama | Commit |
-|---|---|---|---|---|
-| **Yuken Velino** | [@Curzyori](https://github.com/Curzyori) | Kapten Tim / Founder & Lead Backend | Arsitektur sistem, Core Engine deterministik §9A, code review & penguatan kualitas kode | 82 |
-| **Muhammad Raffli Aldiansyah** (Bob) | [@Seeyaa77](https://github.com/Seeyaa77) | Backend & Security Engineer | Audit keamanan, parser export marketplace, deduplikasi data, infrastruktur VPS Linux | 5 |
-| **Jio** | [@MyKineID](https://github.com/MyKineID) | Lead Frontend & UI/UX Engineer | Desain antarmuka, motion interaction, landing page, sistem semantic & aksesibilitas web (WCAG) | 14 |
-| **Raken** | [@kabayy-sys](https://github.com/kabayy-sys) | Product & Business Lead | Inisiator ide proyek, riset model bisnis UMKM, prototype dashboard, koordinator video demo & proposal | 3 |
-
-*Jumlah commit dihitung per 7 Oktober 2026.*
-
-**Institusi:** Universitas Bina Sarana Informatika (UBSI) Kampus Kota Pontianak.
 
 ---
 
