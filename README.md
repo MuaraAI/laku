@@ -72,7 +72,7 @@ laku/
 │   ├── app/middleware/         # Rate limiting token bucket in-memory (XFF anti-spoofing)
 │   ├── configs/channels/       # Pemetaan kolom marketplace deklaratif (YAML)
 │   ├── supabase/migrations/    # Skema SQL 0001–0014 + RLS policies + RPC functions
-│   └── tests/                  # Test suite pytest (146 passing tests)
+│   └── tests/                  # Test suite pytest (169 passing tests)
 ├── DESIGN.md                   # Spesifikasi resmi Design System v1.0.0 (Ledger Rail)
 └── docs/                       # Materi Proposal & Submission SIFEST 2026
 ```
@@ -130,7 +130,7 @@ API akan aktif di `http://127.0.0.1:8400` dengan endpoint kesehatan di `/health`
 Laku menerapkan disiplin **Test-Driven Development (TDD)** dengan pengetesan perilaku eksternal:
 
 ```bash
-# Menjalankan seluruh test suite backend (146 tests)
+# Menjalankan seluruh test suite backend (169 tests)
 cd backend
 source .venv/bin/activate
 pytest tests/ -v
