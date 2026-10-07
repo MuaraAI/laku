@@ -19,7 +19,6 @@ SUPPORTED_CHANNELS = [
     {"id": "shopee", "name": "Shopee", "status": "active"},
     {"id": "tiktok_shop", "name": "TikTok Shop", "status": "active"},
     {"id": "tokopedia", "name": "Tokopedia", "status": "active"},
-    {"id": "lazada", "name": "Lazada", "status": "active"},
 ]
 
 DEFAULT_URGENCY = {
