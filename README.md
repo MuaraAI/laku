@@ -5,8 +5,6 @@
 **"Tau apa yang bakal laku, sebelum stokmu habis."**
 *Restock Engine untuk Seller Multi-Marketplace (Shopee, TikTok Shop, Tokopedia)*
 
-[![Production](https://img.shields.io/badge/Production-laku.muaraai.com-0369A1?style=flat&logo=vercel)](https://laku.muaraai.com)
-[![API](https://img.shields.io/badge/API-Operational-059669?style=flat&logo=fastapi)](https://api.muaraai.com/v1/laku/health)
 [![CI](https://img.shields.io/badge/CI-Passing-059669?style=flat&logo=githubactions)](https://github.com/MuaraAI/laku/actions)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Location](https://img.shields.io/badge/Location-Pontianak%2C_Indonesia-072033)](https://laku.muaraai.com)
@@ -14,7 +12,6 @@
 [![Buka Aplikasi](https://img.shields.io/badge/Buka_Aplikasi-laku.muaraai.com-0369A1?style=for-the-badge&logo=vercel)](https://laku.muaraai.com)
 [![Coba Demo](https://img.shields.io/badge/Coba_Demo-Dashboard-7C3AED?style=for-the-badge&logo=googlechrome)](https://laku.muaraai.com/dashboard)
 [![Telemetri](https://img.shields.io/badge/Telemetri-API_Real_Time-059669?style=for-the-badge&logo=fastapi)](https://api.muaraai.com/v1/laku/v1/stats)
-[![Health](https://img.shields.io/badge/Status-API_Health-22C55E?style=for-the-badge&logo=githubactions)](https://api.muaraai.com/v1/laku/health)
 
 </div>
 
