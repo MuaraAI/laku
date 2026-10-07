@@ -41,7 +41,7 @@ backend/
 │   └── tokopedia.yaml          # Kolom ekspor Tokopedia Seller Dashboard
 ├── supabase/migrations/        # Migrasi SQL database Supabase (0001–0014)
 ├── mock/                       # Mock server independen untuk pengembangan frontend
-└── tests/                      # Test suite pytest (146 passing tests)
+└── tests/                      # Test suite pytest (169 passing tests)
 ```
 
 ---
