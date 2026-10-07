@@ -16,13 +16,15 @@ from app.config import MAX_ROWS_PER_FILE
 from app.services.imports_store import ImportsStore
 from app.services.parsers.shopee import parse_shopee, parse_shopee_xlsx
 from app.services.parsers.tiktok import parse_tiktok, parse_tiktok_xlsx
+from app.services.parsers.tokopedia import parse_tokopedia, parse_tokopedia_xlsx
 
-SUPPORTED_CHANNELS = {"shopee", "tiktok_shop"}
+SUPPORTED_CHANNELS = {"shopee", "tiktok_shop", "tokopedia"}
 
 # (parse_csv, parse_xlsx) per channel — mapping kolom tetap dari YAML per channel
 _PARSERS = {
     "shopee": (parse_shopee, parse_shopee_xlsx),
     "tiktok_shop": (parse_tiktok, parse_tiktok_xlsx),
+    "tokopedia": (parse_tokopedia, parse_tokopedia_xlsx),
 }
 
 

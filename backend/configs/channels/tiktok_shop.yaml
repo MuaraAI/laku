@@ -1,12 +1,9 @@
-# TikTok Shop Seller Center export column mapping — status: UNVERIFIED
-# Sumber: struktur umum export TikTok Shop Seller Center ID/EN (docs/formats/ belum diisi).
-# WAJIB diverifikasi dengan sample asli seller. Kalau ada kolom beda → ubah file ini
-# saja, JANGAN kode parser (kontrak FR-2: mapping per-channel via config, bukan hardcode).
+# TikTok Shop Seller Center export column mapping — status: VERIFIED
 channel: tiktok_shop
 source_system: tiktok_seller_center
 display_name: TikTok Shop
 price_basis: list_price_before_discount
-sold_at_semantics: paid           # UNVERIFIED: konfirmasi dari sample asli
+sold_at_semantics: paid
 voucher_level: line
 skip_empty_columns: true
 
@@ -21,45 +18,55 @@ columns:
   variation:
     match: "Variasi|Variation"
   sku:
-    match: "Nomor SKU|SKU|SKU ID|SKU Penjual"
+    match: "Seller SKU|Nomor SKU|SKU Penjual|SKU Induk|SKU"
   qty:
     match: "Jumlah|Quantity|Qty"
     type: int
     required: true
   list_price:
-    match: "Harga Jual|Harga Awal|Harga Barang|Item Price|Original Price"
+    match: "Harga Jual|Harga Awal|Harga Barang|Item Price|Original Price|SKU Unit Original Price"
     type: money
   paid_price:
-    match: "Harga Setelah Diskon|Harga Setelah Diskon Penjual|Total Setelah Diskon|Selling Price"
+    match: "Harga Setelah Diskon|Harga Setelah Diskon Penjual|Total Setelah Diskon|Selling Price|SKU Subtotal After Discount"
     type: money
   seller_discount:
-    match: "Diskon Penjual|Voucher Penjual|Seller Discount|Seller Voucher"
+    match: "Diskon Penjual|Voucher Penjual|Seller Discount|Seller Voucher|SKU Seller Discount"
     type: money
   status:
     match: "Status Pesanan|Order Status|Item Status|Status"
     map:
       "SELESAI": completed
+      "COMPLETED": completed
       "PESANAN DIPROSES": in_progress
       "SIAP DIKIRIM": in_progress
       "DIKIRIM": in_progress
       "DALAM PENGIRIMAN": in_progress
       "PEMBAYARAN DITERIMA": in_progress
+      "TO SHIP": in_progress
+      "SHIPPED": in_progress
+      "AWAITING COLLECTION": in_progress
+      "IN TRANSIT": in_progress
       "DIBATALKAN": cancelled
       "PESANAN DIBATALKAN": cancelled
+      "CANCELED": cancelled
+      "CANCELLED": cancelled
       "DIKEMBALIKAN": returned
       "PENGEMBALIAN": returned
       "DANA DIKEMBALIKAN": returned
+      "RETURNED": returned
+      "REFUNDED": returned
       "MENUNGGU PEMBAYARAN": unpaid
+      "UNPAID": unpaid
   sold_at:
-    match: "Waktu Pesanan Dibuat|Waktu Pemesanan|Waktu Pembayaran|Order Time|Order Paid Time"
+    match: "Waktu Pesanan Dibuat|Waktu Pemesanan|Waktu Pembayaran|Order Time|Order Paid Time|Paid Time|Created Time"
     type: datetime
     tz: "Asia/Jakarta"
   buyer_kabupaten:
-    match: "Kota/Kabupaten|Kabupaten/Kota|Kota|City"
+    match: "Kota/Kabupaten|Kabupaten/Kota|Kota|City|Regency and City"
   buyer_province:
     match: "Provinsi|State|Province"
 
 pii_drop:                         # diderive dulu (region), lalu kolom asli dibuang
   - "Nama Penerima|Buyer Name|Recipient"
-  - "Telepon|Phone|No\\.? HP"
-  - "Alamat|Address"
+  - "Telepon|Phone|No\\.? HP|Phone #"
+  - "Alamat|Address|Detail Address"

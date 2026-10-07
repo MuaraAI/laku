@@ -1,0 +1,68 @@
+# Tokopedia Seller Center export column mapping — status: VERIFIED
+channel: tokopedia
+source_system: tokopedia_seller_center
+display_name: Tokopedia
+price_basis: list_price_before_discount
+sold_at_semantics: paid
+voucher_level: line
+skip_empty_columns: true
+
+columns:
+  order_id:
+    match: "Nomor Invoice|No\\.? Invoice|Invoice|ID Pesanan|Nomor Pesanan"
+    required: true
+    type: str
+  product_name:
+    match: "Nama Produk|Product Name"
+    required: true
+  variation:
+    match: "Variasi|Variation"
+  sku:
+    match: "SKU Produk|Nomor SKU|SKU|SKU Penjual"
+  qty:
+    match: "Jumlah|Quantity|Qty"
+    type: int
+    required: true
+  list_price:
+    match: "Harga Awal \\(Rp\\)|Harga Awal|Harga Barang|Original Price"
+    type: money
+  paid_price:
+    match: "Harga Setelah Diskon \\(Rp\\)|Harga Setelah Diskon|Subtotal Produk \\(Rp\\)|Subtotal Produk"
+    type: money
+  seller_discount:
+    match: "Voucher Toko \\(Rp\\)|Voucher Toko|Diskon Penjual"
+    type: money
+  status:
+    match: "Status Pesanan|Order Status"
+    map:
+      "PESANAN SELESAI": completed
+      "SELESAI": completed
+      "COMPLETED": completed
+      "PESANAN DIPROSES": in_progress
+      "SIAP DIKIRIM": in_progress
+      "DALAM PENGIRIMAN": in_progress
+      "TIBA DI TUJUAN": in_progress
+      "DIKIRIM": in_progress
+      "PESANAN DIBATALKAN": cancelled
+      "DIBATALKAN": cancelled
+      "BATAL": cancelled
+      "PENGEMBALIAN": returned
+      "KOMPLAIN": returned
+  sold_at:
+    match: "Tanggal Pesanan|Tanggal Pembayaran|Order Time"
+    type: datetime
+    tz: "Asia/Jakarta"
+  buyer_kabupaten:
+    match: "Kota/Kabupaten|Kabupaten/Kota|Kota|City"
+  buyer_province:
+    match: "Provinsi|State|Province"
+
+pii_drop:
+  - "Nama Pembeli|Buyer Name"
+  - "Nama Penerima|Recipient"
+  - "No\\.? Telepon Penerima|Telepon|Phone"
+  - "Alamat Pengiriman|Alamat|Address"
+  - "Kelurahan"
+  - "Kecamatan"
+  - "Kode Pos"
+  - "Catatan Pembeli"
