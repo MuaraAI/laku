@@ -39,9 +39,9 @@ backend/
 │   ├── shopee.yaml             # Kolom ekspor Shopee Seller Centre
 │   ├── tiktok_shop.yaml        # Kolom ekspor TikTok Shop Seller Center
 │   └── tokopedia.yaml          # Kolom ekspor Tokopedia Seller Dashboard
-├── supabase/migrations/        # Migrasi SQL database Supabase (0001–0014)
+├── supabase/migrations/        # Migrasi SQL database Supabase (0001–0015)
 ├── mock/                       # Mock server independen untuk pengembangan frontend
-└── tests/                      # Test suite pytest (169 passing tests)
+└── tests/                      # Test suite pytest (174 passing tests)
 ```
 
 ---
