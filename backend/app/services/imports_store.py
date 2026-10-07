@@ -296,9 +296,11 @@ class ImportsSupabaseStore(ImportsStore):
         self.client.table("import_staging").delete().eq("batch_id", batch_id).execute()
 
     def purge_expired(self, max_age_hours: int = STAGING_TTL_HOURS) -> int:
-        # Butuh RPC server-side (service role); dijalankan scheduled job di VPS.
-        # Di request path kita purge by batch via trigger DB — return 0 di sini.
-        return 0
+        try:
+            resp = self.client.rpc("purge_expired_staging", {"p_hours": max_age_hours}).execute()
+            return int(resp.data or 0)
+        except Exception:
+            return 0
 
     # -- order_lines ---------------------------------------------------
     def fetch_lines_by_keys(self, seller_id: str, keys: list[tuple]) -> list[dict]:

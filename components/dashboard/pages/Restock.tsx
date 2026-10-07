@@ -5,7 +5,7 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 import { apiFetch } from '@/lib/api';
 import {
   PRODUCTS, sortedActionable, stopBuying, overlaysOf, daysOfStock,
-  fmtNum, fmtIDR, fmtDays, type Product, type StatusKey, type Channel, STATUS,
+  fmtNum, fmtIDR, fmtDays, type Product, type StatusKey, type Channel, STATUS, DEFAULT_LEAD_TIME_DAYS,
 } from '../data';
 import { StatusBadge, OverlayBadges, WhyPanel, Num } from '../components';
 import { IconWhy, IconSearch, IconClose } from '../icons';
@@ -35,20 +35,24 @@ interface ApiRecommendationsResponse {
 
 function mapApiToProduct(item: ApiRecommendationItem): Product {
   const why = item.why || {};
+  const VALID_STATUSES: StatusKey[] = ['CRITICAL', 'REORDER', 'OK', 'OVERSTOCK', 'DEAD', 'INSUFFICIENT_DATA'];
+  const statusKey = VALID_STATUSES.includes(item.state as StatusKey) ? (item.state as StatusKey) : 'INSUFFICIENT_DATA';
+  const leadTimeDays = why.lead_time_days ?? DEFAULT_LEAD_TIME_DAYS;
+
   return {
     sku: item.sku || item.product_id,
     name: item.name || 'Produk',
     channel: item.channel || 'Shopee',
     onHand: why.on_hand ?? 0,
     avgDaily: why.mu ?? 0,
-    leadTimeDays: why.lead_time_days ?? 5,
-    leadTimeAssumed: Boolean(why.lead_time_assumed ?? true),
+    leadTimeDays,
+    leadTimeAssumed: why.lead_time_days == null ? true : Boolean(why.lead_time_assumed),
     safetyStock: item.safety_stock ?? 0,
     rop: item.reorder_point ?? 0,
     suggestedQty: item.suggested_qty ?? 0,
     lastSyncDaysAgo: item.overlays?.includes('STALE') ? 8 : 0,
-    status: (item.state as StatusKey) || 'INSUFFICIENT_DATA',
-    price: item.price ?? 25000,
+    status: statusKey,
+    price: item.price ?? 0,
   };
 }
 
@@ -311,7 +315,7 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
             <section aria-labelledby="perlu-dipesan">
               <h2 id="perlu-dipesan" className="section-title">Perlu dipesan ({filteredActionable.length})</h2>
               <ul className="stock-list">
-                {filteredActionable.map((p) => <StockRow key={p.sku} p={p} onWhy={setWhy} />)}
+                {filteredActionable.map((p) => <StockRow key={`${p.sku}-${p.channel}`} p={p} onWhy={setWhy} />)}
               </ul>
             </section>
           )}
@@ -323,7 +327,7 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
                 <p className="stop-sub">Stok berlebih atau tidak laku — tahan dulu uangnya, jangan pesan ulang.</p>
               </div>
               <ul className="stock-list stock-list-muted">
-                {filteredStop.map((p) => <StockRow key={p.sku} p={p} onWhy={setWhy} />)}
+                {filteredStop.map((p) => <StockRow key={`${p.sku}-${p.channel}`} p={p} onWhy={setWhy} />)}
               </ul>
             </section>
           )}

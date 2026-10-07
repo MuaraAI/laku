@@ -39,6 +39,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    let unsub: (() => void) | undefined;
     async function loadUser() {
       try {
         const { supabaseBrowser } = await import('@/lib/supabase/client');
@@ -57,7 +58,7 @@ export default function App() {
             }
           }
 
-          supabase.auth.onAuthStateChange((_event, session) => {
+          const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
             const sEmail = session?.user?.email ?? null;
             setUserEmail(sEmail);
             if (sEmail) {
@@ -68,12 +69,16 @@ export default function App() {
               }
             }
           });
+          unsub = () => authListener?.subscription?.unsubscribe();
         }
       } catch {
         /* abaikan */
       }
     }
     loadUser();
+    return () => {
+      unsub?.();
+    };
   }, []);
 
   useEffect(() => { window.scrollTo({ top: 0 }); }, [page]);
