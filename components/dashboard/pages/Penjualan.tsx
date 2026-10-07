@@ -1,7 +1,7 @@
 // Halaman Penjualan (Recap): period selector 7/30/90 hari, trend chart,
 // ringkasan omzet, dan Coverage Banner untuk data usang/parsial.
 
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { apiFetch } from '@/lib/api';
 import { SALES, CHANNEL_SPLIT, DATA_FRESHNESS, fmtIDR, fmtNum, fmtNum1, type Channel } from '../data';
 import { Num, SementaraChip } from '../components';
@@ -10,11 +10,15 @@ import { IconWarning } from '../icons';
 type Period = 7 | 30 | 90;
 const PERIODS: Period[] = [7, 30, 90];
 
-function TrendChart({ period, customData }: { period: Period; customData?: { day: string; omzet: number; transaksi: number; sementara?: boolean }[] | null }) {
-  const data = customData && customData.length > 1 ? customData : SALES[period];
+type TrendPoint = { day: string; omzet: number; transaksi: number | null; sementara?: boolean };
+
+// live data is passed in as `customData`; demo numbers are only used when no live series was given at all
+function TrendChart({ period, customData }: { period: Period; customData?: TrendPoint[] | null }) {
+  const data: TrendPoint[] = customData ?? SALES[period];
   const [hover, setHover] = useState<number | null>(null);
   const W = 720, H = 240, PL = 8, PR = 8, PT = 16, PB = 28;
-  const max = Math.max(...data.map((d) => d.omzet));
+  // floor of 1 keeps an all-zero series from dividing by zero (NaN path)
+  const max = Math.max(1, ...data.map((d) => d.omzet));
   const x = (i: number) => PL + (i / (data.length - 1)) * (W - PL - PR);
   const y = (v: number) => PT + (1 - v / max) * (H - PT - PB);
   const line = data.map((d, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(d.omzet).toFixed(1)}`).join(' ');
@@ -69,7 +73,10 @@ function TrendChart({ period, customData }: { period: Period; customData?: { day
           <>
             <span className="num num-left">{hov.day}</span>
             <Num strong>{fmtIDR(hov.omzet)}</Num>
-            <span className="chart-readout-sub"><Num>{fmtNum(hov.transaksi)}</Num> transaksi {hov.sementara && <SementaraChip />}</span>
+            <span className="chart-readout-sub">
+              {hov.transaksi != null && <><Num>{fmtNum(hov.transaksi)}</Num> transaksi </>}
+              {hov.sementara && <SementaraChip />}
+            </span>
           </>
         ) : (
           <span className="chart-readout-hint">Sentuh atau arahkan ke grafik untuk lihat angka harian.</span>
@@ -104,11 +111,15 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
   const [recapError, setRecapError] = useState<string | null>(null);
 
   const isLive = mode === 'live';
+  // switching 7 → 30 → 90 quickly must not let an older, slower response overwrite the newer period
+  const reqId = useRef(0);
 
   const fetchRecap = useCallback(() => {
     setRecapError(null);
+    const id = ++reqId.current;
     apiFetch<LiveRecapResponse>(`/v1/recap?days=${period}`)
       .then((res) => {
+        if (id !== reqId.current) return;
         if (res.data) {
           setLiveRecap(res.data);
           setRecapError(null);
@@ -139,17 +150,19 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
     }));
   }, [liveRecap]);
 
-  const liveTrendData = useMemo(() => {
-    if (!liveRecap?.trend?.length) return null;
+  // the recap API has no per-day order count, so the readout shows none instead of a made-up "1 transaksi"
+  const liveTrendData = useMemo<TrendPoint[]>(() => {
+    if (!liveRecap?.trend?.length) return [];
     return liveRecap.trend.map((t) => ({
       day: t.day.length > 5 ? t.day.slice(5) : t.day,
       omzet: Number(t.net_rp || 0),
-      transaksi: 1,
+      transaksi: null,
       sementara: false,
     }));
   }, [liveRecap]);
 
-  const activeSplit = isLive ? (liveSplit.length ? liveSplit : split) : split;
+  // live never borrows the demo store's numbers (AGENTS.md rule 4: business numbers come from the DB only)
+  const activeSplit = isLive ? liveSplit : split;
 
   const omzetKotor = isLive
     ? Number(liveRecap?.totals?.gross_rp ?? 0)
@@ -236,11 +249,18 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
         <>
           <section aria-labelledby="tren">
             <h2 id="tren" className="section-title">Tren omzet kotor</h2>
-            <TrendChart period={period} customData={liveTrendData} />
+            {isLive && liveTrendData.length < 2 ? (
+              <p className="stock-empty">Grafik tren muncul setelah ada penjualan di minimal dua hari berbeda.</p>
+            ) : (
+              <TrendChart period={period} customData={isLive ? liveTrendData : null} />
+            )}
           </section>
 
           <section aria-labelledby="per-channel">
             <h2 id="per-channel" className="section-title">Per channel</h2>
+            {activeSplit.length === 0 && (
+              <p className="stock-empty">Rincian per channel belum tersedia untuk periode ini.</p>
+            )}
             <ul className="channel-split" data-reveal="kids">
               {activeSplit.map((c) => (
                 <li key={`${period}-${c.channel}`} className="channel-row">

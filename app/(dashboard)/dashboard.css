@@ -325,6 +325,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   padding: 16px 18px;
   display: grid; gap: 2px; justify-items: end;
   box-shadow: var(--shadow-card);
+  text-align: left; /* the two filter KPIs are <button>s, which centre text by default */
 }
 .kpi-label { justify-self: start; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; color: var(--text-secondary); }
 .kpi .num-strong { font-size: 1.35rem; }
@@ -332,6 +333,13 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .kpi-critical { border-top: 3px solid var(--critical); }
 .kpi-reorder { border-top: 3px solid var(--reorder); }
 .kpi-compact { margin: 12px 0; }
+/* phones: 2×2 instead of four full-width cards, so the restock list starts above the fold */
+@media (max-width: 767px) {
+  .kpi-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .kpi { padding: 12px; }
+  .kpi .num-strong { font-size: clamp(.95rem, 4.4vw, 1.15rem); overflow-wrap: anywhere; }
+  .kpi-sub { font-size: 11px; line-height: 1.35; }
+}
 
 /* ── Badge status: tint + warna teks + ikon + label ─────────────────────── */
 
@@ -705,3 +713,9 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   .dash *, .dash *::before, .dash *::after { animation: none !important; transition: none !important; }
 }
 } /* akhir .dash */
+
+/* live mode: shown while the session is checked, before any API call */
+.page-loading { padding: 48px 16px; text-align: center; color: var(--text-muted); font-size: 14px; }
+.onb-error { margin-top: 12px; display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: var(--r-sm); background: var(--critical-bg); color: var(--critical); font-size: 13px; }
+.onb-stock-fields { display: grid; gap: 12px; }
+@media (min-width: 720px) { .onb-stock-fields { grid-template-columns: 1fr 1.4fr 1fr; } }

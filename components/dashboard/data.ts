@@ -76,7 +76,7 @@ export function daysOfStock(p: Product): number {
 
 export const PRODUCTS: Product[] = [
   { sku: 'KOP-GUL-250', name: 'Kopi Gula Aren 250ml', channel: 'Shopee', onHand: 12, avgDaily: 9.4, leadTimeDays: 5, leadTimeAssumed: true, safetyStock: 24, rop: 71, suggestedQty: 140, lastSyncDaysAgo: 0, status: 'CRITICAL', price: 18000 },
-  { sku: 'TEH-MEL-1L', name: 'Teh Melati Botol 1L', channel: 'TikTok Shop', onHand: 8, avgDaily: 6.1, leadTimeDays: 3, leadTimeAssumed: false, safetyStock: 10, rop: 28, suggestedQty: 90, lastSyncDaysAgo: 1, status: 'CRITICAL', price: 12000 },
+  { sku: 'TEH-MEL-1L', name: 'Teh Melati Botol 1L', channel: 'TikTok Shop', onHand: 8, avgDaily: 6.1, leadTimeDays: 3, leadTimeAssumed: false, safetyStock: 10, rop: 29, suggestedQty: 90, lastSyncDaysAgo: 1, status: 'CRITICAL', price: 12000 },
   { sku: 'SBL-KRG-100', name: 'Sambal Koreng 100g', channel: 'Shopee', onHand: -4, avgDaily: 4.8, leadTimeDays: 5, leadTimeAssumed: true, safetyStock: 12, rop: 36, suggestedQty: 0, lastSyncDaysAgo: 0, status: 'REORDER', price: 15000 },
   { sku: 'MKI-AYM-85', name: 'Mie Keriting Ayam 85g (karton)', channel: 'Tokopedia', onHand: 30, avgDaily: 3.2, leadTimeDays: 7, leadTimeAssumed: false, safetyStock: 11, rop: 34, suggestedQty: 60, lastSyncDaysAgo: 9, status: 'REORDER', price: 96000 },
   { sku: 'KER-TAH-40', name: 'Keripik Tahu Pedas 40g', channel: 'Shopee', onHand: 210, avgDaily: 3.0, leadTimeDays: 4, leadTimeAssumed: true, safetyStock: 6, rop: 18, suggestedQty: 0, lastSyncDaysAgo: 0, status: 'OK', price: 9000 },
