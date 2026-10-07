@@ -73,6 +73,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 # --- Routers ---
+from app.routers.auth_otp import router as auth_otp_router  # noqa: E402
 from app.routers.imports import router as imports_router  # noqa: E402
 from app.routers.me import router as me_router  # noqa: E402
 from app.routers.recommendations import router as recommendations_router  # noqa: E402
@@ -80,6 +81,7 @@ from app.routers.recap import router as recap_router  # noqa: E402
 from app.routers.stats import router as stats_router  # noqa: E402
 from app.routers.stock import router as stock_router  # noqa: E402
 
+app.include_router(auth_otp_router)
 app.include_router(imports_router)
 app.include_router(me_router)
 app.include_router(recommendations_router)

@@ -56,16 +56,22 @@ export default function LoginCard({
   };
 
   const requestCode = async (address: string) => {
-    const supabase = await getSupabase();
-    if (!supabase) {
-      setError(login.errors.config);
+    // OTP via backend: kode 6 digit dikirim Resend (template Supabase default
+    // mengirim magic link, bukan kode — lihat backend/app/routers/auth_otp.py).
+    const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.muaraai.com";
+    const url = API_BASE.includes("api.muaraai.com")
+      ? `${API_BASE}/v1/laku/v1/auth/otp/request`
+      : `${API_BASE}/v1/auth/otp/request`;
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: address }),
+      });
+      return res.ok;
+    } catch {
       return false;
     }
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email: address,
-      options: { emailRedirectTo: redirectTo(), shouldCreateUser: true },
-    });
-    return !otpError;
   };
 
   const sendMagicLink = async (e: React.FormEvent) => {
@@ -103,14 +109,40 @@ export default function LoginCard({
     setVerifying(true);
     setFieldError(null);
     setNotice(null);
-    const { error: verifyErr } = await supabase.auth.verifyOtp({ email: sentTo, token, type: "email" });
-    if (verifyErr) {
+    // Verifikasi via backend → dapat session Supabase asli → setSession lokal.
+    const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.muaraai.com";
+    const url = API_BASE.includes("api.muaraai.com")
+      ? `${API_BASE}/v1/laku/v1/auth/otp/verify`
+      : `${API_BASE}/v1/auth/otp/verify`;
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: sentTo, token }),
+      });
+      if (!res.ok) {
+        setVerifying(false);
+        setFieldError(login.otp.invalid);
+        setOtpCode("");
+        return;
+      }
+      const session = await res.json();
+      const { error: setErr } = await supabase.auth.setSession({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+      });
+      if (setErr) {
+        setVerifying(false);
+        setFieldError(login.otp.invalid);
+        setOtpCode("");
+        return;
+      }
+      window.location.href = targetNext;
+    } catch {
       setVerifying(false);
       setFieldError(login.otp.invalid);
       setOtpCode("");
-      return;
     }
-    window.location.href = targetNext;
   };
 
   // digits only (pasting "123 456" works too); verifies by itself once the last digit lands

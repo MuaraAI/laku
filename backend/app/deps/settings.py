@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     supabase_service_key: str = ""
     redis_url: str = ""
     muaraai_gateway_key: str = ""
+    resend_api_key: str = ""
+    email_from: str = "Laku <login@laku.muaraai.com>"
     demo_mode: bool = False
     env: str = "prod"  # "dev" | "prod" — dev saja yang expose /docs & openapi
     rate_limit_enabled: bool = True
