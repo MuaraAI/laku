@@ -3,4 +3,5 @@
 -- (contoh: shopee_seller_center, tiktok_shop_seller_center, tokopedia_seller_dashboard).
 
 ALTER TABLE public.import_batches ADD COLUMN IF NOT EXISTS source_system text;
-ALTER TABLE public.import_batches ADD COLUMN IF NOT EXISTS problems_at_commit int DEFAULT 0;
+ALTER TABLE public.import_batches DROP COLUMN IF EXISTS problems_at_commit;
+ALTER TABLE public.import_batches ADD COLUMN problems_at_commit jsonb NOT NULL DEFAULT '[]'::jsonb;
