@@ -3,6 +3,7 @@
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { apiFetch } from '@/lib/api';
+import { dashboard } from '@/constants/id';
 import {
   PRODUCTS, sortedActionable, stopBuying, overlaysOf, daysOfStock,
   fmtNum, fmtIDR, fmtDays, type Product, type StatusKey, type Channel, STATUS, DEFAULT_LEAD_TIME_DAYS,
@@ -107,7 +108,7 @@ function getTodayFormatted(): string {
       year: 'numeric',
     }).format(new Date());
   } catch {
-    return 'Prioritas Pemesanan';
+    return dashboard.restock.kicker;
   }
 }
 
@@ -230,7 +231,7 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
           <input
             className="search-input"
             type="text"
-            placeholder="Cari nama produk atau SKU…"
+            placeholder={dashboard.restock.searchPlaceholder}
             aria-label="Cari nama produk atau SKU"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -248,7 +249,7 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
             className={`filter-pill${filter === 'all' ? ' active' : ''}`}
             onClick={() => setFilter('all')}
           >
-            Semua
+            {dashboard.restock.filter.all}
           </button>
           <button
             role="radio"
@@ -256,7 +257,7 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
             className={`filter-pill pill-critical${filter === 'critical' ? ' active' : ''}`}
             onClick={() => setFilter('critical')}
           >
-            Segera pesan ({criticalCount})
+            {dashboard.restock.filter.critical(criticalCount)}
           </button>
           <button
             role="radio"
@@ -264,7 +265,7 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
             className={`filter-pill pill-reorder${filter === 'reorder' ? ' active' : ''}`}
             onClick={() => setFilter('reorder')}
           >
-            Waktunya pesan ({reorderCount})
+            {dashboard.restock.filter.reorder(reorderCount)}
           </button>
           <button
             role="radio"
@@ -272,20 +273,20 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
             className={`filter-pill${filter === 'stop' ? ' active' : ''}`}
             onClick={() => setFilter('stop')}
           >
-            Berhenti beli ({stop.length})
+            {dashboard.restock.filter.stop(stop.length)}
           </button>
         </div>
       </div>
 
       {loading ? (
         <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
-          Memuat data rekomendasi restock dari server…
+          {dashboard.common.serverLoading}
         </div>
       ) : mode === 'live' && fetchError ? (
         <div className="stock-empty" role="alert" style={{ border: '1px solid var(--critical-bg)', background: 'var(--critical-bg)' }}>
-          <p style={{ color: 'var(--critical)', fontWeight: 600 }}>Gagal memuat data dari server: {fetchError}</p>
+          <p style={{ color: 'var(--critical)', fontWeight: 600 }}>{dashboard.common.serverError(fetchError)}</p>
           <button className="btn btn-primary" onClick={fetchLive} type="button">
-            Coba Lagi
+            {dashboard.common.retry}
           </button>
         </div>
       ) : mode === 'live' && activeProducts.length === 0 ? (
@@ -294,32 +295,32 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
           border: '1px dashed var(--border-strong)', borderRadius: 'var(--r-lg)',
           display: 'grid', gap: '14px', justifyItems: 'center'
         }}>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 600 }}>Toko Anda belum punya data produk</h3>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 600 }}>{dashboard.restock.emptyLive.title}</h3>
           <p style={{ color: 'var(--text-secondary)', maxWidth: '48ch', margin: 0 }}>
-            Unggah file export pesanan dari Shopee, TikTok Shop, atau Tokopedia lewat menu <strong>Upload</strong> agar Laku bisa menghitung laju penjualan dan titik pesan ulang (ROP) produk Anda.
+            {dashboard.restock.emptyLive.desc}
           </p>
           {onGoUpload && (
             <button className="btn btn-primary" onClick={onGoUpload} type="button">
-              Buka menu Upload sekarang →
+              {dashboard.restock.emptyLive.cta}
             </button>
           )}
         </div>
       ) : totalFiltered === 0 ? (
         <div className="stock-empty" data-reveal>
           {search.trim() ? (
-            <p>Tidak ada produk yang cocok dengan pencarian <strong>&ldquo;{search.trim()}&rdquo;</strong>.</p>
+            <p>{dashboard.restock.emptySearch(search.trim())}</p>
           ) : (
-            <p>Tidak ada produk berstatus ini sekarang.</p>
+            <p>{dashboard.restock.emptyFilter}</p>
           )}
           <button className="btn btn-outline" onClick={() => { setSearch(''); setFilter('all'); }} style={{ minHeight: '36px', fontSize: '13px' }}>
-            {search.trim() ? 'Reset pencarian' : 'Tampilkan semua'}
+            {search.trim() ? dashboard.restock.resetSearch : dashboard.restock.showAll}
           </button>
         </div>
       ) : (
         <>
           {filteredActionable.length > 0 && (
             <section aria-labelledby="perlu-dipesan">
-              <h2 id="perlu-dipesan" className="section-title">Perlu dipesan ({filteredActionable.length})</h2>
+              <h2 id="perlu-dipesan" className="section-title">{dashboard.restock.sectionActionable(filteredActionable.length)}</h2>
               <ul className="stock-list">
                 {filteredActionable.map((p) => <StockRow key={`${p.sku}-${p.channel}`} p={p} onWhy={setWhy} />)}
               </ul>
@@ -329,8 +330,8 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
           {filteredStop.length > 0 && (
             <section className="stop-zone" data-reveal aria-labelledby="berhenti-beli">
               <div className="stop-head">
-                <h2 id="berhenti-beli" className="section-title">Berhenti beli ({filteredStop.length})</h2>
-                <p className="stop-sub">Stok berlebih atau tidak laku. Tahan dulu uangnya, jangan pesan ulang.</p>
+                <h2 id="berhenti-beli" className="section-title">{dashboard.restock.sectionStop(filteredStop.length)}</h2>
+                <p className="stop-sub">{dashboard.restock.sectionStopSub}</p>
               </div>
               <ul className="stock-list stock-list-muted">
                 {filteredStop.map((p) => <StockRow key={`${p.sku}-${p.channel}`} p={p} onWhy={setWhy} />)}
