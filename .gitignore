@@ -22,19 +22,17 @@ build/
 *.tsbuildinfo
 .vercel
 
-# raw marketplace files — JANGAN pernah commit export seller (PII!)
+# raw marketplace files — JANGAN pernah commit export seller asli (PII!)
 *.xlsx
 *.csv
 !backend/tests/fixtures/*.csv
 !tests/fixtures/*.csv
+!public/samples/*.csv
+!public/samples/*.xlsx
 uploads/
-samples/
 
 # misc
 .DS_Store
 *.log
 .idea/
 .vscode/
-
-# internal team docs — tidak dipublikasikan
-docs/

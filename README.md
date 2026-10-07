@@ -71,8 +71,8 @@ laku/
 │   ├── app/services/           # Engine §9A, Recap §9D, Ledger, Parsers (Shopee, TikTok, Tokopedia)
 │   ├── app/middleware/         # Rate limiting token bucket in-memory (XFF anti-spoofing)
 │   ├── configs/channels/       # Pemetaan kolom marketplace deklaratif (YAML)
-│   ├── supabase/migrations/    # Skema SQL 0001–0012 + RLS policies + RPC functions
-│   └── tests/                  # Test suite pytest (143 passing tests)
+│   ├── supabase/migrations/    # Skema SQL 0001–0013 + RLS policies + RPC functions
+│   └── tests/                  # Test suite pytest (145 passing tests)
 ├── DESIGN.md                   # Spesifikasi resmi Design System v1.0.0 (Ledger Rail)
 └── docs/                       # PRD v3.1, Implementation Plan, Panduan Deploy
 ```
@@ -130,7 +130,7 @@ API akan aktif di `http://127.0.0.1:8400` dengan endpoint kesehatan di `/health`
 Laku menerapkan disiplin **Test-Driven Development (TDD)** dengan pengetesan perilaku eksternal:
 
 ```bash
-# Menjalankan seluruh test suite backend (143 tests)
+# Menjalankan seluruh test suite backend (145 tests)
 cd backend
 source .venv/bin/activate
 pytest tests/ -v
