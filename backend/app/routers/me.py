@@ -29,7 +29,16 @@ def _supabase():
     """Service client (server-side, lookup/provision sellers)."""
     s = get_settings()
     if not s.supabase_service_key:
-        raise HTTPException(500, "SUPABASE_SERVICE_KEY not configured")
+        # Bug smoke-test 7 Okt: sebelumnya HTTPException(500) — dashboard mati
+        # total saat env belum lengkap, padahal router lain punya jalur dev.
+        # Sekarang: 503 + pesan yang jujur dan bisa ditindaklanjuti (bukan
+        # "kesalahan server" palsu; ini kondisi konfigurasi, bukan crash).
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            {"error": {"code": "BACKEND_NOT_CONFIGURED",
+                       "message": ("Server belum dikonfigurasi (Supabase tidak aktif). "
+                                   "Hubungi tim Laku.")}},
+        )
     from supabase import create_client  # noqa: no stubs for supabase-py
 
     return create_client(s.supabase_url, s.supabase_service_key)
