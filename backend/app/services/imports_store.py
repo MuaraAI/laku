@@ -201,7 +201,7 @@ class ImportsSupabaseStore(ImportsStore):
         "id", "seller_id", "channel", "source_system", "file_hash",
         "status", "rows_read", "rows_new", "rows_updated", "rows_unchanged",
         "rows_problem", "row_count", "data_from", "data_through",
-        "sku_fill_rate", "change_log", "created_at",
+        "sku_fill_rate", "change_log", "problems_at_commit", "created_at",
     }
 
     def __init__(self, client) -> None:
