@@ -89,7 +89,7 @@ export function WhyPanel({ product, onClose }: { product: Product | null; onClos
         {o.negative ? (
           <div className="panel-note negative-note">
             <strong>Stok tercatat minus (<Num>{fmtNum(p.onHand)}</Num> unit).</strong>
-            {' '}Saran angka restock disembunyikan dulu. Cocokkan stok aktual lewat halaman Upload atau hitung fisik,
+            {' '}Laku menyembunyikan saran restock dulu. Cocokkan stok aktual lewat halaman Upload atau stok opname,
             lalu perbarui saldo supaya rekomendasi bisa dihitung lagi.
           </div>
         ) : (
@@ -122,17 +122,17 @@ export function WhyPanel({ product, onClose }: { product: Product | null; onClos
               <span className="why-label">Titik pesan ulang (ROP)</span>
               <Num strong>{fmtNum1(demandLead)} + {fmtNum(p.safetyStock)} = {fmtNum(p.rop)} unit</Num>
               {Math.abs(demandLead + p.safetyStock - Math.round(demandLead + p.safetyStock)) > 1e-9 && (
-                <span className="why-desc">Dibulatkan ke atas — stok dihitung per unit utuh.</span>
+                <span className="why-desc">Dibulatkan ke atas, karena stok dihitung per unit utuh.</span>
               )}
               <span className="why-desc">
-                Stok saat ini <Num>{fmtNum(p.onHand)}</Num> unit — {p.onHand <= p.rop ? 'sudah di bawah titik pesan, waktunya order.' : 'masih di atas titik pesan.'}
+                Stok saat ini <Num>{fmtNum(p.onHand)}</Num> unit, {p.onHand <= p.rop ? 'sudah di bawah titik pesan. Waktunya order.' : 'masih di atas titik pesan.'}
               </span>
             </li>
             {p.suggestedQty > 0 && (
               <li className="why-total accent">
                 <span className="why-label">Saran jumlah pesanan</span>
                 <Num strong>{fmtNum(p.suggestedQty)} unit · ≈ {fmtIDR(p.suggestedQty * p.price)}</Num>
-                <span className="why-desc">Menutup kebutuhan ±30 hari ke depan berdasarkan laju penjualan sekarang.</span>
+                <span className="why-desc">Cukup untuk ±30 hari ke depan berdasarkan laju penjualan sekarang.</span>
               </li>
             )}
           </ol>

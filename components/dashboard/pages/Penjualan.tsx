@@ -179,7 +179,7 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
   return (
     <div className="page">
       <header className="page-head" data-reveal>
-        <p className="kicker"><b>Recap penjualan</b></p>
+        <p className="kicker"><b>Rekap penjualan</b></p>
         <h1 className="page-title">Penjualan</h1>
         <div className="period-selector" role="tablist" aria-label="Pilih periode">
           {PERIODS.map((p) => (
@@ -198,12 +198,12 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
           <div>
             {staleChannels.length > 0 && (
               <p>
-                Data <strong>{staleChannels.map((c) => c.channel).join(', ')}</strong> usang
-                {' '}<Num>{fmtNum(staleChannels[0].daysAgo)}</Num> hari — unggah ulang laporan supaya rekomendasi restock akurat.
+                Data <strong>{staleChannels.map((c) => c.channel).join(', ')}</strong> terakhir
+                {' '}<Num>{fmtNum(staleChannels[0].daysAgo)}</Num> hari lalu. Unggah ulang laporan supaya rekomendasi restock akurat.
               </p>
             )}
             <p>
-              Transaksi <span className="num">7</span> hari terakhir masih <SementaraChip /> — angka bisa berubah
+              Transaksi <span className="num">7</span> hari terakhir masih <SementaraChip />. Angka bisa berubah
               karena pesanan belum selesai, retur, atau pembatalan.
             </p>
           </div>
@@ -240,9 +240,9 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
         </div>
       ) : isLive && transaksi === 0 ? (
         <div className="stock-empty" data-reveal style={{ marginTop: '14px' }}>
-          <p>Belum ada transaksi penjualan tercatat untuk Toko Saya pada periode {period} hari ini.</p>
+          <p>Belum ada transaksi penjualan tercatat untuk Toko Saya dalam {period} hari terakhir.</p>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-            Unggah file pesanan marketplace Anda lewat menu <strong>Upload</strong> agar grafik tren omzet dan analisis per-channel muncul di sini.
+            Impor data pesanan dari Shopee, TikTok Shop, atau Tokopedia lewat menu <strong>Upload</strong> untuk melihat rekap omzet dan grafik tren penjualan.
           </p>
         </div>
       ) : (

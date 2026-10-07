@@ -208,7 +208,7 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
           <li className="step active">
             <span className="step-no num">3</span>
             <div className="preview-block">
-              <h2 className="step-title">Preview — cek dulu sebelum konfirmasi</h2>
+              <h2 className="step-title">Preview: cek dulu sebelum konfirmasi</h2>
               <p className="preview-file"><IconFile size={15} /> <span className="num num-left">{preview.fileName}</span> · {preview.channel}</p>
               <div className="kpi-strip kpi-compact">
                 <div className="kpi"><span className="kpi-label">Baris dibaca</span><Num strong>{fmtNum(preview.rowsRead)}</Num></div>

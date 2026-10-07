@@ -152,7 +152,7 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
         {step === 0 && (
           <section>
             <h2 className="step-title">Jualan di mana saja?</h2>
-            <p className="step-sub">Pilih channel utama dulu — channel lain bisa ditambah lewat halaman Upload nanti.</p>
+            <p className="step-sub">Pilih channel utama dulu. Channel lain bisa ditambah lewat halaman Upload nanti.</p>
             <div className="channel-picker">
               {CHANNELS.map((c) => (
                 <button key={c} className={`channel-opt${channel === c ? ' active' : ''}`} onClick={() => setChannel(c)}>{c}</button>

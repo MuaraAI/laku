@@ -77,9 +77,9 @@ export const statement = {
 export const problem = {
   tag: "Masalahnya",
   title: "Kiriman dari supplier butuh berhari-hari. Salah tebak, rugi dua kali.",
-  body: "Banyak seller di seluruh Nusantara restock dari supplier luar kota atau luar pulau dengan lead time 3–7 hari. Tanpa hitungan, stok habis saat laris dan modal nyangkut di barang yang lambat.",
+  body: "Banyak seller restock dari supplier luar kota atau luar pulau dengan lead time 3-7 hari. Tanpa hitungan, stok habis saat laris dan modal nyangkut di barang yang lambat.",
   cells: [
-    { key: "A.", big: "3–7 hr", title: "Kiriman dari supplier tidak instan", body: "Telat pesan sehari, rak kosong berhari-hari dan pembeli pindah toko." },
+    { key: "A.", big: "3-7 hr", title: "Kiriman dari supplier tidak instan", body: "Telat pesan sehari, rak kosong berhari-hari dan pembeli pindah toko." },
     { key: "B.", big: "2×", title: "Kehabisan dan kebanyakan sekaligus", body: "Yang laris kehabisan, yang lambat menumpuk. Dua-duanya makan modal." },
     { key: "C.", big: "≠1", title: "Data tersebar di beberapa Seller Center", body: "Format beda-beda, angka harus dicocokkan manual setiap minggu." },
   ],
