@@ -2,12 +2,11 @@
 // pilih channel → panduan upload per channel → upload awal → konfirmasi
 // lead time (badge "asumsi") → saldo awal stok (opsional, bisa skip) → dashboard.
 
-import Image from 'next/image';
 import { useRef, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { CHANNELS, UPLOAD_GUIDE, DEFAULT_LEAD_TIME_DAYS, fmtNum, type Channel } from '../data';
 import { AssumsiBadge } from '../components';
-import { IconChevron, IconUpload, IconWarning } from '../icons';
+import { IconChevron, IconUpload, IconWarning, IconCheck } from '../icons';
 
 const STEP_TITLES = ['Channel', 'Panduan upload', 'Upload awal', 'Lead time', 'Saldo awal stok', 'Selesai'];
 
@@ -236,7 +235,9 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
 
         {step === 5 && (
           <section className="wizard-finish">
-            <Image className="crate-mini" src="/illustrations/stock-crates.svg" alt="" width={110} height={121} unoptimized />
+            <div className="finish-icon" aria-hidden="true">
+              <IconCheck size={40} />
+            </div>
             <h2 className="step-title">Siap. Dashboard restock-mu sudah menunggu.</h2>
             <p className="step-sub">
               Laku akan menandai barang yang harus <em>segera dipesan</em>, yang masih <em>aman</em>,

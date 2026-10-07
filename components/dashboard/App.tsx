@@ -90,7 +90,6 @@ export default function App() {
       if (supabase) {
         await supabase.auth.signOut();
       }
-      setMode('demo');
       window.location.href = '/';
     } catch {
       window.location.href = '/';
