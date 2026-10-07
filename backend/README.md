@@ -14,7 +14,7 @@ backend/
 │   ├── main.py                 # FastAPI application, exception handlers, rate limiter, CORS
 │   ├── config.py               # Pydantic Settings & environment variables loader
 │   ├── deps/
-│   │   ├── auth.py             # RS256 JWT decoding via JWKS Supabase, RBAC (owner vs operator)
+│   │   ├── auth.py             # RS256 & ES256 (ECC) JWT decoding via JWKS Supabase, RBAC
 │   │   └── settings.py         # Dependency injection settings
 │   ├── middleware/
 │   │   └── rate_limit.py       # In-memory sliding window rate limiter (120 read/min, 10 write/min)
@@ -33,13 +33,15 @@ backend/
 │       ├── imports_store.py    # Abstraksi penyimpanan batch & order_lines (Supabase & In-Memory)
 │       └── parsers/
 │           ├── shopee.py       # Parser Shopee CSV & XLSX (alignment score ragged-row, PII strip)
-│           └── tiktok.py       # Parser TikTok Shop CSV & XLSX (numeric-cell guard, PII strip)
+│           ├── tiktok.py       # Parser TikTok Shop CSV & XLSX (numeric-cell guard, PII strip)
+│           └── tokopedia.py    # Parser Tokopedia CSV & XLSX (PII strip, invoice mapper)
 ├── configs/channels/           # Konfigurasi deklaratif kolom export marketplace (YAML)
 │   ├── shopee.yaml             # Kolom ekspor Shopee Seller Centre
-│   └── tiktok_shop.yaml        # Kolom ekspor TikTok Shop Seller Center
-├── supabase/migrations/        # Migrasi SQL database Supabase (0001–0010)
+│   ├── tiktok_shop.yaml        # Kolom ekspor TikTok Shop Seller Center
+│   └── tokopedia.yaml          # Kolom ekspor Tokopedia Seller Dashboard
+├── supabase/migrations/        # Migrasi SQL database Supabase (0001–0012)
 ├── mock/                       # Mock server independen untuk pengembangan frontend
-└── tests/                      # Test suite pytest (139 passing tests)
+└── tests/                      # Test suite pytest (143 passing tests)
 ```
 
 ---

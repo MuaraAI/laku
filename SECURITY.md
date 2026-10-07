@@ -26,7 +26,7 @@ Laku dibangun dengan pendekatan pertahanan berlapis (*defense-in-depth*):
    - Setiap tabel database (16 tabel) memaksakan kebijakan RLS PostgreSQL dengan isolasi berbasis `seller_id`.
    - Pengguna dengan role Operator Gudang dibatasi dari akses data finansial/rekap omzet (`require_owner`).
 3. **Autentikasi & Token Pinned**:
-   - Autentikasi berbasis Supabase Auth dengan verifikasi kriptografi RS256 JWKS pinned.
+   - Autentikasi berbasis Supabase Auth dengan verifikasi kriptografi RS256 & ES256 (ECC) JWKS pinned.
    - Pintu masuk fleksibel menggunakan Google OAuth 2.0 dan Email Magic Link / OTP via SMTP Resend terenkripsi (`smtp.resend.com:465`).
 4. **Perlindungan Terhadap DoS & Injeksi**:
    - Batas ukuran upload ketat: $\le 10\text{ MB}$ dan $\le 20.000$ baris per file dengan *early-abort* row counter.
