@@ -13,7 +13,7 @@ from __future__ import annotations
 import re
 import uuid
 from abc import ABC, abstractmethod
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 
 from app.repositories.base import fetch_all_paginated
 
@@ -240,14 +240,12 @@ class StockSupabaseStore(StockStore):
         }
 
     def list_products(self, seller_id: str) -> list[dict]:
-        rows = (
+        query = (
             self.client.table("products")
             .select("id, canonical_name, product_links(sku_raw)")
             .eq("seller_id", seller_id)
-            .execute()
-            .data
-            or []
         )
+        rows = fetch_all_paginated(query)
         out = []
         for r in rows:
             links = r.get("product_links") or []
@@ -400,7 +398,7 @@ def record_movement(store: StockStore, seller_id: str, product_id: str,
         "product_id": product_id,
         "type": mtype,
         "qty": qty,
-        "at": datetime.now().isoformat(),
+        "at": datetime.now(timezone.utc).isoformat(),
         "note": note,
         "by_user": by_user,
     }
