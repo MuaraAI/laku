@@ -57,11 +57,20 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
-/* Material Symbols Rounded */
+/* Material Symbols Rounded (self-hosted local woff2) */
+@font-face {
+  font-family: "Material Symbols Rounded";
+  font-style: normal;
+  font-weight: 100 700;
+  src: url("/fonts/material-symbols-rounded.woff2") format("woff2");
+  font-display: block;
+}
+
 .ms {
   font-family: "Material Symbols Rounded"; font-weight: normal; font-style: normal;
   font-size: 20px; line-height: 1; display: inline-block; white-space: nowrap; direction: ltr; flex: none;
   font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24; user-select: none;
+  -webkit-font-feature-settings: "liga"; font-feature-settings: "liga";
 }
 .ms.fill { font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24; }
 
@@ -106,8 +115,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* ---------- Supply map (components/landing/SupplyMap.tsx): login panel + landing hero ---------- */
 .smap { position: relative; margin: 0; width: 100%; aspect-ratio: 640 / 290; container-type: inline-size; }
 .smap svg { position: absolute; inset: 0 0 auto; width: 100%; height: auto; aspect-ratio: 640 / 260; overflow: hidden; }
-.smap-light { --m-land: color-mix(in srgb, var(--primary) 14%, var(--surface)); --m-edge: color-mix(in srgb, var(--primary) 32%, transparent); --m-ctx: color-mix(in srgb, var(--text-muted) 12%, transparent); --m-route: var(--primary); --m-dot: var(--primary); --m-text: var(--text-secondary); --m-chip: var(--surface); --m-chip-edge: var(--border); --m-hub: var(--primary); --m-hub-text: var(--on-primary); --m-muted: var(--text-muted); }
-.smap-dark { --m-land: color-mix(in srgb, var(--on-dark-accent) 13%, transparent); --m-edge: color-mix(in srgb, var(--on-dark-accent) 38%, transparent); --m-ctx: color-mix(in srgb, var(--on-primary) 5%, transparent); --m-route: var(--on-dark-accent); --m-dot: var(--on-dark-accent); --m-text: var(--on-dark-text); --m-chip: color-mix(in srgb, var(--secondary) 70%, transparent); --m-chip-edge: var(--on-dark-rule); --m-hub: var(--on-dark-accent); --m-hub-text: var(--secondary); --m-muted: var(--on-dark-muted); }
+.smap-light { --m-land: #e0f2fe; --m-edge: rgba(3, 105, 161, 0.32); --m-ctx: rgba(100, 116, 139, 0.12); --m-route: var(--primary); --m-dot: var(--primary); --m-text: var(--text-secondary); --m-chip: var(--surface); --m-chip-edge: var(--border); --m-hub: var(--primary); --m-hub-text: var(--on-primary); --m-muted: var(--text-muted); }
+.smap-dark { --m-land: rgba(125, 211, 252, 0.13); --m-edge: rgba(125, 211, 252, 0.38); --m-ctx: rgba(255, 255, 255, 0.05); --m-route: var(--on-dark-accent); --m-dot: var(--on-dark-accent); --m-text: var(--on-dark-text); --m-chip: rgba(7, 32, 51, 0.7); --m-chip-edge: var(--on-dark-rule); --m-hub: var(--on-dark-accent); --m-hub-text: var(--secondary); --m-muted: var(--on-dark-muted); }
 .smap-ctx { fill: var(--m-ctx); }
 .smap-land { fill: var(--m-land); stroke: var(--m-edge); stroke-width: .6; stroke-linejoin: round; }
 .smap-route { fill: none; stroke: var(--m-route); stroke-width: 1.3; stroke-linecap: round; opacity: .45; }

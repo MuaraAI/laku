@@ -38,7 +38,7 @@ export default function Hero() {
         {/* supplier → warehouse: the line draws, then one parcel makes the trip */}
         <div className="route" data-reveal="route" aria-hidden="true">
           <span className="pin from">
-            <span className="ms">factory</span>
+            <Icon name="factory" />
             <span>
               {hero.routeFrom}
             </span>
@@ -54,7 +54,7 @@ export default function Hero() {
             <span className="packet" />
           </span>
           <span className="pin to">
-            <span className="ms fill">warehouse</span>
+            <Icon name="warehouse" fill />
             <span>
               {hero.routeTo}
             </span>
