@@ -43,11 +43,13 @@ columns:
       "PEMBAYARAN DITERIMA": in_progress
       "PERLU DIKIRIM": in_progress
       "SEDANG DIPROSES": in_progress
+      "SEDANG DIKIRIM": in_progress
       "IN PROGRESS": in_progress
       "PROCESSING": in_progress
       "SHIPPED": in_progress
       "DIBATALKAN": cancelled
       "PESANAN DIBATALKAN": cancelled
+      "BATAL": cancelled
       "CANCELLED": cancelled
       "PENGEMBALIAN": returned
       "PESANAN DIKEMBALIKAN": returned

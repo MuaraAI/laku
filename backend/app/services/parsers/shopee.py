@@ -86,8 +86,17 @@ def _parse_dt(raw: str, tz: str) -> datetime | None:
     s = str(raw or "").strip()
     if not s:
         return None
-    for fmt in ("%Y-%m-%d %H:%M", "%d/%m/%Y %H:%M", "%d-%m-%Y %H:%M",
-                "%Y-%m-%d %H:%M:%S", "%d/%m/%Y", "%Y-%m-%d"):
+    for fmt in (
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d %H:%M",
+        "%d/%m/%Y %H:%M:%S",
+        "%d/%m/%Y %H:%M",
+        "%d-%m-%Y %H:%M:%S",
+        "%d-%m-%Y %H:%M",
+        "%d/%m/%Y",
+        "%d-%m-%Y",
+        "%Y-%m-%d",
+    ):
         try:
             return datetime.strptime(s, fmt)
         except ValueError:
