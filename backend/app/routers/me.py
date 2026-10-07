@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.deps.auth import Identity, get_identity, require_owner
 from app.deps.settings import get_settings
@@ -104,8 +104,15 @@ class SellerSettings(BaseModel):
     lead_time_days: int | None = Field(default=None, ge=0, le=60)
     cycle_days: int | None = Field(default=None, ge=0, le=90)
     review_days: int | None = Field(default=None, ge=0, le=60)
-    service_level: float | None = Field(default=None, ge=0.5, le=0.999)
+    service_level: float | None = Field(default=None)
     shared_to_insights: bool | None = None
+
+    @field_validator("service_level")
+    @classmethod
+    def _validate_service_level(cls, v: float | None) -> float | None:
+        if v is not None and v not in (0.90, 0.95, 0.98):
+            raise ValueError("service_level harus 0.90, 0.95, atau 0.98")
+        return v
 
 
 @router.post("/settings", status_code=status.HTTP_200_OK)

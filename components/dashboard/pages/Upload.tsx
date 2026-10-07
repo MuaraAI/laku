@@ -1,7 +1,7 @@
 // Halaman Upload: pilih channel → pilih CSV/XLSX → skeleton loader →
 // preview ringkasan → Konfirmasi. (MVP: parsing disimulasikan di frontend.)
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { CHANNELS, mockPreview, fmtNum, fmtNum1, type Channel, type UploadPreview } from '../data';
 import { Num } from '../components';
 import { IconFile, IconUpload, IconWarning } from '../icons';
@@ -17,6 +17,9 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const timerRef = useRef<number | undefined>(undefined);
+
+  useEffect(() => () => window.clearTimeout(timerRef.current), []);
 
   function pickFile() {
     if (!channel) return;
@@ -62,7 +65,7 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
             fileName: name,
             rowsRead: data.rows_read ?? 0,
             rowsNew: data.new ?? 0,
-            skuFillRate: data.sku_fill_rate ? Math.round(data.sku_fill_rate * 100) : 100,
+            skuFillRate: data.sku_fill_rate != null ? Math.round(data.sku_fill_rate * 100) : 100,
             problems: (data.problems || []).map((p: Record<string, unknown>) => ({
               row: typeof p.row === 'number' ? p.row : 0,
               issue: String(p.reason || p.problem || 'Baris bermasalah'),
@@ -87,7 +90,8 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
     }
 
     // Default Demo Simulation
-    window.setTimeout(() => {
+    window.clearTimeout(timerRef.current);
+    timerRef.current = window.setTimeout(() => {
       setPreview(mockPreview(channel, name));
       setPhase('preview');
     }, 1400);
@@ -128,6 +132,7 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
   }
 
   function reset() {
+    window.clearTimeout(timerRef.current);
     setPhase('idle'); setPreview(null); setFileName(''); setBatchId(null); setUploadError(null);
     if (fileRef.current) fileRef.current.value = '';
   }
