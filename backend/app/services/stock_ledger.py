@@ -133,7 +133,20 @@ class StockMemoryStore(StockStore):
         return dict(p) if p else None
 
     def list_products(self, seller_id: str) -> list[dict]:
-        return [dict(p) for p in self._products.get(seller_id, {}).values()]
+        out = [dict(p) for p in self._products.get(seller_id, {}).values()]
+        existing_skus = {p.get("sku") for p in out if p.get("sku")}
+        if self.sales_source is not None:
+            sales = self.fetch_eligible_sales(seller_id)
+            sales_skus = {s["sku"] for s in sales if s.get("sku")}
+            missing = sales_skus - existing_skus
+            if missing:
+                from app.services.catalog import friendly_sku_name
+                for sku in sorted(missing):
+                    friendly = friendly_sku_name(sku)
+                    p = {"id": f"prod_{sku}", "name": friendly, "sku": sku}
+                    self._products.setdefault(seller_id, {})[p["id"]] = p
+                    out.append(p)
+        return out
 
     # -- stock_items ---------------------------------------------------
     def get_stock_item(self, seller_id: str, product_id: str) -> dict | None:
@@ -222,6 +235,10 @@ class StockSupabaseStore(StockStore):
                 "seller_id", seller_id).eq("id", product_id).execute()
 
     def get_product(self, seller_id: str, product_id: str) -> dict | None:
+        if str(product_id).startswith("sku:"):
+            sku = str(product_id).split(":", 1)[1]
+            from app.services.catalog import friendly_sku_name
+            return {"id": product_id, "name": friendly_sku_name(sku), "sku": sku}
         rows = (
             self.client.table("products")
             .select("id, canonical_name, product_links(sku_raw)")
@@ -252,9 +269,43 @@ class StockSupabaseStore(StockStore):
             links = r.get("product_links") or []
             out.append({"id": r["id"], "name": r["canonical_name"],
                         "sku": links[0]["sku_raw"] if links else None})
+
+        # Auto-discovery dari order_lines (FR-4 & FR-26)
+        existing_skus = {p["sku"] for p in out if p.get("sku")}
+        sales = self.fetch_eligible_sales(seller_id)
+        sales_skus = {s["sku"] for s in sales if s.get("sku")}
+        missing_skus = sales_skus - existing_skus
+        if missing_skus:
+            from app.services.catalog import friendly_sku_name
+            for sku in sorted(missing_skus):
+                friendly = friendly_sku_name(sku)
+                try:
+                    p_res = (
+                        self.client.table("products")
+                        .insert({"seller_id": seller_id, "canonical_name": friendly, "match_state": "exact"})
+                        .execute()
+                    )
+                    if p_res.data:
+                        prod_row = p_res.data[0]
+                        self.client.table("product_links").insert({
+                            "seller_id": seller_id,
+                            "product_id": prod_row["id"],
+                            "channel": "manual",
+                            "channel_product_key": f"sku:{sku}",
+                            "sku_raw": sku,
+                            "title_raw": friendly,
+                            "confidence": 1.0,
+                        }).execute()
+                        out.append({"id": prod_row["id"], "name": friendly, "sku": sku})
+                        continue
+                except Exception:
+                    pass
+                out.append({"id": f"sku:{sku}", "name": friendly, "sku": sku})
         return out
 
     def get_stock_item(self, seller_id: str, product_id: str) -> dict | None:
+        if str(product_id).startswith("sku:") or str(product_id).startswith("prod_"):
+            return None
         rows = (
             self.client.table("stock_items")
             .select("*")
@@ -275,6 +326,8 @@ class StockSupabaseStore(StockStore):
         return self.client.table("stock_movements").insert(movement).execute().data[0]
 
     def list_movements(self, seller_id: str, product_id: str) -> list[dict]:
+        if str(product_id).startswith("sku:") or str(product_id).startswith("prod_"):
+            return []
         return (
             self.client.table("stock_movements")
             .select("*")
