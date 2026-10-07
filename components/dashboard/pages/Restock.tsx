@@ -296,7 +296,7 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
         }}>
           <h3 style={{ fontSize: '1.2rem', fontWeight: 600 }}>Toko Anda Belum Memiliki Data Produk</h3>
           <p style={{ color: 'var(--text-secondary)', maxWidth: '48ch', margin: 0 }}>
-            Unggah file export pesanan (Shopee atau TikTok Shop) lewat menu <strong>Upload</strong> agar engine Laku dapat menghitung laju penjualan dan titik pesan ulang (ROP) produk Anda.
+            Unggah file export pesanan (Shopee, TikTok Shop, atau Tokopedia) lewat menu <strong>Upload</strong> agar engine Laku dapat menghitung laju penjualan dan titik pesan ulang (ROP) produk Anda.
           </p>
           {onGoUpload && (
             <button className="btn btn-primary" onClick={onGoUpload} type="button">
@@ -306,9 +306,13 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
         </div>
       ) : totalFiltered === 0 ? (
         <div className="stock-empty" data-reveal>
-          <p>Tidak ada produk yang cocok dengan pencarian <strong>&ldquo;{search}&rdquo;</strong>.</p>
+          {search.trim() ? (
+            <p>Tidak ada produk yang cocok dengan pencarian <strong>&ldquo;{search.trim()}&rdquo;</strong>.</p>
+          ) : (
+            <p>Tidak ada produk berstatus ini sekarang.</p>
+          )}
           <button className="btn btn-outline" onClick={() => { setSearch(''); setFilter('all'); }} style={{ minHeight: '36px', fontSize: '13px' }}>
-            Reset pencarian
+            {search.trim() ? 'Reset pencarian' : 'Tampilkan semua'}
           </button>
         </div>
       ) : (

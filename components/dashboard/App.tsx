@@ -21,6 +21,8 @@ export default function App() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [liveOnboarded, setLiveOnboarded] = useState<boolean>(true);
   const [demoOnboarded, setDemoOnboarded] = useState<boolean>(true);
+  // live mode waits for the session check so pages never call the API without a token
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     try {
@@ -40,13 +42,26 @@ export default function App() {
 
   useEffect(() => {
     let unsub: (() => void) | undefined;
+    let redirecting = false;
     async function loadUser() {
       try {
         const { supabaseBrowser } = await import('@/lib/supabase/client');
         const supabase = supabaseBrowser();
+        const wantsLive = new URLSearchParams(window.location.search).get('mode') === 'live';
+        if (!supabase) {
+          // login is not configured here, so "Toko Saya" cannot exist: stay on the demo
+          if (wantsLive) setMode('demo');
+          return;
+        }
         if (supabase) {
           const { data } = await supabase.auth.getSession();
           const email = data.session?.user?.email ?? null;
+          if (!email && wantsLive) {
+            // /dashboard?mode=live while logged out: sign in first, then come back to the live store
+            redirecting = true;
+            window.location.replace(`/login?next=${encodeURIComponent('/dashboard?mode=live')}`);
+            return;
+          }
           setUserEmail(email);
 
           if (email) {
@@ -73,6 +88,8 @@ export default function App() {
         }
       } catch {
         /* abaikan */
+      } finally {
+        if (!redirecting) setAuthChecked(true);
       }
     }
     loadUser();
@@ -114,7 +131,18 @@ export default function App() {
   }
 
   const isLocked = mode === 'demo' ? !demoOnboarded : !liveOnboarded;
-  const currentPage: PageKey = isLocked ? 'setup' : page;
+
+  // keep ?mode= in the address bar in step with the toggle, so a reload opens the same store
+  function switchMode(next: 'demo' | 'live') {
+    setMode(next);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('mode', next);
+      window.history.replaceState(null, '', url);
+    } catch {
+      /* abaikan */
+    }
+  }
 
   const navItems = useMemo(() => {
     if (mode === 'demo') {
@@ -147,13 +175,20 @@ export default function App() {
     ];
   }, [mode, demoOnboarded, liveOnboarded]);
 
+  // a page that is not in this mode's menu (e.g. Setup, opened in Demo, after switching to an onboarded
+  // live store where Setup is hidden) falls back to Restock instead of rendering with no tab selected
+  const pageAvailable = navItems.some((n) => n.key === page && !n.locked);
+  const currentPage: PageKey = isLocked ? 'setup' : pageAvailable ? page : 'restock';
+
   const storeName = mode === 'demo'
     ? 'Warung Bu Rina'
     : userEmail
     ? `Toko ${userEmail.split('@')[0]}`
     : 'Toko Saya';
 
-  const body = currentPage === 'setup' ? (
+  const body = mode === 'live' && !authChecked ? (
+    <p className="page-loading" role="status">Memeriksa sesi login…</p>
+  ) : currentPage === 'setup' ? (
     <OnboardingPage onFinish={finishOnboarding} mode={mode} />
   ) : currentPage === 'penjualan' ? (
     <PenjualanPage mode={mode} />
@@ -238,7 +273,7 @@ export default function App() {
               <div className="mode-toggle-group" role="radiogroup" aria-label="Pilih mode data">
                 <button
                   className={`mode-btn ${mode === 'demo' ? 'active' : ''}`}
-                  onClick={() => setMode('demo')}
+                  onClick={() => switchMode('demo')}
                   type="button"
                   role="radio"
                   aria-checked={mode === 'demo'}
@@ -251,7 +286,7 @@ export default function App() {
                     if (!userEmail) {
                       window.location.href = `/login?next=${encodeURIComponent('/dashboard?mode=live')}`;
                     } else {
-                      setMode('live');
+                      switchMode('live');
                     }
                   }}
                   title={!userEmail ? 'Login untuk buka Toko Saya' : 'Beralih ke Toko Saya'}

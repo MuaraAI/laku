@@ -17,9 +17,17 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [leadTime, setLeadTime] = useState(DEFAULT_LEAD_TIME_DAYS);
+  // kept as text while typing so the field can be cleared; parsed and clamped to 1–60 on confirm
+  const [leadTimeDraft, setLeadTimeDraft] = useState(String(DEFAULT_LEAD_TIME_DAYS));
   const [confirmed, setConfirmed] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [stepError, setStepError] = useState<string | null>(null);
+  const [stockSku, setStockSku] = useState('');
+  const [stockName, setStockName] = useState('');
   const [stockDraft, setStockDraft] = useState('');
+  const leadTimeNum = Number.parseInt(leadTimeDraft, 10);
+  const leadTimeValid = Number.isFinite(leadTimeNum) && leadTimeNum >= 1 && leadTimeNum <= 60;
+  const leadTime = leadTimeValid ? leadTimeNum : DEFAULT_LEAD_TIME_DAYS;
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function handleFileUpload(file: File) {
@@ -48,17 +56,25 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
         if (res.ok) {
           const data = await res.json();
           const confirmUrl = buildApiUrl(`/v1/imports/${data.import_batch_id}/confirm`);
-          await fetch(confirmUrl, {
+          const confirmRes = await fetch(confirmUrl, {
             method: 'POST',
             headers: token ? { Authorization: `Bearer ${token}` } : {},
           });
-          setUploaded(true);
+          // the file is only in the store once the batch is confirmed; a failed confirm is not a success
+          if (confirmRes.ok) setUploaded(true);
+          else {
+            const err = await confirmRes.json().catch(() => null);
+            setUploadError(err?.detail?.error?.message || 'File terbaca, tapi gagal disimpan. Coba unggah lagi.');
+            if (fileRef.current) fileRef.current.value = '';
+          }
         } else {
           const errData = await res.json().catch(() => null);
           setUploadError(errData?.detail?.error?.message || 'Gagal membaca file di server.');
+          if (fileRef.current) fileRef.current.value = '';
         }
       } catch {
         setUploadError('Koneksi ke backend gagal.');
+        if (fileRef.current) fileRef.current.value = '';
       } finally {
         setUploading(false);
       }
@@ -72,29 +88,49 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
     }, 1200);
   }
 
-  function handleConfirmLeadTime(isConfirmed: boolean) {
-    setConfirmed(isConfirmed);
-    if (mode === 'live') {
-      apiFetch('/v1/me/settings', {
+  // "Pakai asumsi dulu" keeps the default and saves nothing; only an explicit confirm writes the seller's lead time
+  async function handleConfirmLeadTime(isConfirmed: boolean) {
+    setStepError(null);
+    if (isConfirmed && !leadTimeValid) return setStepError('Lead time harus antara 1 dan 60 hari.');
+    if (isConfirmed && mode === 'live') {
+      setSaving(true);
+      const res = await apiFetch('/v1/me/settings', {
         method: 'POST',
         body: JSON.stringify({ lead_time_days: leadTime }),
       });
+      setSaving(false);
+      if (res.error) return setStepError(`Lead time belum tersimpan: ${res.error}`);
     }
+    if (!isConfirmed) setLeadTimeDraft(String(DEFAULT_LEAD_TIME_DAYS));
+    setConfirmed(isConfirmed);
     setStep(4);
   }
 
-  function handleConfirmStock() {
-    if (mode === 'live' && stockDraft.trim()) {
-      const qty = parseInt(stockDraft, 10);
-      if (!isNaN(qty) && qty > 0) {
-        apiFetch('/v1/stock/opening', {
-          method: 'POST',
-          body: JSON.stringify({ name: 'Produk Utama', sku: 'SKU-01', qty }),
-        });
-      }
+  // opening stock belongs to a real SKU the seller names; never a placeholder product
+  async function handleConfirmStock() {
+    setStepError(null);
+    const qty = Number.parseInt(stockDraft, 10);
+    const sku = stockSku.trim();
+    const name = stockName.trim() || sku;
+    if (!sku || !Number.isFinite(qty) || qty < 0) return setStepError('Isi SKU dan jumlah stok, atau pilih "Skip, isi nanti".');
+    if (mode === 'live') {
+      setSaving(true);
+      const res = await apiFetch('/v1/stock/opening', {
+        method: 'POST',
+        body: JSON.stringify({ name, sku, qty }),
+      });
+      setSaving(false);
+      if (res.error) return setStepError(`Saldo awal belum tersimpan: ${res.error}`);
     }
     setStep(5);
   }
+
+  const stepErrorNote = stepError && (
+    <p className="negative-note onb-error" role="alert">
+      <IconWarning size={15} />
+      <span>{stepError}</span>
+    </p>
+  );
 
   return (
     <div className="page onboarding">
@@ -189,20 +225,21 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
             <div className="leadtime-box">
               <label className="field">
                 <span className="field-label">Lead time (hari) {!confirmed && <AssumsiBadge />}</span>
-                <input type="number" min={1} max={60} value={leadTime}
-                  onChange={(e) => setLeadTime(Math.max(1, Number(e.target.value) || DEFAULT_LEAD_TIME_DAYS))}
-                  className="input num" aria-describedby="lt-hint" />
+                <input type="number" inputMode="numeric" min={1} max={60} value={leadTimeDraft}
+                  onChange={(e) => { setLeadTimeDraft(e.target.value); setStepError(null); }}
+                  className="input num" aria-describedby="lt-hint" aria-invalid={!leadTimeValid} />
               </label>
               <p id="lt-hint" className="form-hint">
                 Default <span className="num">{DEFAULT_LEAD_TIME_DAYS}</span> hari adalah asumsi bawaan.
                 Ganti sesuai kenyataan supplier-mu, lalu konfirmasi.
               </p>
             </div>
+            {stepErrorNote}
             <div className="wizard-actions">
-              <button className="btn btn-ghost" onClick={() => setStep(2)}>Kembali</button>
-              <button className="btn btn-ghost" onClick={() => handleConfirmLeadTime(false)}>Pakai asumsi dulu</button>
-              <button className="btn btn-primary" onClick={() => handleConfirmLeadTime(true)}>
-                Konfirmasi <span className="num">{fmtNum(leadTime)}</span> hari <IconChevron size={15} />
+              <button className="btn btn-ghost" onClick={() => { setStepError(null); setStep(2); }}>Kembali</button>
+              <button className="btn btn-ghost" onClick={() => handleConfirmLeadTime(false)} disabled={saving}>Pakai asumsi dulu</button>
+              <button className="btn btn-primary" onClick={() => handleConfirmLeadTime(true)} disabled={saving || !leadTimeValid} aria-busy={saving}>
+                {saving ? 'Menyimpan…' : <>Konfirmasi <span className="num">{fmtNum(leadTime)}</span> hari <IconChevron size={15} /></>}
               </button>
             </div>
           </section>
@@ -215,15 +252,30 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
               Kalau kamu tahu stok fisik barang terlaris sekarang, isi di sini supaya saran restock
               langsung akurat. Bisa di-skip dan diisi belakangan.
             </p>
-            <label className="field">
-              <span className="field-label">Contoh: stok SKU terlaris (unit)</span>
-              <input type="number" min={0} value={stockDraft} placeholder="0"
-                onChange={(e) => setStockDraft(e.target.value)} className="input num" />
-            </label>
+            <div className="onb-stock-fields">
+              <label className="field">
+                <span className="field-label">SKU</span>
+                <input type="text" value={stockSku} placeholder="mis. KOP-GUL-250" autoCapitalize="characters" spellCheck={false}
+                  onChange={(e) => { setStockSku(e.target.value); setStepError(null); }} className="input num" />
+              </label>
+              <label className="field">
+                <span className="field-label">Nama produk <span className="chip chip-opsional">opsional</span></span>
+                <input type="text" value={stockName} placeholder="mis. Kopi Gula Aren 250ml"
+                  onChange={(e) => setStockName(e.target.value)} className="input" />
+              </label>
+              <label className="field">
+                <span className="field-label">Stok fisik sekarang (unit)</span>
+                <input type="number" inputMode="numeric" min={0} value={stockDraft} placeholder="0"
+                  onChange={(e) => { setStockDraft(e.target.value); setStepError(null); }} className="input num" />
+              </label>
+            </div>
+            {stepErrorNote}
             <div className="wizard-actions">
-              <button className="btn btn-ghost" onClick={() => setStep(3)}>Kembali</button>
-              <button className="btn btn-ghost" onClick={() => setStep(5)}>Skip, isi nanti</button>
-              <button className="btn btn-primary" onClick={handleConfirmStock}>Simpan &amp; lanjut <IconChevron size={15} /></button>
+              <button className="btn btn-ghost" onClick={() => { setStepError(null); setStep(3); }}>Kembali</button>
+              <button className="btn btn-ghost" onClick={() => { setStepError(null); setStep(5); }}>Skip, isi nanti</button>
+              <button className="btn btn-primary" onClick={handleConfirmStock} disabled={saving} aria-busy={saving}>
+                {saving ? 'Menyimpan…' : <>Simpan &amp; lanjut <IconChevron size={15} /></>}
+              </button>
             </div>
           </section>
         )}
