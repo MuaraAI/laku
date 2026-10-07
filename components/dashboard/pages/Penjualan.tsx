@@ -91,17 +91,20 @@ interface LiveRecapResponse {
   totals?: {
     gross_rp?: number;
     net_rp?: number;
+    orders?: number;
     orders_count?: number;
   };
   per_channel?: {
     channel: string;
     gross_rp: number;
     net_rp: number;
-    orders: number;
-    share_pct: number;
+    orders?: number;
+    share?: number;
+    share_pct?: number;
   }[];
   trend?: {
-    day: string;
+    date?: string;
+    day?: string;
     net_rp: number;
   }[];
 }
@@ -144,22 +147,29 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
 
   const liveSplit = useMemo(() => {
     if (!liveRecap?.per_channel?.length) return [];
-    return liveRecap.per_channel.map((c) => ({
-      channel: (c.channel === 'shopee' ? 'Shopee' : c.channel === 'tiktok_shop' ? 'TikTok Shop' : 'Tokopedia') as Channel,
-      omzet: Math.round(c.gross_rp),
-      share: Number(c.share_pct),
-    }));
+    return liveRecap.per_channel.map((c) => {
+      const rawShare = Number(c.share != null ? c.share : c.share_pct ?? 0);
+      const sharePct = rawShare <= 1.0 ? rawShare * 100 : rawShare;
+      return {
+        channel: (c.channel === 'shopee' ? 'Shopee' : c.channel === 'tiktok_shop' ? 'TikTok Shop' : 'Tokopedia') as Channel,
+        omzet: Math.round(c.gross_rp),
+        share: Math.round(sharePct * 10) / 10,
+      };
+    });
   }, [liveRecap]);
 
   // the recap API has no per-day order count, so the readout shows none instead of a made-up "1 transaksi"
   const liveTrendData = useMemo<TrendPoint[]>(() => {
     if (!liveRecap?.trend?.length) return [];
-    return liveRecap.trend.map((t) => ({
-      day: t.day.length > 5 ? t.day.slice(5) : t.day,
-      omzet: Number(t.net_rp || 0),
-      transaksi: null,
-      sementara: false,
-    }));
+    return liveRecap.trend.map((t) => {
+      const d = t.date || t.day || '';
+      return {
+        day: d.length > 5 ? d.slice(5) : d,
+        omzet: Number(t.net_rp || 0),
+        transaksi: null,
+        sementara: false,
+      };
+    });
   }, [liveRecap]);
 
   // live never borrows the demo store's numbers (AGENTS.md rule 4: business numbers come from the DB only)
@@ -172,7 +182,7 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
     ? Number(liveRecap?.totals?.net_rp ?? 0)
     : Math.round(omzetKotor * 0.934);
   const transaksi = isLive
-    ? Number(liveRecap?.totals?.orders_count ?? 0)
+    ? Number(liveRecap?.totals?.orders ?? liveRecap?.totals?.orders_count ?? 0)
     : data.reduce((s, d) => s + d.transaksi, 0);
   const rataHarian = omzetKotor / period;
   const staleChannels = isLive ? [] : DATA_FRESHNESS.filter((c) => c.daysAgo > 7);
