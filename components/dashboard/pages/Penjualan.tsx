@@ -5,7 +5,7 @@ import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { apiFetch } from '@/lib/api';
 import { dashboard } from '@/constants/id';
 import { SALES, CHANNEL_SPLIT, DATA_FRESHNESS, fmtIDR, fmtNum, fmtNum1, type Channel } from '../data';
-import { Num, SementaraChip } from '../components';
+import { Num, SementaraChip, ApiErrorNote } from '../components';
 import { IconWarning } from '../icons';
 
 type Period = 7 | 30 | 90;
@@ -87,6 +87,8 @@ function TrendChart({ period, customData }: { period: Period; customData?: Trend
   );
 }
 
+// kontrak = backend/app/services/recap.py compute_recap (fixture: backend/mock/fixtures/recap.json);
+// alias orders_count / share_pct / day ikut diterima (ditambahkan backend di #84).
 interface LiveRecapResponse {
   totals?: {
     gross_rp?: number;
@@ -98,16 +100,22 @@ interface LiveRecapResponse {
     channel: string;
     gross_rp: number;
     net_rp: number;
-    orders?: number;
-    share?: number;
-    share_pct?: number;
+    share?: number; // pecahan 0–1 dari penjualan bersih (kontrak utama)
+    share_pct?: number; // alias persen (0–100) sejak #84
   }[];
   trend?: {
-    date?: string;
-    day?: string;
+    date?: string; // YYYY-MM-DD (tanggal WIB)
+    day?: string; // alias sejak #84
     net_rp: number;
   }[];
+  warnings?: { channel?: string; type: string; message: string }[];
 }
+
+const CHANNEL_LABEL: Record<string, Channel> = { shopee: 'Shopee', tiktok_shop: 'TikTok Shop', tokopedia: 'Tokopedia' };
+const shortDay = (iso: string) => {
+  const d = new Date(`${iso}T00:00:00+07:00`);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', timeZone: 'Asia/Jakarta' });
+};
 
 export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
   const [period, setPeriod] = useState<Period>(30);
@@ -148,12 +156,13 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
   const liveSplit = useMemo(() => {
     if (!liveRecap?.per_channel?.length) return [];
     return liveRecap.per_channel.map((c) => {
-      const rawShare = Number(c.share != null ? c.share : c.share_pct ?? 0);
-      const sharePct = rawShare <= 1.0 ? rawShare * 100 : rawShare;
+      // `share` pecahan bila ada; `share_pct` sudah persen. Jangan tebak dari besarnya angka:
+      // share_pct 0,8 (channel kecil) bukan 80%.
+      const sharePct = c.share != null ? Number(c.share) * 100 : Number(c.share_pct ?? 0);
       return {
-        channel: (c.channel === 'shopee' ? 'Shopee' : c.channel === 'tiktok_shop' ? 'TikTok Shop' : 'Tokopedia') as Channel,
-        omzet: Math.round(c.gross_rp),
-        share: Math.round(sharePct * 10) / 10,
+        channel: CHANNEL_LABEL[c.channel] ?? (c.channel as Channel),
+        omzet: Math.round(Number(c.gross_rp) || 0),
+        share: Math.round((Number.isFinite(sharePct) ? sharePct : 0) * 10) / 10,
       };
     });
   }, [liveRecap]);
@@ -161,15 +170,12 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
   // the recap API has no per-day order count, so the readout shows none instead of a made-up "1 transaksi"
   const liveTrendData = useMemo<TrendPoint[]>(() => {
     if (!liveRecap?.trend?.length) return [];
-    return liveRecap.trend.map((t) => {
-      const d = t.date || t.day || '';
-      return {
-        day: d.length > 5 ? d.slice(5) : d,
-        omzet: Number(t.net_rp || 0),
-        transaksi: null,
-        sementara: false,
-      };
-    });
+    return liveRecap.trend.map((t) => ({
+      day: shortDay(String(t.date ?? t.day ?? '')),
+      omzet: Number(t.net_rp || 0),
+      transaksi: null,
+      sementara: false,
+    }));
   }, [liveRecap]);
 
   // live never borrows the demo store's numbers (AGENTS.md rule 4: business numbers come from the DB only)
@@ -186,6 +192,8 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
     : data.reduce((s, d) => s + d.transaksi, 0);
   const rataHarian = omzetKotor / period;
   const staleChannels = isLive ? [] : DATA_FRESHNESS.filter((c) => c.daysAgo > 7);
+  // Live: peringatan stale/partial dari backend (sebelumnya tidak pernah ditampilkan)
+  const liveWarnings = isLive ? (liveRecap?.warnings ?? []).map((w) => w.message).filter(Boolean) : [];
 
   return (
     <div className="page">
@@ -212,6 +220,7 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
                 {dashboard.sales.coverageStale(staleChannels.map((c) => c.channel).join(', '), staleChannels[0].daysAgo)}
               </p>
             )}
+            {liveWarnings.map((m) => <p key={m}>{m}</p>)}
             <p>
               {dashboard.sales.coverageTemp}
             </p>
@@ -243,10 +252,8 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
       </section>
 
       {recapError ? (
-        <div className="stock-empty" role="alert" style={{ marginTop: '14px', border: '1px solid var(--critical-bg)', background: 'var(--critical-bg)' }}>
-          <p style={{ color: 'var(--critical)', fontWeight: 600 }}>{dashboard.sales.errorTitle(recapError)}</p>
-          <button className="btn btn-primary" onClick={fetchRecap} type="button">{dashboard.common.retry}</button>
-        </div>
+        <ApiErrorNote text={dashboard.sales.errorTitle(recapError)} message={recapError} onRetry={fetchRecap}
+          retryLabel={dashboard.common.retry} style={{ marginTop: '14px' }} />
       ) : isLive && transaksi === 0 ? (
         <div className="stock-empty" data-reveal style={{ marginTop: '14px' }}>
           <p>{dashboard.sales.emptyLiveTitle(period)}</p>

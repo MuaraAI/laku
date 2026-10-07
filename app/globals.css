@@ -128,3 +128,14 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .smap-hub-label b { display: block; font-weight: 600; }
 .smap-hub-label small { display: block; font-family: var(--mono); font-size: .72em; opacity: .8; }
 .smap-cap { position: absolute; left: 0; bottom: 0; font-family: var(--mono); font-size: clamp(9px, 1.6cqw, 11px); letter-spacing: .06em; text-transform: uppercase; color: var(--m-muted); }
+
+/* ---------- Error pages (app/not-found.tsx, app/error.tsx, app/global-error.tsx) ---------- */
+.errpage { min-height: 100dvh; display: grid; grid-template-rows: auto 1fr; padding: clamp(20px, 4vw, 40px) var(--pad, 16px); background: var(--canvas); }
+.errpage-brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; justify-self: start; }
+.errpage-body { align-self: center; justify-self: center; width: min(560px, 100%); display: grid; gap: 14px; padding-block: 40px; }
+.errpage-code { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: clamp(4rem, 3rem + 6vw, 7rem); font-weight: 700; line-height: .9; letter-spacing: -.04em; color: var(--primary-tint); }
+.errpage h1 { font-family: var(--font-display); font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.25rem); line-height: 1.1; letter-spacing: -.02em; color: var(--text-primary); }
+.errpage-text { color: var(--text-secondary); line-height: 1.6; }
+.errpage-text a { color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
+.errpage-actions { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px; }
+.errpage-actions .btn { min-height: 48px; }

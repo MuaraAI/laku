@@ -2,13 +2,21 @@
 // preview ringkasan → Konfirmasi. (MVP: parsing disimulasikan di frontend.)
 
 import { useRef, useState, useEffect } from 'react';
-import { buildApiUrl } from '@/lib/api';
+import { apiFetch, apiUpload, validateUploadFile } from '@/lib/api';
 import { dashboard } from '@/constants/id';
 import { CHANNELS, mockPreview, fmtNum, fmtNum1, type Channel, type UploadPreview } from '../data';
 import { Num } from '../components';
 import { IconFile, IconUpload, IconWarning } from '../icons';
 
 type Phase = 'idle' | 'loading' | 'preview' | 'done';
+
+interface LiveUploadResponse {
+  import_batch_id: string;
+  rows_read?: number;
+  new?: number;
+  problem_rows?: number;
+  sku_fill_rate?: number | null;
+}
 
 export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'live'; onUploaded?: () => void }) {
   const [channel, setChannel] = useState<Channel | null>(null);
@@ -36,61 +44,47 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
     fileRef.current?.click();
   }
 
-  async function onFile(name: string) {
-    if (!channel || !name) return;
+  async function onFile(file: File | undefined) {
+    if (!channel || !file) return;
+    // cek di browser dulu (A14) — tidak perlu nunggu upload 10 MB untuk tahu file salah
+    const invalid = validateUploadFile(file);
+    if (invalid) return failUpload(invalid);
+    const name = file.name;
     setFileName(name);
     setPhase('loading');
     setPreview(null);
     setUploadError(null);
 
-    const file = fileRef.current?.files?.[0];
-    if (mode === 'live' && file) {
-      try {
-        const { supabaseBrowser } = await import('@/lib/supabase/client');
-        const supabase = supabaseBrowser();
-        const session = (await supabase?.auth.getSession())?.data.session;
-        const token = session?.access_token;
-
-        const formData = new FormData();
-        formData.append('file', file);
-        const chKey = channel === 'Shopee' ? 'shopee' : channel === 'TikTok Shop' ? 'tiktok_shop' : 'tokopedia';
-        formData.append('channel', chKey);
-
-        const url = buildApiUrl('/v1/imports');
-
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-          body: formData,
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          setBatchId(data.import_batch_id);
-          setPreview({
-            channel,
-            fileName: name,
-            rowsRead: data.rows_read ?? 0,
-            rowsNew: data.new ?? 0,
-            skuFillRate: data.sku_fill_rate != null ? Math.round(data.sku_fill_rate * 100) : 100,
-            problems: (data.problems || []).map((p: Record<string, unknown>) => ({
-              row: typeof p.row === 'number' ? p.row : 0,
-              issue: String(p.reason || p.problem || 'Baris bermasalah'),
-              action: dashboard.upload.defaultActionNote,
-            })),
-          });
-          setPhase('preview');
-          return;
-        } else {
-          const errData = await res.json().catch(() => null);
-          failUpload(errData?.detail?.error?.message || errData?.error?.message || 'Gagal membaca file di server backend.');
-          return;
-        }
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : 'Koneksi error';
-        failUpload('Koneksi ke backend gagal: ' + msg);
-        return;
+    if (mode === 'live') {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('channel', channel === 'Shopee' ? 'shopee' : channel === 'TikTok Shop' ? 'tiktok_shop' : 'tokopedia');
+      const res = await apiUpload<LiveUploadResponse>('/v1/imports', formData);
+      if (res.error || !res.data) return failUpload(res.error ?? dashboard.upload.defaultActionNote);
+      const data = res.data;
+      // respons upload hanya membawa JUMLAH baris bermasalah; daftarnya ada di /problems
+      let problems: UploadPreview['problems'] = [];
+      if ((data.problem_rows ?? 0) > 0) {
+        const pr = await apiFetch<{ problems?: { row?: number; column?: string; reason?: string }[] }>(
+          `/v1/imports/${data.import_batch_id}/problems`,
+        );
+        problems = (pr.data?.problems ?? []).slice(0, 50).map((p) => ({
+          row: typeof p.row === 'number' ? p.row : 0,
+          issue: String(p.reason || 'Baris bermasalah'),
+          action: dashboard.upload.defaultActionNote,
+        }));
       }
+      setBatchId(data.import_batch_id);
+      setPreview({
+        channel,
+        fileName: name,
+        rowsRead: data.rows_read ?? 0,
+        rowsNew: data.new ?? 0,
+        skuFillRate: data.sku_fill_rate != null ? Math.round(data.sku_fill_rate * 1000) / 10 : 100,
+        problems,
+      });
+      setPhase('preview');
+      return;
     }
 
     // Default Demo Simulation
@@ -104,27 +98,10 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
   async function confirm() {
     if (mode === 'live' && batchId) {
       setConfirming(true);
-      try {
-        const { supabaseBrowser } = await import('@/lib/supabase/client');
-        const supabase = supabaseBrowser();
-        const token = (await supabase?.auth.getSession())?.data.session?.access_token;
-        const url = buildApiUrl(`/v1/imports/${batchId}/confirm`);
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-        if (!res.ok) {
-          const err = await res.json().catch(() => null);
-          setUploadError(err?.detail?.error?.message || 'Gagal menyimpan data. Coba lagi.');
-          setConfirming(false);
-          return;
-        }
-      } catch {
-        setUploadError('Koneksi ke server terputus saat menyimpan. Coba lagi.');
-        setConfirming(false);
-        return;
-      }
+      setUploadError(null);
+      const res = await apiFetch(`/v1/imports/${batchId}/confirm`, { method: 'POST' });
       setConfirming(false);
+      if (res.error) return setUploadError(res.error);
     }
     setPhase('done');
     if (onUploaded) {
@@ -169,7 +146,7 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
           <div>
             <h2 className="step-title">{dashboard.upload.step2Title}</h2>
             <input ref={fileRef} type="file" accept=".csv,.xlsx" className="visually-hidden"
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f.name); }} />
+              onChange={(e) => onFile(e.target.files?.[0])} />
             <button className="dropzone" onClick={pickFile} disabled={!channel}>
               <IconUpload size={20} />
               <span>{channel ? dashboard.upload.pickPrompt : dashboard.upload.pickWait}</span>

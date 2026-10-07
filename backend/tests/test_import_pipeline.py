@@ -221,8 +221,18 @@ class TestPreview:
             _row("ORD-D2", waktu="29/09/2026 12:00"),
         ])
         body = _upload(content).json()
-        assert body["data_from"] == "2026-09-27T10:00:00"
-        assert body["data_through"] == "2026-09-29T12:00:00"
+        # jam di file = jam lokal toko (WIB) → disimpan dengan offset, bukan naive (dibaca UTC oleh Postgres)
+        assert body["data_from"] == "2026-09-27T10:00:00+07:00"
+        assert body["data_through"] == "2026-09-29T12:00:00+07:00"
+
+    def test_sold_at_late_evening_wib_keeps_its_date(self):
+        from datetime import datetime, timezone
+        content = _csv([_row("ORD-TZ1", waktu="30/09/2026 23:30")])
+        body = _upload(content).json()
+        sold = datetime.fromisoformat(body["data_from"])
+        assert sold.utcoffset() is not None
+        # 23:30 WIB = 16:30 UTC di tanggal yang sama; versi naive dulu jadi 06:30 WIB 1 Okt
+        assert sold.astimezone(timezone.utc).isoformat() == "2026-09-30T16:30:00+00:00"
 
     def test_new_products_listed(self):
         content = _csv([_row("ORD-NP", sku="PROD-BARU-99")])

@@ -9,6 +9,7 @@ from dataclasses import dataclass
 import httpx
 import jwt
 from fastapi import HTTPException, Request
+from starlette.concurrency import run_in_threadpool
 
 from app.deps.settings import get_settings
 
@@ -83,7 +84,15 @@ def _supabase_admin():
 
 
 async def _lookup_membership(user_id: str, email: str | None = None) -> tuple[str | None, str]:
-    """Query seller_members. Auto-provision seller workspace jika user baru (defense-in-depth)."""
+    """Query seller_members. Auto-provision seller workspace jika user baru (defense-in-depth).
+
+    supabase-py itu sinkron: dijalankan di threadpool supaya satu lookup lambat tidak
+    membekukan event loop (PM2 1 worker → semua seller ikut menunggu).
+    """
+    return await run_in_threadpool(_lookup_membership_sync, user_id, email)
+
+
+def _lookup_membership_sync(user_id: str, email: str | None = None) -> tuple[str | None, str]:
     settings = get_settings()
     if settings.demo_mode or not settings.supabase_service_key:
         return ("demo-seller", "owner")
@@ -148,7 +157,8 @@ async def get_identity(request: Request) -> Identity:
     auth = request.headers.get("authorization", "")
     if not auth.startswith("Bearer "):
         raise HTTPException(401, "Missing bearer token")
-    payload = verify_token(auth.removeprefix("Bearer ").strip())
+    # verify_token bisa fetch JWKS (httpx sync, timeout 10 dtk) → threadpool, bukan event loop
+    payload = await run_in_threadpool(verify_token, auth.removeprefix("Bearer ").strip())
 
     user_id = payload["sub"]
     email = payload.get("email")

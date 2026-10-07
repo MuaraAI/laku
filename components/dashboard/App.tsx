@@ -4,6 +4,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { dashboard } from '@/constants/id';
 import RevealObserver from '@/components/landing/RevealObserver';
+import OfflineBanner from './OfflineBanner';
 import { RestockPage } from './pages/Restock';
 import { PenjualanPage } from './pages/Penjualan';
 import { UploadPage } from './pages/Upload';
@@ -300,6 +301,7 @@ export default function App() {
               </div>
             </div>
           </header>
+          <OfflineBanner />
           {body}
         </div>
       </main>

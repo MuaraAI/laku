@@ -8,6 +8,7 @@ import io
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import yaml
 
@@ -83,9 +84,19 @@ def _parse_int(raw) -> int | None:
 
 
 def _parse_dt(raw: str, tz: str) -> datetime | None:
+    """Waktu di file export = jam lokal toko (config `tz`, mis. Asia/Jakarta).
+
+    Hasilnya WAJIB timezone-aware: string naive yang masuk ke kolom timestamptz
+    dibaca Postgres sebagai UTC, sehingga 23:30 WIB tersimpan sebagai 06:30 WIB
+    hari berikutnya (demand & rekap bergeser 7 jam / 1 hari).
+    """
     s = str(raw or "").strip()
     if not s:
         return None
+    try:
+        zone = ZoneInfo(tz or "Asia/Jakarta")
+    except (ZoneInfoNotFoundError, ValueError):
+        zone = ZoneInfo("Asia/Jakarta")
     for fmt in (
         "%Y-%m-%d %H:%M:%S",
         "%Y-%m-%d %H:%M",
@@ -98,7 +109,7 @@ def _parse_dt(raw: str, tz: str) -> datetime | None:
         "%Y-%m-%d",
     ):
         try:
-            return datetime.strptime(s, fmt)
+            return datetime.strptime(s, fmt).replace(tzinfo=zone)
         except ValueError:
             continue
     return None

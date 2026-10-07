@@ -62,6 +62,8 @@ def _parse_file(raw: bytes, ext: str, channel: str):
         if ext == ".xlsx":
             return parse_xlsx(raw, config)
         raise ImportPipelineError("INVALID_EXTENSION", f"Ekstensi '{ext}' tidak didukung.")
+    except ImportPipelineError:
+        raise
     except ValueError as e:
         # parser raise ValueError("MISSING_COLUMNS: [...]") untuk header wajib hilang
         msg = str(e)
@@ -73,6 +75,14 @@ def _parse_file(raw: bytes, ext: str, channel: str):
                 {"columns": [c.strip() for c in cols.split(",")]},
             )
         raise ImportPipelineError("PARSE_ERROR", msg)
+    except Exception:
+        # file rusak/aneh (KeyError, csv.Error, zip error, …) = masalah file, bukan 500 server.
+        # Pesan exception tidak diteruskan: bisa memuat isi sel (PII, aturan #1).
+        raise ImportPipelineError(
+            "PARSE_ERROR",
+            "File tidak bisa dibaca sebagai export pesanan channel ini. "
+            "Pastikan file asli dari Seller Center dan channel yang dipilih sudah benar.",
+        )
 
 
 def _compute_preview(store: ImportsStore, seller_id: str, batch_id: str) -> dict:
@@ -321,5 +331,8 @@ def cancel_import(store: ImportsStore, seller_id: str, batch_id: str) -> None:
     batch = store.get_batch(seller_id, batch_id)
     if batch is None:
         raise ImportPipelineError("BATCH_NOT_FOUND", "Batch tidak ditemukan.")
+    if batch.get("status") == "committed":
+        # baris sudah masuk order_lines; menandai "expired" cuma membuat riwayat bohong
+        raise ImportPipelineError("ALREADY_COMMITTED", "Batch sudah disimpan dan tidak bisa dibatalkan.")
     store.update_batch(seller_id, batch_id, {"status": "expired"})
     store.purge_staging(seller_id, batch_id)

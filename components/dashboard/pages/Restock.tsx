@@ -8,20 +8,20 @@ import {
   PRODUCTS, sortedActionable, stopBuying, overlaysOf, daysOfStock,
   fmtNum, fmtIDR, fmtDays, type Product, type StatusKey, type Channel, STATUS, DEFAULT_LEAD_TIME_DAYS,
 } from '../data';
-import { StatusBadge, OverlayBadges, WhyPanel, Num } from '../components';
+import { StatusBadge, OverlayBadges, WhyPanel, Num, ApiErrorNote } from '../components';
 import { IconWhy, IconSearch, IconClose } from '../icons';
 
 interface ApiRecommendationItem {
   product_id: string;
   name?: string;
   sku?: string;
-  channel?: Channel;
+  channel?: string | null; // id backend: shopee | tiktok_shop | tokopedia (kanal terbanyak SKU ini)
   state: string;
   overlays?: string[];
   reorder_point?: number;
   safety_stock?: number;
   suggested_qty?: number;
-  price?: number;
+  price?: number | null; // harga jual rata-rata dari order_lines (30 hari)
   why?: {
     on_hand?: number;
     mu?: number;
@@ -34,6 +34,8 @@ interface ApiRecommendationsResponse {
   items?: ApiRecommendationItem[];
 }
 
+const CHANNEL_LABEL: Record<string, Channel> = { shopee: 'Shopee', tiktok_shop: 'TikTok Shop', tokopedia: 'Tokopedia' };
+
 function mapApiToProduct(item: ApiRecommendationItem): Product {
   const why = item.why || {};
   const VALID_STATUSES: StatusKey[] = ['CRITICAL', 'REORDER', 'OK', 'OVERSTOCK', 'DEAD', 'INSUFFICIENT_DATA'];
@@ -43,7 +45,8 @@ function mapApiToProduct(item: ApiRecommendationItem): Product {
   return {
     sku: item.sku || item.product_id,
     name: item.name || 'Produk',
-    channel: item.channel || 'Shopee',
+    // dulu selalu 'Shopee' karena backend tidak mengirim channel; '—' kalau SKU belum pernah laku
+    channel: (item.channel ? CHANNEL_LABEL[item.channel] ?? item.channel : '—') as Channel,
     onHand: why.on_hand ?? 0,
     avgDaily: why.mu ?? 0,
     leadTimeDays,
@@ -283,12 +286,7 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
           {dashboard.common.serverLoading}
         </div>
       ) : mode === 'live' && fetchError ? (
-        <div className="stock-empty" role="alert" style={{ border: '1px solid var(--critical-bg)', background: 'var(--critical-bg)' }}>
-          <p style={{ color: 'var(--critical)', fontWeight: 600 }}>{dashboard.common.serverError(fetchError)}</p>
-          <button className="btn btn-primary" onClick={fetchLive} type="button">
-            {dashboard.common.retry}
-          </button>
-        </div>
+        <ApiErrorNote text={dashboard.common.serverError(fetchError)} message={fetchError} onRetry={fetchLive} retryLabel={dashboard.common.retry} />
       ) : mode === 'live' && activeProducts.length === 0 ? (
         <div style={{
           padding: '48px 24px', textAlign: 'center', background: 'var(--surface)',

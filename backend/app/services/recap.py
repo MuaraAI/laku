@@ -20,6 +20,8 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from typing import Any
 
+from app.services.wib import to_wib_date
+
 
 @dataclass
 class RecapLine:
@@ -161,8 +163,11 @@ def compute_recap(
     for l in lines:
         if not l.sold_at:
             continue
-        dt_str = l.sold_at if isinstance(l.sold_at, str) else l.sold_at.strftime("%Y-%m-%d")
-        day_key = dt_str[:10]
+        # bucket per tanggal WIB — string DB berakhiran +00:00, [:10] = tanggal UTC
+        day = to_wib_date(l.sold_at)
+        if day is None:
+            continue
+        day_key = day.isoformat()
         if l.status in active_statuses:
             daily_net[day_key] = daily_net.get(day_key, 0.0) + (l.line_gross - l.total_discount)
 
