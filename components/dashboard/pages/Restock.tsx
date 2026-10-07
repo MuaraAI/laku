@@ -1,7 +1,7 @@
 // Halaman Restock (utama): list stok dengan CRITICAL/REORDER di atas,
 // area "Berhenti beli" untuk OVERSTOCK & DEAD, panel "mengapa" per baris.
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { apiFetch } from '@/lib/api';
 import {
   PRODUCTS, sortedActionable, stopBuying, overlaysOf, daysOfStock,
@@ -98,25 +98,37 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
   const [why, setWhy] = useState<Product | null>(null);
   const [liveProducts, setLiveProducts] = useState<Product[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'critical' | 'reorder' | 'stop'>('all');
 
+  const fetchLive = useCallback(() => {
+    setLoading(true);
+    setFetchError(null);
+    apiFetch<ApiRecommendationsResponse>('/v1/recommendations')
+      .then((res) => {
+        if (res.data?.items) {
+          setLiveProducts(res.data.items.map(mapApiToProduct));
+          setFetchError(null);
+        } else if (res.error) {
+          setFetchError(res.error);
+          setLiveProducts([]);
+        } else {
+          setLiveProducts([]);
+          setFetchError(null);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   useEffect(() => {
     if (mode === 'live') {
-      setLoading(true);
-      apiFetch<ApiRecommendationsResponse>('/v1/recommendations')
-        .then((res) => {
-          if (res?.items) {
-            setLiveProducts(res.items.map(mapApiToProduct));
-          } else {
-            setLiveProducts([]);
-          }
-        })
-        .finally(() => setLoading(false));
+      fetchLive();
     } else {
       setLiveProducts(null);
+      setFetchError(null);
     }
-  }, [mode]);
+  }, [mode, fetchLive]);
 
   const activeProducts = useMemo(() => {
     return mode === 'live' ? (liveProducts ?? []) : PRODUCTS;
@@ -174,16 +186,26 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
       </header>
 
       <section className="kpi-strip" data-reveal="kids" aria-label="Ringkasan restock">
-        <div className="kpi kpi-critical" onClick={() => setFilter(filter === 'critical' ? 'all' : 'critical')} style={{ cursor: 'pointer' }}>
+        <button
+          className="kpi kpi-critical"
+          onClick={() => setFilter(filter === 'critical' ? 'all' : 'critical')}
+          type="button"
+          aria-pressed={filter === 'critical'}
+        >
           <span className="kpi-label">{STATUS.CRITICAL.label}</span>
           <Num strong>{fmtNum(criticalCount)}</Num>
           <span className="kpi-sub">SKU habis sebelum pesanan tiba</span>
-        </div>
-        <div className="kpi kpi-reorder" onClick={() => setFilter(filter === 'reorder' ? 'all' : 'reorder')} style={{ cursor: 'pointer' }}>
+        </button>
+        <button
+          className="kpi kpi-reorder"
+          onClick={() => setFilter(filter === 'reorder' ? 'all' : 'reorder')}
+          type="button"
+          aria-pressed={filter === 'reorder'}
+        >
           <span className="kpi-label">{STATUS.REORDER.label}</span>
           <Num strong>{fmtNum(reorderCount)}</Num>
           <span className="kpi-sub">SKU mendekati titik pesan</span>
-        </div>
+        </button>
         <div className="kpi">
           <span className="kpi-label">Estimasi nilai pesanan</span>
           <Num strong>{fmtIDR(restockValue)}</Num>
@@ -203,6 +225,7 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
             className="search-input"
             type="text"
             placeholder="Cari nama produk atau SKU…"
+            aria-label="Cari nama produk atau SKU"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -251,6 +274,13 @@ export function RestockPage({ mode = 'demo', onGoUpload }: { mode?: 'demo' | 'li
       {loading ? (
         <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
           Memuat data rekomendasi restock dari server…
+        </div>
+      ) : mode === 'live' && fetchError ? (
+        <div className="stock-empty" role="alert" style={{ border: '1px solid var(--critical-bg)', background: 'var(--critical-bg)' }}>
+          <p style={{ color: 'var(--critical)', fontWeight: 600 }}>Gagal memuat data dari server: {fetchError}</p>
+          <button className="btn btn-primary" onClick={fetchLive} type="button">
+            Coba Lagi
+          </button>
         </div>
       ) : mode === 'live' && activeProducts.length === 0 ? (
         <div style={{

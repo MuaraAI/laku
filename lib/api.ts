@@ -2,14 +2,20 @@ import { supabaseBrowser } from "./supabase/client";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.muaraai.com";
 
+export interface ApiResult<T> {
+  data: T | null;
+  error: string | null;
+  status?: number;
+}
+
 /**
  * Fetch data from Laku FastAPI backend with Supabase Bearer token.
- * Returns null if unauthenticated or on fetch error (enables graceful fallback to mock data).
+ * Returns { data, error, status }.
  */
 export async function apiFetch<T = unknown>(
   path: string,
   options: RequestInit = {}
-): Promise<T | null> {
+): Promise<ApiResult<T>> {
   try {
     const supabase = supabaseBrowser();
     let token: string | undefined;
@@ -33,17 +39,24 @@ export async function apiFetch<T = unknown>(
       ? `${API_BASE}/v1/laku${cleanPath}`
       : `${API_BASE}${cleanPath}`;
 
+    const signal = options.signal || (typeof AbortSignal !== "undefined" && "timeout" in AbortSignal ? AbortSignal.timeout(15000) : undefined);
+
     const res = await fetch(url, {
       ...options,
       headers,
+      signal,
     });
 
     if (!res.ok) {
-      return null;
+      const errJson = await res.json().catch(() => null);
+      const errMsg = errJson?.detail?.error?.message || errJson?.error?.message || `HTTP ${res.status}`;
+      return { data: null, error: errMsg, status: res.status };
     }
 
-    return (await res.json()) as T;
-  } catch {
-    return null;
+    const data = (await res.json()) as T;
+    return { data, error: null, status: res.status };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Koneksi terputus";
+    return { data: null, error: msg };
   }
 }

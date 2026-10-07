@@ -150,7 +150,7 @@ export default function App() {
     : 'Toko Saya';
 
   const body = currentPage === 'setup' ? (
-    <OnboardingPage onFinish={finishOnboarding} />
+    <OnboardingPage onFinish={finishOnboarding} mode={mode} />
   ) : currentPage === 'penjualan' ? (
     <PenjualanPage mode={mode} />
   ) : currentPage === 'upload' ? (
