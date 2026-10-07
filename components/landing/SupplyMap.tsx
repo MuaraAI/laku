@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Icon } from "./primitives";
 import { supplyMap as copy } from "@/constants/id";
 import { hasMotion } from "@/lib/motion";
 import { INDONESIA_PATH, MAP_H, MAP_POINTS, MAP_W, NEIGHBOURS_PATH } from "./indonesia-map";
@@ -104,7 +103,6 @@ export default function SupplyMap({ tone = "light", className = "" }: { tone?: "
         </span>
       ))}
       <span className="smap-hub-label" style={{ left: pct(HX, MAP_W), top: pct(HY, MAP_H) }} aria-hidden="true">
-        <Icon name="warehouse" fill />
         <span>
           <b>{copy.hub}</b>
           <small>{copy.hubSub}</small>
