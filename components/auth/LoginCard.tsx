@@ -257,7 +257,7 @@ export default function LoginCard({
         <span className="auth-demo-icon">
           <Icon name="play_circle" />
         </span>
-        <span>
+        <span className="auth-demo-text">
           <b>{login.demo.title}</b>
           <small>{login.demo.sub}</small>
         </span>
