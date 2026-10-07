@@ -154,6 +154,7 @@ def compute_recap(
             "discounts_rp": round(ch_discounts),
             "net_rp": round(ch_net),
             "share": round(ch_net / net, 4) if net > 0 else 0.0,
+            "share_pct": round((ch_net / net) * 100, 2) if net > 0 else 0.0,
             "coverage": cov_dict,
         })
 
@@ -171,7 +172,7 @@ def compute_recap(
             daily_net[day_key] = daily_net.get(day_key, 0.0) + (l.line_gross - l.total_discount)
 
     trend = [
-        {"date": d, "net_rp": round(val)}
+        {"date": d, "day": d, "net_rp": round(val)}
         for d, val in sorted(daily_net.items())
     ]
 
@@ -200,6 +201,7 @@ def compute_recap(
             "discounts_rp": round(discounts),
             "net_rp": round(net),
             "orders": orders_count,
+            "orders_count": orders_count,
             "aov_rp": round(aov),
             "cancelled_info_rp": round(cancelled_info),
         },

@@ -87,23 +87,25 @@ function TrendChart({ period, customData }: { period: Period; customData?: Trend
   );
 }
 
-// kontrak = backend/app/services/recap.py compute_recap (fixture: backend/mock/fixtures/recap.json).
-// Dulu dibaca sebagai orders_count / share_pct / trend[].day → transaksi selalu 0 (halaman Live
-// selalu "belum ada transaksi"), bar channel NaN%, dan t.day.length membuat halaman crash.
+// kontrak = backend/app/services/recap.py compute_recap (fixture: backend/mock/fixtures/recap.json);
+// alias orders_count / share_pct / day ikut diterima (ditambahkan backend di #84).
 interface LiveRecapResponse {
   totals?: {
     gross_rp?: number;
     net_rp?: number;
     orders?: number;
+    orders_count?: number;
   };
   per_channel?: {
     channel: string;
     gross_rp: number;
     net_rp: number;
-    share: number; // pecahan 0–1 dari penjualan bersih
+    share?: number; // pecahan 0–1 dari penjualan bersih (kontrak utama)
+    share_pct?: number; // alias persen (0–100) sejak #84
   }[];
   trend?: {
-    date: string; // YYYY-MM-DD (tanggal WIB)
+    date?: string; // YYYY-MM-DD (tanggal WIB)
+    day?: string; // alias sejak #84
     net_rp: number;
   }[];
   warnings?: { channel?: string; type: string; message: string }[];
@@ -153,18 +155,23 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
 
   const liveSplit = useMemo(() => {
     if (!liveRecap?.per_channel?.length) return [];
-    return liveRecap.per_channel.map((c) => ({
-      channel: CHANNEL_LABEL[c.channel] ?? (c.channel as Channel),
-      omzet: Math.round(Number(c.gross_rp) || 0),
-      share: Math.round((Number(c.share) || 0) * 1000) / 10,
-    }));
+    return liveRecap.per_channel.map((c) => {
+      // `share` pecahan bila ada; `share_pct` sudah persen. Jangan tebak dari besarnya angka:
+      // share_pct 0,8 (channel kecil) bukan 80%.
+      const sharePct = c.share != null ? Number(c.share) * 100 : Number(c.share_pct ?? 0);
+      return {
+        channel: CHANNEL_LABEL[c.channel] ?? (c.channel as Channel),
+        omzet: Math.round(Number(c.gross_rp) || 0),
+        share: Math.round((Number.isFinite(sharePct) ? sharePct : 0) * 10) / 10,
+      };
+    });
   }, [liveRecap]);
 
   // the recap API has no per-day order count, so the readout shows none instead of a made-up "1 transaksi"
   const liveTrendData = useMemo<TrendPoint[]>(() => {
     if (!liveRecap?.trend?.length) return [];
     return liveRecap.trend.map((t) => ({
-      day: shortDay(String(t.date ?? '')),
+      day: shortDay(String(t.date ?? t.day ?? '')),
       omzet: Number(t.net_rp || 0),
       transaksi: null,
       sementara: false,
@@ -181,7 +188,7 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
     ? Number(liveRecap?.totals?.net_rp ?? 0)
     : Math.round(omzetKotor * 0.934);
   const transaksi = isLive
-    ? Number(liveRecap?.totals?.orders ?? 0)
+    ? Number(liveRecap?.totals?.orders ?? liveRecap?.totals?.orders_count ?? 0)
     : data.reduce((s, d) => s + d.transaksi, 0);
   const rataHarian = omzetKotor / period;
   const staleChannels = isLive ? [] : DATA_FRESHNESS.filter((c) => c.daysAgo > 7);

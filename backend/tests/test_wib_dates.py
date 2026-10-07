@@ -18,7 +18,7 @@ def test_recap_trend_buckets_by_wib_day():
     lines = [RecapLine(order_id="A", line_key="A:1", channel="shopee", status="completed",
                        qty=1, unit_price=10000, sold_at="2026-10-06T20:00:00+00:00")]
     trend = compute_recap(lines, period_days=7)["trend"]
-    assert trend == [{"date": "2026-10-07", "net_rp": 10000}]
+    assert [(t["date"], t["net_rp"]) for t in trend] == [("2026-10-07", 10000)]
 
 
 def test_early_morning_sale_on_opening_day_reduces_stock():
