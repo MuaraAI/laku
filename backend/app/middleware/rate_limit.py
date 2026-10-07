@@ -29,14 +29,17 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         tier = ("write" if request.method == "POST"
                 and request.url.path.startswith(WRITE_PREFIXES) else "read")
         limit, window = LIMITS[tier]
-        ip = (request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+        # IP klien asli ditambahkan di akhir chain XFF oleh Caddy reverse proxy
+        ip = (request.headers.get("x-forwarded-for", "").split(",")[-1].strip()
               or (request.client.host if request.client else "?"))
         key, now = (tier, ip), time.monotonic()
         hits = self._hits[key]
         while hits and hits[0] <= now - window:
             hits.popleft()
         if not hits and len(self._hits) > 1000:
-            self._hits.pop(key, None)
+            stale = [k for k, v in self._hits.items() if not v or v[-1] <= now - window]
+            for k in stale:
+                self._hits.pop(k, None)
             hits = self._hits[key]
         if len(hits) >= limit:
             return JSONResponse(

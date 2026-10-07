@@ -4,7 +4,7 @@
 import { useRef, useState } from 'react';
 import { CHANNELS, mockPreview, fmtNum, fmtNum1, type Channel, type UploadPreview } from '../data';
 import { Num } from '../components';
-import { IconFile, IconUpload } from '../icons';
+import { IconFile, IconUpload, IconWarning } from '../icons';
 
 type Phase = 'idle' | 'loading' | 'preview' | 'done';
 
@@ -15,6 +15,7 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
   const [preview, setPreview] = useState<UploadPreview | null>(null);
   const [batchId, setBatchId] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   function pickFile() {
@@ -94,6 +95,7 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
 
   async function confirm() {
     if (mode === 'live' && batchId) {
+      setConfirming(true);
       try {
         const { supabaseBrowser } = await import('@/lib/supabase/client');
         const supabase = supabaseBrowser();
@@ -102,13 +104,22 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
         const url = API_BASE.includes('api.muaraai.com')
           ? `${API_BASE}/v1/laku/v1/imports/${batchId}/confirm`
           : `${API_BASE}/v1/imports/${batchId}/confirm`;
-        await fetch(url, {
+        const res = await fetch(url, {
           method: 'POST',
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
+        if (!res.ok) {
+          const err = await res.json().catch(() => null);
+          setUploadError(err?.detail?.error?.message || 'Gagal menyimpan data. Coba lagi.');
+          setConfirming(false);
+          return;
+        }
       } catch {
-        /* abaikan */
+        setUploadError('Koneksi ke server terputus saat menyimpan. Coba lagi.');
+        setConfirming(false);
+        return;
       }
+      setConfirming(false);
     }
     setPhase('done');
     if (onUploaded) {
@@ -159,8 +170,9 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
             </button>
             {!channel && <p className="form-hint">Pilih channel dulu supaya kolom file bisa dipetakan dengan benar.</p>}
             {uploadError && (
-              <p className="negative-note" style={{ marginTop: '10px', color: 'var(--critical)', background: 'var(--critical-bg)', padding: '10px 14px', borderRadius: 'var(--r-sm)', fontSize: '13px' }} role="alert">
-                ⚠️ {uploadError}
+              <p className="negative-note" style={{ marginTop: '10px', color: 'var(--critical)', background: 'var(--critical-bg)', padding: '10px 14px', borderRadius: 'var(--r-sm)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }} role="alert">
+                <IconWarning size={15} />
+                <span>{uploadError}</span>
               </p>
             )}
           </div>
@@ -215,7 +227,7 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
                 </div>
               )}
               <div className="preview-actions">
-                <button className="btn btn-primary" onClick={confirm}>Konfirmasi &amp; simpan</button>
+                <button className="btn btn-primary" onClick={confirm} disabled={confirming} aria-busy={confirming}>{confirming ? 'Menyimpan…' : 'Konfirmasi &amp; simpan'}</button>
                 <button className="btn btn-ghost" onClick={reset}>Batal, ganti file</button>
               </div>
             </div>

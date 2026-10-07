@@ -92,6 +92,13 @@ def compute(inp: EngineInput) -> Recommendation:
     variance = sum((u - mu) ** 2 for u in usable) / n
     sigma = math.sqrt(variance)
 
+    if not (math.isfinite(mu) and math.isfinite(sigma) and math.isfinite(inp.on_hand)):
+        return Recommendation(
+            state="INSUFFICIENT_DATA",
+            overlays=overlays,
+            inputs={"note": "Data input tidak valid (non-finite)"},
+        )
+
     # ---- hitung history_days utk DEAD/OVERSTOCK ----
     history_days = inp.history_days
 

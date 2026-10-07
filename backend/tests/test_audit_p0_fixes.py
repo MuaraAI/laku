@@ -54,3 +54,18 @@ async def test_auto_provisioning_demo_mode():
     sid, role = await _lookup_membership("new-user-123")
     assert role == "owner"
     assert sid is not None
+
+
+def test_nan_non_finite_engine_safe():
+    inp = EngineInput(
+        daily_units=[float("nan")] * 30,  # type: ignore
+        history_days=30,
+        on_hand=10,
+        on_order=0,
+        lead_time_days=7,
+        review_days=7,
+        stock_set_up=True,
+    )
+    rec = compute(inp)
+    assert rec.state == "INSUFFICIENT_DATA"
+    assert "non-finite" in rec.inputs.get("note", "")

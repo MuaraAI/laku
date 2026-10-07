@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from app.deps.auth import Identity, get_identity
+from app.deps.auth import Identity, get_identity, require_seller_member
 from app.deps.settings import get_settings
 from app.routers.stock import _get_store
 from app.services import recommendations as recs_service
@@ -18,6 +18,7 @@ def list_recommendations(
     overlays: str | None = Query(None),
     identity: Identity = Depends(get_identity),
 ):
+    require_seller_member(identity)
     settings = get_settings()
     store = _get_store()
     seller_id = identity.seller_id or ""
@@ -50,6 +51,7 @@ def get_recommendation(
     product_id: str,
     identity: Identity = Depends(get_identity),
 ):
+    require_seller_member(identity)
     settings = get_settings()
     if settings.demo_mode and not settings.supabase_url:
         import json

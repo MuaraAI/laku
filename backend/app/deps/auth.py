@@ -102,30 +102,43 @@ async def _lookup_membership(user_id: str, email: str | None = None) -> tuple[st
 
     # Fallback auto-provision jika trigger DB belum jalan
     store_name = f"Toko {email.split('@')[0]}" if email else "Toko Saya"
-    new_seller = (
-        client.table("sellers")
-        .insert({
-            "name": store_name,
-            "email": email,
-            "plan": "free",
-            "timezone": "Asia/Jakarta",
-            "service_level": 0.95,
-            "lead_time_days": 5,
-            "cycle_days": 14,
-            "review_days": 7,
-            "overstock_days": 60,
-        })
-        .execute()
-        .data
-    )
-    if new_seller:
-        sid = new_seller[0]["id"]
-        client.table("seller_members").insert({
-            "seller_id": sid,
-            "user_id": user_id,
-            "role": "owner",
-        }).execute()
-        return sid, "owner"
+    try:
+        new_seller = (
+            client.table("sellers")
+            .insert({
+                "name": store_name,
+                "email": email,
+                "plan": "free",
+                "timezone": "Asia/Jakarta",
+                "service_level": 0.95,
+                "lead_time_days": 5,
+                "cycle_days": 14,
+                "review_days": 7,
+                "overstock_days": 60,
+            })
+            .execute()
+            .data
+        )
+        if new_seller:
+            sid = new_seller[0]["id"]
+            client.table("seller_members").insert({
+                "seller_id": sid,
+                "user_id": user_id,
+                "role": "owner",
+            }).execute()
+            return sid, "owner"
+    except Exception:
+        # Kalah race dengan trigger DB atau signup simultan: periksa ulang keanggotaan
+        resp2 = (
+            client.table("seller_members")
+            .select("seller_id, role")
+            .eq("user_id", user_id)
+            .limit(1)
+            .execute()
+        )
+        rows2 = resp2.data or []
+        if rows2:
+            return rows2[0]["seller_id"], rows2[0]["role"]
 
     raise HTTPException(403, "No seller membership")
 

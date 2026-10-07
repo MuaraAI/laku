@@ -4,27 +4,102 @@
 
 import Image from 'next/image';
 import { useRef, useState } from 'react';
+import { apiFetch } from '@/lib/api';
 import { CHANNELS, UPLOAD_GUIDE, DEFAULT_LEAD_TIME_DAYS, fmtNum, type Channel } from '../data';
 import { AssumsiBadge } from '../components';
-import { IconChevron, IconUpload } from '../icons';
+import { IconChevron, IconUpload, IconWarning } from '../icons';
 
 const STEP_TITLES = ['Channel', 'Panduan upload', 'Upload awal', 'Lead time', 'Saldo awal stok', 'Selesai'];
 
-export function OnboardingPage({ onFinish }: { onFinish: () => void }) {
+export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => void; mode?: 'demo' | 'live' }) {
   const [step, setStep] = useState(0);
   const [channel, setChannel] = useState<Channel | null>(null);
   const [fileName, setFileName] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [leadTime, setLeadTime] = useState(DEFAULT_LEAD_TIME_DAYS);
   const [confirmed, setConfirmed] = useState(false);
   const [stockDraft, setStockDraft] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
-  function simulateUpload(name: string) {
-    setFileName(name);
+  async function handleFileUpload(file: File) {
+    setFileName(file.name);
     setUploading(true);
-    window.setTimeout(() => { setUploading(false); setUploaded(true); }, 1200);
+    setUploadError(null);
+
+    if (mode === 'live') {
+      try {
+        const { supabaseBrowser } = await import('@/lib/supabase/client');
+        const supabase = supabaseBrowser();
+        const token = (await supabase?.auth.getSession())?.data.session?.access_token;
+        const formData = new FormData();
+        formData.append('file', file);
+        const chKey = channel === 'Shopee' ? 'shopee' : channel === 'TikTok Shop' ? 'tiktok_shop' : 'tokopedia';
+        formData.append('channel', chKey);
+
+        const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.muaraai.com';
+        const url = API_BASE.includes('api.muaraai.com')
+          ? `${API_BASE}/v1/laku/v1/imports`
+          : `${API_BASE}/v1/imports`;
+
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          body: formData,
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const confirmUrl = API_BASE.includes('api.muaraai.com')
+            ? `${API_BASE}/v1/laku/v1/imports/${data.import_batch_id}/confirm`
+            : `${API_BASE}/v1/imports/${data.import_batch_id}/confirm`;
+          await fetch(confirmUrl, {
+            method: 'POST',
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          });
+          setUploaded(true);
+        } else {
+          const errData = await res.json().catch(() => null);
+          setUploadError(errData?.detail?.error?.message || 'Gagal membaca file di server.');
+        }
+      } catch {
+        setUploadError('Koneksi ke backend gagal.');
+      } finally {
+        setUploading(false);
+      }
+      return;
+    }
+
+    // mode === 'demo'
+    window.setTimeout(() => {
+      setUploading(false);
+      setUploaded(true);
+    }, 1200);
+  }
+
+  function handleConfirmLeadTime(isConfirmed: boolean) {
+    setConfirmed(isConfirmed);
+    if (mode === 'live') {
+      apiFetch('/v1/me/settings', {
+        method: 'POST',
+        body: JSON.stringify({ lead_time_days: leadTime }),
+      });
+    }
+    setStep(4);
+  }
+
+  function handleConfirmStock() {
+    if (mode === 'live' && stockDraft.trim()) {
+      const qty = parseInt(stockDraft, 10);
+      if (!isNaN(qty) && qty > 0) {
+        apiFetch('/v1/stock/opening', {
+          method: 'POST',
+          body: JSON.stringify({ name: 'Produk Utama', sku: 'SKU-01', qty }),
+        });
+      }
+    }
+    setStep(5);
   }
 
   return (
@@ -78,7 +153,7 @@ export function OnboardingPage({ onFinish }: { onFinish: () => void }) {
           <section>
             <h2 className="step-title">Upload laporan pertama</h2>
             <input ref={fileRef} type="file" accept=".csv,.xlsx" className="visually-hidden"
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) simulateUpload(f.name); }} />
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(f); }} />
             {uploading ? (
               <div className="skeleton-block" aria-busy="true" aria-live="polite">
                 <div className="sk sk-line w60" />
@@ -86,7 +161,7 @@ export function OnboardingPage({ onFinish }: { onFinish: () => void }) {
                 <div className="sk sk-row short" />
               </div>
             ) : uploaded ? (
-              <p className="done-note"><span className="num num-left">{fileName}</span> terbaca. Preview lengkap bisa dicek di halaman Upload.</p>
+              <p className="done-note"><span className="num num-left">{fileName}</span> {mode === 'live' ? 'berhasil diimpor ke tokomu.' : 'terbaca. Preview lengkap bisa dicek di halaman Upload.'}</p>
             ) : (
               <button className="dropzone" onClick={() => fileRef.current?.click()}>
                 <IconUpload size={20} />
@@ -94,7 +169,14 @@ export function OnboardingPage({ onFinish }: { onFinish: () => void }) {
                 <small>Maksimal 90 hari riwayat pesanan</small>
               </button>
             )}
+            {uploadError && (
+              <p className="negative-note" style={{ marginTop: '10px', color: 'var(--critical)', background: 'var(--critical-bg)', padding: '10px 14px', borderRadius: 'var(--r-sm)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }} role="alert">
+                <IconWarning size={15} />
+                <span>{uploadError}</span>
+              </p>
+            )}
             <div className="wizard-actions">
+              <button className="btn btn-ghost" onClick={() => setStep(1)}>Kembali</button>
               <button className="btn btn-ghost" onClick={() => setStep(3)}>Lewati dulu</button>
               <button className="btn btn-primary" disabled={!uploaded} onClick={() => setStep(3)}>
                 Lanjut <IconChevron size={15} />
@@ -123,8 +205,9 @@ export function OnboardingPage({ onFinish }: { onFinish: () => void }) {
               </p>
             </div>
             <div className="wizard-actions">
-              <button className="btn btn-ghost" onClick={() => { setConfirmed(false); setStep(4); }}>Pakai asumsi dulu</button>
-              <button className="btn btn-primary" onClick={() => { setConfirmed(true); setStep(4); }}>
+              <button className="btn btn-ghost" onClick={() => setStep(2)}>Kembali</button>
+              <button className="btn btn-ghost" onClick={() => handleConfirmLeadTime(false)}>Pakai asumsi dulu</button>
+              <button className="btn btn-primary" onClick={() => handleConfirmLeadTime(true)}>
                 Konfirmasi <span className="num">{fmtNum(leadTime)}</span> hari <IconChevron size={15} />
               </button>
             </div>
@@ -144,8 +227,9 @@ export function OnboardingPage({ onFinish }: { onFinish: () => void }) {
                 onChange={(e) => setStockDraft(e.target.value)} className="input num" />
             </label>
             <div className="wizard-actions">
+              <button className="btn btn-ghost" onClick={() => setStep(3)}>Kembali</button>
               <button className="btn btn-ghost" onClick={() => setStep(5)}>Skip, isi nanti</button>
-              <button className="btn btn-primary" onClick={() => setStep(5)}>Simpan &amp; lanjut <IconChevron size={15} /></button>
+              <button className="btn btn-primary" onClick={handleConfirmStock}>Simpan &amp; lanjut <IconChevron size={15} /></button>
             </div>
           </section>
         )}

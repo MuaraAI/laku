@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { footer, login, routes } from "@/constants/id";
 import { Icon } from "@/components/landing/primitives";
+import { safeNext } from "@/lib/supabase/env";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const OTP_LEN = 6;
@@ -31,7 +32,7 @@ export default function LoginCard({
   const [cooldown, setCooldown] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const targetNext = nextDestination || "/dashboard?mode=live";
+  const targetNext = safeNext(nextDestination ?? null, "/dashboard?mode=live");
   const redirectTo = () => `${location.origin}/auth/callback?next=${encodeURIComponent(targetNext)}`;
 
   useEffect(() => {
