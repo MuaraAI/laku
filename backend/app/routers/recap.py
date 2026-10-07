@@ -28,7 +28,7 @@ def get_recap(
     settings = get_settings()
 
     # Fixture seed HANYA di demo mode — prod misconfig harus fail, bukan serve angka karangan
-    if settings.demo_mode:
+    if settings.demo_mode and not settings.supabase_url:
         fixture_path = FIXTURES / "recap.json"
         if fixture_path.exists():
             with open(fixture_path, encoding="utf-8") as f:
@@ -36,8 +36,36 @@ def get_recap(
             data["period"]["days"] = days
             return data
 
-    # TODO (B2 integration): Fetch order_lines for identity.seller_id within days from DB
-    # Fallback to empty recap structure
+    if settings.supabase_url and settings.supabase_service_key and identity.seller_id:
+        from datetime import datetime, timedelta, timezone
+        from app.services.recap import RecapLine
+        from supabase import create_client
+        client = create_client(settings.supabase_url, settings.supabase_service_key)
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+        resp = (
+            client.table("order_lines")
+            .select("order_id, line_key, sales_channel, status, qty, unit_price, discount_amount, allocated_discount, sold_at")
+            .eq("seller_id", identity.seller_id)
+            .gte("sold_at", cutoff)
+            .execute()
+        )
+        raw_rows = resp.data or []
+        recap_lines = [
+            RecapLine(
+                order_id=r["order_id"],
+                line_key=r["line_key"],
+                channel=r["sales_channel"],
+                status=r["status"],
+                qty=int(r.get("qty") or 0),
+                unit_price=float(r.get("unit_price") or 0),
+                discount_amount=float(r.get("discount_amount") or 0),
+                allocated_discount=float(r.get("allocated_discount") or 0),
+                sold_at=r["sold_at"],
+            )
+            for r in raw_rows
+        ]
+        return compute_recap(recap_lines, period_days=days)
+
     return compute_recap([], period_days=days)
 
 

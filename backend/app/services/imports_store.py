@@ -371,7 +371,7 @@ class ImportsSupabaseStore(ImportsStore):
 
 def _q(v: str) -> str:
     """Quote nilai untuk ekspresi `or` PostgREST."""
-    s = str(v).replace('"', '""')
+    s = str(v).replace('\\', '\\\\').replace('"', '\\"')
     return f'"{s}"'
 
 

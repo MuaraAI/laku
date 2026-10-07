@@ -39,8 +39,9 @@ def _get_live_platform_data() -> tuple[int, int, int, dict]:
 
     try:
         from supabase import create_client  # noqa: no stubs for supabase-py
+        import logging
 
-        key = settings.supabase_anon_key or settings.supabase_service_key
+        key = settings.supabase_service_key or settings.supabase_anon_key
         if not key:
             return 3, 10, 52, DEFAULT_URGENCY
 
@@ -52,7 +53,9 @@ def _get_live_platform_data() -> tuple[int, int, int, dict]:
         orders = data.get("total_orders_analyzed", 52)
         urgency = data.get("urgency_distribution") or DEFAULT_URGENCY
         return max(sellers, 1), max(products, 1), max(orders, 1), urgency
-    except Exception:
+    except Exception as e:
+        import logging
+        logging.getLogger("laku.stats").warning("get_platform_stats RPC fallback: %s", e)
         return 3, 10, 52, DEFAULT_URGENCY
 
 

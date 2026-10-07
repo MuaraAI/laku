@@ -1,17 +1,17 @@
 // Halaman Penjualan (Recap): period selector 7/30/90 hari, trend chart,
 // ringkasan omzet, dan Coverage Banner untuk data usang/parsial.
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { apiFetch } from '@/lib/api';
-import { SALES, CHANNEL_SPLIT, DATA_FRESHNESS, fmtIDR, fmtNum, fmtNum1 } from '../data';
+import { SALES, CHANNEL_SPLIT, DATA_FRESHNESS, fmtIDR, fmtNum, fmtNum1, type Channel } from '../data';
 import { Num, SementaraChip } from '../components';
 import { IconWarning } from '../icons';
 
 type Period = 7 | 30 | 90;
 const PERIODS: Period[] = [7, 30, 90];
 
-function TrendChart({ period }: { period: Period }) {
-  const data = SALES[period];
+function TrendChart({ period, customData }: { period: Period; customData?: { day: string; omzet: number; transaksi: number; sementara?: boolean }[] | null }) {
+  const data = customData && customData.length > 1 ? customData : SALES[period];
   const [hover, setHover] = useState<number | null>(null);
   const W = 720, H = 240, PL = 8, PR = 8, PT = 16, PB = 28;
   const max = Math.max(...data.map((d) => d.omzet));
@@ -85,26 +85,71 @@ interface LiveRecapResponse {
     net_rp?: number;
     orders_count?: number;
   };
+  per_channel?: {
+    channel: string;
+    gross_rp: number;
+    net_rp: number;
+    orders: number;
+    share_pct: number;
+  }[];
+  trend?: {
+    day: string;
+    net_rp: number;
+  }[];
 }
 
 export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
   const [period, setPeriod] = useState<Period>(30);
   const [liveRecap, setLiveRecap] = useState<LiveRecapResponse | null>(null);
-
-  useEffect(() => {
-    if (mode === 'live') {
-      apiFetch<LiveRecapResponse>(`/v1/recap?days=${period}`).then((res) => {
-        if (res) setLiveRecap(res);
-      });
-    } else {
-      setLiveRecap(null);
-    }
-  }, [mode, period]);
+  const [recapError, setRecapError] = useState<string | null>(null);
 
   const isLive = mode === 'live';
 
+  const fetchRecap = useCallback(() => {
+    setRecapError(null);
+    apiFetch<LiveRecapResponse>(`/v1/recap?days=${period}`)
+      .then((res) => {
+        if (res.data) {
+          setLiveRecap(res.data);
+          setRecapError(null);
+        } else if (res.error) {
+          setRecapError(res.error);
+        }
+      });
+  }, [period]);
+
+  useEffect(() => {
+    if (isLive) {
+      fetchRecap();
+    } else {
+      setLiveRecap(null);
+      setRecapError(null);
+    }
+  }, [isLive, fetchRecap]);
+
   const data = SALES[period];
   const split = CHANNEL_SPLIT[period];
+
+  const liveSplit = useMemo(() => {
+    if (!liveRecap?.per_channel?.length) return [];
+    return liveRecap.per_channel.map((c) => ({
+      channel: (c.channel === 'shopee' ? 'Shopee' : c.channel === 'tiktok_shop' ? 'TikTok Shop' : 'Tokopedia') as Channel,
+      omzet: Math.round(c.gross_rp),
+      share: Number(c.share_pct),
+    }));
+  }, [liveRecap]);
+
+  const liveTrendData = useMemo(() => {
+    if (!liveRecap?.trend?.length) return null;
+    return liveRecap.trend.map((t) => ({
+      day: t.day.length > 5 ? t.day.slice(5) : t.day,
+      omzet: Number(t.net_rp || 0),
+      transaksi: 1,
+      sementara: false,
+    }));
+  }, [liveRecap]);
+
+  const activeSplit = isLive ? (liveSplit.length ? liveSplit : split) : split;
 
   const omzetKotor = isLive
     ? Number(liveRecap?.totals?.gross_rp ?? 0)
@@ -175,7 +220,12 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
         </div>
       </section>
 
-      {isLive && transaksi === 0 ? (
+      {recapError ? (
+        <div className="stock-empty" role="alert" style={{ marginTop: '14px', border: '1px solid var(--critical-bg)', background: 'var(--critical-bg)' }}>
+          <p style={{ color: 'var(--critical)', fontWeight: 600 }}>Gagal memuat rekap penjualan: {recapError}</p>
+          <button className="btn btn-primary" onClick={fetchRecap} type="button">Coba Lagi</button>
+        </div>
+      ) : isLive && transaksi === 0 ? (
         <div className="stock-empty" data-reveal style={{ marginTop: '14px' }}>
           <p>Belum ada transaksi penjualan tercatat untuk Toko Saya pada periode {period} hari ini.</p>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
@@ -186,13 +236,13 @@ export function PenjualanPage({ mode = 'demo' }: { mode?: 'demo' | 'live' }) {
         <>
           <section aria-labelledby="tren">
             <h2 id="tren" className="section-title">Tren omzet kotor</h2>
-            <TrendChart period={period} />
+            <TrendChart period={period} customData={liveTrendData} />
           </section>
 
           <section aria-labelledby="per-channel">
             <h2 id="per-channel" className="section-title">Per channel</h2>
             <ul className="channel-split" data-reveal="kids">
-              {split.map((c) => (
+              {activeSplit.map((c) => (
                 <li key={`${period}-${c.channel}`} className="channel-row">
                   <span className="channel-name">{c.channel}</span>
                   <span className="channel-bar" aria-hidden="true">
