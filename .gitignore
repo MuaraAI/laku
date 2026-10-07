@@ -38,3 +38,6 @@ samples/
 
 # internal team docs — tidak dipublikasikan
 docs/
+
+# pribadirapli — tools pentest internal (RAFLI), tidak pernah masuk repo
+pribadirapli/
