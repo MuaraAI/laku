@@ -56,7 +56,7 @@ def verify_token(token: str) -> dict:
         payload = jwt.decode(
             token,
             public_key,
-            algorithms=["RS256"],  # pinned — JANGAN ambil alg dari header token
+            algorithms=["RS256", "ES256"],  # pinned — Supabase Auth JWKS supports RS256 & ES256
             audience="authenticated",
             options={"require": ["exp", "sub"]},
         )
