@@ -112,3 +112,45 @@ def test_fetch_all_paginated_fallback_no_range():
     results = fetch_all_paginated(NoRangeQuery())
     assert len(results) == 2
 
+
+def test_imports_supabase_store_column_whitelist():
+    from app.services.imports_store import ImportsSupabaseStore
+
+    captured_payloads = []
+
+    class MockQuery:
+        def __init__(self, payload):
+            self.payload = payload
+
+        def execute(self):
+            class Resp:
+                data = [self.payload]
+            return Resp()
+
+    class MockTable:
+        def insert(self, payload):
+            captured_payloads.append(payload)
+            return MockQuery(payload)
+
+    class MockClient:
+        def table(self, name):
+            return MockTable()
+
+    store = ImportsSupabaseStore(MockClient())
+    batch = {
+        "id": "b1",
+        "seller_id": "s1",
+        "channel": "shopee",
+        "source_system": "shopee_seller_center",
+        "unknown_extra_field": "should_be_stripped",
+        "file_hash": "hash123",
+        "status": "preview",
+        "row_count": 10,
+    }
+    store.create_batch("s1", batch)
+    assert len(captured_payloads) == 1
+    assert "unknown_extra_field" not in captured_payloads[0]
+    assert captured_payloads[0]["source_system"] == "shopee_seller_center"
+    assert captured_payloads[0]["channel"] == "shopee"
+
+
