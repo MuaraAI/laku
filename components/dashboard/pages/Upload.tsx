@@ -20,7 +20,15 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
   const fileRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<number | undefined>(undefined);
 
-  useEffect(() => () => window.clearTimeout(timerRef.current), []);
+  const navTimerRef = useRef<number | undefined>(undefined);
+  useEffect(() => () => { window.clearTimeout(timerRef.current); window.clearTimeout(navTimerRef.current); }, []);
+
+  // a failed attempt must leave the picker empty, otherwise choosing the same (fixed) file again fires no change event
+  function failUpload(msg: string) {
+    setUploadError(msg);
+    setPhase('idle');
+    if (fileRef.current) fileRef.current.value = '';
+  }
 
   function pickFile() {
     if (!channel) return;
@@ -74,15 +82,12 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
           return;
         } else {
           const errData = await res.json().catch(() => null);
-          const msg = errData?.detail?.error?.message || errData?.error?.message || 'Gagal membaca file di server backend.';
-          setUploadError(msg);
-          setPhase('idle');
+          failUpload(errData?.detail?.error?.message || errData?.error?.message || 'Gagal membaca file di server backend.');
           return;
         }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Koneksi error';
-        setUploadError('Koneksi ke backend gagal: ' + msg);
-        setPhase('idle');
+        failUpload('Koneksi ke backend gagal: ' + msg);
         return;
       }
     }
@@ -122,12 +127,13 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
     }
     setPhase('done');
     if (onUploaded) {
-      window.setTimeout(onUploaded, 1800);
+      navTimerRef.current = window.setTimeout(onUploaded, 1800);
     }
   }
 
   function reset() {
     window.clearTimeout(timerRef.current);
+    window.clearTimeout(navTimerRef.current);
     setPhase('idle'); setPreview(null); setFileName(''); setBatchId(null); setUploadError(null);
     if (fileRef.current) fileRef.current.value = '';
   }
@@ -227,7 +233,7 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
                 </div>
               )}
               <div className="preview-actions">
-                <button className="btn btn-primary" onClick={confirm} disabled={confirming} aria-busy={confirming}>{confirming ? 'Menyimpan…' : 'Konfirmasi &amp; simpan'}</button>
+                <button className="btn btn-primary" onClick={confirm} disabled={confirming} aria-busy={confirming}>{confirming ? 'Menyimpan…' : 'Konfirmasi & simpan'}</button>
                 <button className="btn btn-ghost" onClick={reset}>Batal, ganti file</button>
               </div>
             </div>

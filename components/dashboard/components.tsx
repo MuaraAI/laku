@@ -121,6 +121,9 @@ export function WhyPanel({ product, onClose }: { product: Product | null; onClos
             <li className="why-total">
               <span className="why-label">Titik pesan ulang (ROP)</span>
               <Num strong>{fmtNum1(demandLead)} + {fmtNum(p.safetyStock)} = {fmtNum(p.rop)} unit</Num>
+              {Math.abs(demandLead + p.safetyStock - Math.round(demandLead + p.safetyStock)) > 1e-9 && (
+                <span className="why-desc">Dibulatkan ke atas — stok dihitung per unit utuh.</span>
+              )}
               <span className="why-desc">
                 Stok saat ini <Num>{fmtNum(p.onHand)}</Num> unit — {p.onHand <= p.rop ? 'sudah di bawah titik pesan, waktunya order.' : 'masih di atas titik pesan.'}
               </span>
