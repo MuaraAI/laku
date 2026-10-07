@@ -146,10 +146,14 @@ Semua commit di branch `main` wajib lulus pemeriksaan otomatis **GitHub Actions 
 
 ## 👥 Tim Pengembang (MuaraAI)
 
-* **Yuken Velino** (`@Curzyori`) — Lead Backend, Engine §9A, Security & Arsitektur
-* **Muhammad Raffli Aldiansyah** (`@wakeupliey` / Bob) — Backend Parsers, Deduplikasi & VPS Deployment
-* **Jio** (`@ki___w_o` / `MyKineID`) — Frontend Lead, Landing Page & UI Engineering
-* **Raken** (`@rakenyaoiloverskibidi` / `kabayy-sys`) — Frontend Dashboard, Onboarding & Media Demo
+* **Yuken Velino** ([@Curzyori](https://github.com/Curzyori)) — **Kapten Tim / Founder & Lead Backend**  
+  Arsitektur sistem, Core Engine deterministik §9A, Code Reviewer & penyempurna kualitas kode (*system hardening*).
+* **Muhammad Raffli Aldiansyah** ([@Seeyaa77](https://github.com/Seeyaa77) / Bob) — **Backend & Security Engineer (Hacker)**  
+  Audit keamanan & proteksi sistem, Parser export marketplace, Deduplikasi data & Infrastruktur VPS Linux.
+* **Jio** ([@MyKineID](https://github.com/MyKineID)) — **Lead Frontend & UI/UX Engineer**  
+  Desain antarmuka, Motion interaction, Landing page, Desain sistem semantic & Aksesibilitas web (WCAG).
+* **Raken** ([@kabayy-sys](https://github.com/kabayy-sys)) — **Product & Business Lead (Hustler)**  
+  Inisiator ide proyek, Riset model bisnis UMKM, Prototype dashboard, dan Koordinator video demo & proposal.
 
 **Institusi**: Universitas Bina Sarana Informatika (UBSI) Kampus Kota Pontianak.
 
