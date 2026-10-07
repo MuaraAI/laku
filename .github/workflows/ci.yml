@@ -10,9 +10,7 @@ jobs:
   backend:
     name: Backend Test Suite (FastAPI)
     runs-on: ubuntu-latest
-    if: >
-      github.repository == 'MuaraAI/laku' &&
-      contains(fromJSON('["Curzyori", "Seeyaa77", "MyKineID", "kabayy-sys"]'), github.actor)
+    if: github.repository == 'MuaraAI/laku'
 
     steps:
       - name: Checkout code
@@ -30,7 +28,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Run Backend Pytest Suite (139 tests)
+      - name: Run Backend Pytest Suite (145 tests)
         run: |
           cd backend
           python -m pytest tests/ -v
@@ -38,9 +36,7 @@ jobs:
   frontend:
     name: Frontend Quality & Build (Next.js 15)
     runs-on: ubuntu-latest
-    if: >
-      github.repository == 'MuaraAI/laku' &&
-      contains(fromJSON('["Curzyori", "Seeyaa77", "MyKineID", "kabayy-sys"]'), github.actor)
+    if: github.repository == 'MuaraAI/laku'
 
     steps:
       - name: Checkout code

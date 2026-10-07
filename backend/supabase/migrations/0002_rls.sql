@@ -26,9 +26,15 @@ $$;
 DO $$
 DECLARE t text;
 BEGIN
-  FOREACH t IN ARRAY ARRAY['sellers','import_batches','order_lines','products','product_links']
+  -- tabel sellers menggunakan primary key id
+  CREATE POLICY seller_isolation ON sellers FOR ALL
+    USING (id IN (SELECT current_seller_ids()))
+    WITH CHECK (id IN (SELECT current_seller_ids()));
+
+  -- tabel entitas anak menggunakan kolom foreign key seller_id
+  FOREACH t IN ARRAY ARRAY['import_batches','order_lines','products','product_links']
   LOOP
-    EXECUTE format('CREATE POLICY seller_isolation ON %I FOR ALL USING (id IN (SELECT current_seller_ids())) WITH CHECK (id IN (SELECT current_seller_ids()))', t);
+    EXECUTE format('CREATE POLICY seller_isolation ON %I FOR ALL USING (seller_id IN (SELECT current_seller_ids())) WITH CHECK (seller_id IN (SELECT current_seller_ids()))', t);
   END LOOP;
 END $$;
 
