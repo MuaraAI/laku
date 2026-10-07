@@ -133,7 +133,7 @@ def test_verify_token_supports_es256(monkeypatch):
     import base64
 
     def int_to_b64(val: int) -> str:
-        b = val.to_bytes((val.bit_length() + 7) // 8, byteorder="big")
+        b = val.to_bytes(32, byteorder="big")
         return base64.urlsafe_b64encode(b).decode("utf-8").rstrip("=")
 
     kid = "test-es256-kid"
