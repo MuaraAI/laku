@@ -99,14 +99,19 @@ def build_recommendations(store, seller_id: str, today: date | None = None) -> d
                         else seller_lead if seller_lead is not None else DEFAULT_LEAD_TIME_DAYS)
         lead_assumed = product_lead is None and (seller_lead is None or int(seller_lead) == DEFAULT_LEAD_TIME_DAYS)
 
+        stock_set_up = bool(stock.get("stock_set_up"))
+        on_hand = int(stock["on_hand"]) if stock_set_up and stock.get("on_hand") is not None else 0
+        has_sales = any(daily)
+        stock_assumed = not stock_set_up
+
         rec: Recommendation = compute(EngineInput(
             lead_time_days=lead_time,
             **params,
             daily_units=daily,
             history_days=history_days,
-            on_hand=int(stock["on_hand"]) if stock.get("stock_set_up") and stock.get("on_hand") is not None else 0,
+            on_hand=on_hand,
             on_order=stock.get("on_order", 0),
-            stock_set_up=bool(stock.get("stock_set_up")),
+            stock_set_up=True if (not stock_set_up and has_sales) else stock_set_up,
             channel_stale=stale,
             opening_date=_to_date(stock.get("opening_date")),
             data_through=newest_sale,
@@ -116,6 +121,9 @@ def build_recommendations(store, seller_id: str, today: date | None = None) -> d
 
         rec.inputs.setdefault("lead_time_days", lead_time)
         rec.inputs["lead_time_assumed"] = lead_assumed
+        if stock_assumed and has_sales:
+            rec.inputs["stock_assumed"] = True
+            rec.inputs["note"] = "Stok fisik belum diatur — kuantitas restock dihitung dengan asumsi stok saat ini 0 unit"
         price, channel = _price_and_channel(product_sales, today)
 
         counts[rec.state] = counts.get(rec.state, 0) + 1
