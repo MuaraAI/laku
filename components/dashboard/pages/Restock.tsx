@@ -27,6 +27,7 @@ interface ApiRecommendationItem {
     mu?: number;
     lead_time_days?: number;
     lead_time_assumed?: boolean;
+    stock_assumed?: boolean;
   };
 }
 
@@ -57,6 +58,7 @@ function mapApiToProduct(item: ApiRecommendationItem): Product {
     lastSyncDaysAgo: item.overlays?.includes('STALE') ? 8 : 0,
     status: statusKey,
     price: item.price ?? 0,
+    stockAssumed: Boolean(why.stock_assumed),
   };
 }
 
@@ -78,11 +80,19 @@ function StockRow({ p, onWhy }: { p: Product; onWhy: (p: Product) => void }) {
       <div className="stock-figures">
         <div className="fig">
           <span className="fig-label">Stok</span>
-          <Num strong>{fmtNum(p.onHand)}</Num>
+          {p.stockAssumed ? (
+            <span className="suggest-hidden" title="Stok fisik belum diatur">—</span>
+          ) : (
+            <Num strong>{fmtNum(p.onHand)}</Num>
+          )}
         </div>
         <div className="fig">
           <span className="fig-label">Sisa hari</span>
-          <Num>{fmtDays(dos)}</Num>
+          {p.stockAssumed ? (
+            <span className="suggest-hidden" title="Stok fisik belum diatur">—</span>
+          ) : (
+            <Num>{fmtDays(dos)}</Num>
+          )}
         </div>
         <div className="fig">
           <span className="fig-label">ROP</span>
