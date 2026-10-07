@@ -28,7 +28,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Run Backend Pytest Suite (145 tests)
+      - name: Run Backend Pytest Suite (146 tests)
         run: |
           cd backend
           python -m pytest tests/ -v

@@ -197,12 +197,20 @@ class ImportsMemoryStore(ImportsStore):
 class ImportsSupabaseStore(ImportsStore):
     """Supabase via PostgREST. `client` = client per-user (RLS aktif)."""
 
+    BATCH_COLUMNS = {
+        "id", "seller_id", "channel", "source_system", "file_hash",
+        "status", "rows_read", "rows_new", "rows_updated", "rows_unchanged",
+        "rows_problem", "row_count", "data_from", "data_through",
+        "sku_fill_rate", "change_log", "created_at",
+    }
+
     def __init__(self, client) -> None:
         self.client = client
 
     # -- batches -------------------------------------------------------
     def create_batch(self, seller_id: str, batch: dict) -> dict:
-        row = self.client.table("import_batches").insert(batch).execute().data[0]
+        clean_batch = {k: v for k, v in batch.items() if k in self.BATCH_COLUMNS}
+        row = self.client.table("import_batches").insert(clean_batch).execute().data[0]
         return row
 
     def get_batch(self, seller_id: str, batch_id: str) -> dict | None:
@@ -230,9 +238,11 @@ class ImportsSupabaseStore(ImportsStore):
         )
 
     def update_batch(self, seller_id: str, batch_id: str, values: dict) -> None:
-        self.client.table("import_batches").update(values).eq(
-            "seller_id", seller_id
-        ).eq("id", batch_id).execute()
+        clean_values = {k: v for k, v in values.items() if k in self.BATCH_COLUMNS}
+        if clean_values:
+            self.client.table("import_batches").update(clean_values).eq(
+                "seller_id", seller_id
+            ).eq("id", batch_id).execute()
 
     # -- staging -------------------------------------------------------
     def stage_rows(self, seller_id: str, batch_id: str, rows: list[dict],
@@ -248,7 +258,8 @@ class ImportsSupabaseStore(ImportsStore):
             inserts.append({"batch_id": batch_id, "payload": {"__problems__": problems},
                             "line_key": "__problems__"})
         if inserts:
-            self.client.table("import_staging").insert(inserts).execute()
+            for i in range(0, len(inserts), 200):
+                self.client.table("import_staging").insert(inserts[i:i + 200]).execute()
         _ = payload  # payload hanya in-memory; raw file tidak pernah disimpan (ADR-2)
 
     def get_staging(self, seller_id: str, batch_id: str) -> tuple[list[dict], list[dict]]:
