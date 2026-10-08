@@ -323,7 +323,7 @@ class ImportsSupabaseStore(ImportsStore):
             return []
         keyset = {(k[0], k[1], k[2], k[3]) for k in keys}
         out = []
-        chunk_size = 100
+        chunk_size = 25
         for i in range(0, len(keys), chunk_size):
             chunk = keys[i:i + chunk_size]
             or_expr = ",".join(
@@ -385,7 +385,7 @@ class ImportsSupabaseStore(ImportsStore):
 
 def _q(v: str) -> str:
     """Quote nilai untuk ekspresi `or` PostgREST."""
-    s = str(v).replace('\\', '\\\\').replace('"', '\\"')
+    s = str(v).replace('"', '""')
     return f'"{s}"'
 
 

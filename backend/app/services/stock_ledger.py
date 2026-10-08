@@ -455,6 +455,8 @@ def record_movement(store: StockStore, seller_id: str, product_id: str,
     product = store.get_product(seller_id, product_id)
     if product is None:
         raise StockError("PRODUCT_NOT_FOUND", "Produk tidak ditemukan.")
+    if str(product_id).startswith("sku:") or str(product_id).startswith("prod_"):
+        raise StockError("UNPERSISTED_PRODUCT", "Produk belum terdaftar di database fisik. Atur saldo awal terlebih dahulu.")
     if mtype not in MOVEMENT_TYPES:
         raise StockError("INVALID_TYPE", f"Tipe mutasi '{mtype}' tidak valid. Gunakan: {', '.join(MOVEMENT_TYPES)}.")
     if qty == 0 or (mtype in ("receipt", "writeoff") and qty <= 0):

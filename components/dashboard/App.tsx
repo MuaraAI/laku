@@ -67,7 +67,19 @@ export default function App() {
           setUserEmail(email);
 
           if (email) {
-            const isDone = localStorage.getItem(`${ONBOARDED_KEY_PREFIX}${email}`) === '1';
+            let isDone = localStorage.getItem(`${ONBOARDED_KEY_PREFIX}${email}`) === '1';
+            if (!isDone) {
+              try {
+                const { apiFetch } = await import('@/lib/api');
+                const check = await apiFetch<{ items?: unknown[] }>('/v1/recommendations');
+                if (check.data?.items && check.data.items.length > 0) {
+                  isDone = true;
+                  localStorage.setItem(`${ONBOARDED_KEY_PREFIX}${email}`, '1');
+                }
+              } catch {
+                /* abaikan */
+              }
+            }
             setLiveOnboarded(isDone);
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('mode') !== 'demo') {
@@ -75,11 +87,23 @@ export default function App() {
             }
           }
 
-          const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+          const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
             const sEmail = session?.user?.email ?? null;
             setUserEmail(sEmail);
             if (sEmail) {
-              const isDone = localStorage.getItem(`${ONBOARDED_KEY_PREFIX}${sEmail}`) === '1';
+              let isDone = localStorage.getItem(`${ONBOARDED_KEY_PREFIX}${sEmail}`) === '1';
+              if (!isDone) {
+                try {
+                  const { apiFetch } = await import('@/lib/api');
+                  const check = await apiFetch<{ items?: unknown[] }>('/v1/recommendations');
+                  if (check.data?.items && check.data.items.length > 0) {
+                    isDone = true;
+                    localStorage.setItem(`${ONBOARDED_KEY_PREFIX}${sEmail}`, '1');
+                  }
+                } catch {
+                  /* abaikan */
+                }
+              }
               setLiveOnboarded(isDone);
               if (new URLSearchParams(window.location.search).get('mode') !== 'demo') {
                 setMode('live');

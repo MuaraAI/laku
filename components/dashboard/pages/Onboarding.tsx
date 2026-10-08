@@ -164,6 +164,7 @@ export function OnboardingPage({ onFinish, mode = 'demo' }: { onFinish: () => vo
           <section>
             <h2 className="step-title">{dashboard.onboarding.step3.title}</h2>
             <input ref={fileRef} type="file" accept=".csv,.xlsx" className="visually-hidden"
+              aria-label={dashboard.onboarding.step3.title}
               onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(f); }} />
             {uploading ? (
               <div className="skeleton-block" aria-busy="true" aria-live="polite">

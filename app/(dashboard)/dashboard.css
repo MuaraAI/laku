@@ -709,10 +709,11 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   .page { gap: 24px; }
 }
 
+} /* akhir .dash */
+
 @media (prefers-reduced-motion: reduce) {
   .dash *, .dash *::before, .dash *::after { animation: none !important; transition: none !important; }
 }
-} /* akhir .dash */
 
 /* live mode: shown while the session is checked, before any API call */
 .page-loading { padding: 48px 16px; text-align: center; color: var(--text-muted); font-size: 14px; }

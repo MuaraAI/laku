@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -138,7 +139,7 @@ def update_settings(
     if settings.demo_mode:
         return {"ok": True, "demo": True, "applied": updates}
 
-    updates["updated_at"] = "now()"
+    updates["updated_at"] = datetime.now(timezone.utc).isoformat()
     (
         _supabase()
         .table("sellers")

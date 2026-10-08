@@ -169,8 +169,8 @@ async def get_identity(request: Request) -> Identity:
 
 
 def require_owner(identity: Identity) -> Identity:
-    """Guard: hanya owner (operator → 403)."""
-    if identity.role != "owner":
+    """Guard: hanya owner dengan seller_id aktif (operator / tanpa seller → 403)."""
+    if not identity.seller_id or identity.role != "owner":
         raise HTTPException(403, "Owner role required")
     return identity
 
