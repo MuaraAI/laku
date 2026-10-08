@@ -84,10 +84,34 @@ async function toResult<T>(res: Response): Promise<ApiResult<T>> {
 }
 
 /**
+ * Client-side GET cache (in-memory, per tab).
+ * - Hanya GET yang dicache, HANYA jika sukses (data != null, error == null).
+ * - TTL 60 detik: kalaupun ada desync, maksimal 1 menit data basi.
+ * - POST/PUT/PATCH/DELETE yang sukses otomatis menghanguskan seluruh cache
+ *   (semua mutasi di Laku = POST: confirm import, stock opening, settings).
+ */
+const CACHE_TTL_MS = 60_000;
+const apiCache = new Map<string, { data: unknown; at: number }>();
+
+export function invalidateApiCache(): void {
+  apiCache.clear();
+}
+
+/**
  * Fetch data from Laku FastAPI backend with Supabase Bearer token.
  * Returns { data, error, status, code } — never throws.
  */
 export async function apiFetch<T = unknown>(path: string, options: RequestInit = {}): Promise<ApiResult<T>> {
+  const method = (options.method || "GET").toUpperCase();
+  const isGet = method === "GET";
+
+  if (isGet && !options.signal) {
+    const hit = apiCache.get(path);
+    if (hit && Date.now() - hit.at < CACHE_TTL_MS) {
+      return { data: hit.data as T, error: null };
+    }
+  }
+
   try {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -95,7 +119,13 @@ export async function apiFetch<T = unknown>(path: string, options: RequestInit =
       ...(options.headers as Record<string, string>),
     };
     const res = await fetch(buildApiUrl(path), { ...options, headers, signal: options.signal || timeoutSignal(15000) });
-    return await toResult<T>(res);
+    const result = await toResult<T>(res);
+    if (isGet && result.data !== null && result.error === null) {
+      apiCache.set(path, { data: result.data, at: Date.now() });
+    } else if (!isGet && result.error === null) {
+      apiCache.clear();
+    }
+    return result;
   } catch (err: unknown) {
     return transportError(err);
   }
@@ -110,7 +140,9 @@ export async function apiUpload<T = unknown>(path: string, form: FormData): Prom
       body: form,
       signal: timeoutSignal(60000), // parse 20.000 baris bisa makan waktu
     });
-    return await toResult<T>(res);
+    const result = await toResult<T>(res);
+    if (result.error === null) apiCache.clear(); // data baru masuk → GET cache basi
+    return result;
   } catch (err: unknown) {
     return transportError(err);
   }

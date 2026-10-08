@@ -3,6 +3,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { dashboard } from '@/constants/id';
+import { invalidateApiCache } from '@/lib/api';
 import RevealObserver from '@/components/landing/RevealObserver';
 import OfflineBanner from './OfflineBanner';
 import { RestockPage } from './pages/Restock';
@@ -127,6 +128,7 @@ export default function App() {
   useEffect(() => { window.scrollTo({ top: 0 }); }, [page]);
 
   async function handleLogout() {
+    invalidateApiCache(); // cegah data toko akun lama bocor ke user berikutnya
     try {
       const { supabaseBrowser } = await import('@/lib/supabase/client');
       const supabase = supabaseBrowser();
@@ -160,6 +162,7 @@ export default function App() {
 
   // keep ?mode= in the address bar in step with the toggle, so a reload opens the same store
   function switchMode(next: 'demo' | 'live') {
+    invalidateApiCache(); // mode beda = sumber data beda → GET cache lama harus basi
     setMode(next);
     try {
       const url = new URL(window.location.href);
