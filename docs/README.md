@@ -1,8 +1,17 @@
 # Dokumen Submission & Video Demo — Laku (SIFEST 2026)
 
-Direktori ini disiapkan untuk berkas submission dan materi presentasi tim **MuaraAI** (Universitas Bina Sarana Informatika Kampus Kota Pontianak) pada **Digital Innovation Challenge SIFEST 2026 (Track Digital Economy)**:
+Direktori ini berisi berkas submission resmi tim **MuaraAI** (Universitas Bina Sarana Informatika Kampus Kota Pontianak) untuk **Digital Innovation Challenge SIFEST 2026 (Track Digital Economy)**:
 
-* **Proposal Proyek:** `docs/proposal-laku-sifest.pdf`
-* **Video Demo Aplikasi:** Tautan video demo dapat diakses melalui dokumen proposal serta lampiran formulir resmi pendaftaran SIFEST 2026.
+* **Proposal Ringkas (PDF):** [`proposal-muaraai-laku-sifest.pdf`](./proposal-muaraai-laku-sifest.pdf)
+* **Format Nama Video Demo:** `MuaraAI_Laku_VideoDemo` (diunggah ke platform video seperti YouTube Unlisted)
 * **Aplikasi Web Live:** [https://laku.muaraai.com](https://laku.muaraai.com)
 * **API Telemetri Live:** [https://api.muaraai.com/v1/laku/health](https://api.muaraai.com/v1/laku/health)
+
+---
+
+## 👥 Tim MuaraAI
+
+- **Yuken Velino** — Kapten Tim / Lead Architecture & Core Engine
+- **Muhammad Raffli Aldiansyah (Bob)** — Backend & Security
+- **Jioo** — Lead Frontend & UI/UX
+- **Raken** — Product & Business / Hustler
