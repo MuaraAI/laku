@@ -2,7 +2,7 @@
 
 Direktori ini berisi berkas submission resmi tim **MuaraAI** (Universitas Bina Sarana Informatika Kampus Kota Pontianak) untuk **Digital Innovation Challenge SIFEST 2026 (Track Digital Economy)**:
 
-* **Proposal Ringkas (PDF):** [`proposal-muaraai-laku-sifest.pdf`](./proposal-muaraai-laku-sifest.pdf)
+* **Proposal Ringkas (PDF):** [`MuaraAI_Laku_ProposalRingkas.pdf`](./MuaraAI_Laku_ProposalRingkas.pdf)
 * **Format Nama Video Demo:** `MuaraAI_Laku_VideoDemo` (diunggah ke platform video seperti YouTube Unlisted)
 * **Aplikasi Web Live:** [https://laku.muaraai.com](https://laku.muaraai.com)
 * **API Telemetri Live:** [https://api.muaraai.com/v1/laku/health](https://api.muaraai.com/v1/laku/health)
