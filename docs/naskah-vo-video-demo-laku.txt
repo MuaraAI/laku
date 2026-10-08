@@ -1,0 +1,76 @@
+NASKAH VO — VIDEO DEMO LAKU (2:10) — v3
+Menit 1: storytelling penuh. Menit 2: kenalan sama Laku + demo.
+Baca pelan, santai. (...) = jeda pendek. [HENING] = diam 1-2 detik.
+
+=====================================================
+SEGMENT A — STORYTELLING (0:00 - 1:00) — FULL VO
+=====================================================
+
+[0:00] (Layar hitam. SFX "ting". Ikon lonceng + text "23.47 — Pesanan baru masuk", lalu "Stok: tinggal 2")
+
+"Jam sebelas malam. Notifikasi masuk. Pesanan baru dari Shopee. (...) Seller itu buka HP-nya... dan mulai deg-degan. Stoknya masih ada, nggak ya? (...) Yang di Tokopedia... yang di TikTok Shop... masih cukup, nggak?"
+
+[0:12] (Logo Shopee, Tokopedia, TikTok Shop, Excel muncul satu-satu)
+
+"Ini bukan cerita langka. Setiap hari, ribuan seller UMKM di Indonesia jualan di tiga marketplace sekaligus. (...) Dan setiap hari juga, mereka ngitung stok secara manual. Tab sana, tab sini, catatan di Excel. (...) Tiap minggu, dua sampai tiga jam cuma buat rekap."
+
+[0:27] (3 text card satu-satu: pesanan batal / modal nyangkut / waktu habis)
+
+"Kalau salah hitung? Pesanan batal, rating anjlok. (...) Kalau salah beli barang? Modal nyangkut di gudang, jadi barang mati yang nggak laku-laku. (...) Dan waktu yang seharusnya buat jualan... habis buat ngitung-ngitung."
+
+[0:42] (Text: "Masalahnya bukan seller-nya. Masalahnya: nggak ada yang ngitung.")
+
+"Yang bikin ribet bukan barangnya. Bukan juga seller-nya kurang teliti. (...) Masalahnya satu: stok di tiap marketplace nggak pernah bicara satu sama lain."
+
+[0:52] (Hitam 1 dtk. Text: "Kalau... stok yang ngasih tahu kita?")
+
+"Terus gimana kalau... (...) yang ngasih tahu kapan harus restock itu bukan feeling... (...) tapi data?"
+
+[HENING 1 beat. Musik berhenti.]
+
+=====================================================
+SEGMENT B — LANDING PAGE (1:00 - 1:20)
+=====================================================
+
+[1:00] (Logo Laku fade in + tagline "Restock karena data, bukan feeling.")
+
+"Ini jawabannya. Laku. (...) Engine restock berbasis permintaan, buat seller multi-marketplace."
+
+[1:10] (Land ke homepage laku.muaraai.com, scroll pelan bagian hero)
+
+"Buka laku.muaraai.com — di sini seller bisa langsung mulai. Gak perlu instal aplikasi, gak perlu hubungin API satu-satu. Cukup browser."
+
+=====================================================
+SEGMENT C — DEMO FITUR (1:20 - 1:55)
+=====================================================
+
+[1:20] (Halaman upload, drag CSV 2x. Overlay: "Fitur 1 — Import CSV/XLSX multi-marketplace")
+
+"Cara pakainya: ambil laporan penjualan dari dashboard Shopee, Tokopedia, atau TikTok Shop — CSV atau Excel. Drag, drop, selesai."
+
+[1:32] (Tabel gabungan, scroll ke ROP/safety stock, zoom angka. Overlay: "Fitur 2 — Engine EOQ/ROP (Silver-Peterson)" + "Deduplikasi otomatis")
+
+"Di balik layar, Laku gabungin semua transaksi, hapus yang dobel, terus hitung pakai rumus Silver-Peterson — standar manajemen persediaan yang dipakai industri. (...) Hasilnya: kapan restock, berapa jumlahnya, barang mana yang prioritas."
+
+[1:45] (Prioritas restock + deadstock. Overlay: "Prioritas restock + deteksi deadstock" lalu "Sesuai UU PDP No. 27/2022")
+
+"Seller langsung lihat dua daftar ini: barang yang wajib segera dibeli... dan barang yang modalnya nyangkut di gudang. (...) Data pembeli juga dianonimkan sesuai UU PDP."
+
+=====================================================
+SEGMENT D — PENUTUP (1:55 - 2:10)
+=====================================================
+
+[1:55] (Split screen: kiri logo + "3 jam/minggu", kanan Laku + "5 menit")
+
+"Dari tiga jam ngitung tiap minggu... jadi lima menit. Dari nebak stok... jadi tahu pasti."
+
+[2:03] (Layar gelap. Logo Laku + laku.muaraai.com + MuaraAI + nama tim. Musik naik, fade out)
+
+"Laku. Restock karena data, bukan feeling."
+
+=====================================================
+TIPS REKAM
+1. Rekam per segmen (A/B/C/D) — gampang ulang kalau salah.
+2. Segmen A paling penting: tempo lambat, kasih jeda, total pas 1 menit.
+3. HP 20-30 cm dari mulut, ruangan sepi.
+4. Total baca ±2:00-2:05. Kalau cepat, tambah jeda di Segmen A — jangan buru-buru.
