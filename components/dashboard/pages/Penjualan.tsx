@@ -69,7 +69,7 @@ function TrendChart({ period, customData }: { period: Period; customData?: Trend
           </g>
         )}
       </svg>
-      <div className="chart-readout" aria-live="polite">
+      <div className="chart-readout">
         {hov ? (
           <>
             <span className="num num-left">{hov.day}</span>

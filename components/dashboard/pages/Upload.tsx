@@ -6,7 +6,7 @@ import { apiFetch, apiUpload, validateUploadFile } from '@/lib/api';
 import { dashboard } from '@/constants/id';
 import { CHANNELS, mockPreview, fmtNum, fmtNum1, type Channel, type UploadPreview } from '../data';
 import { Num } from '../components';
-import { IconFile, IconUpload, IconWarning } from '../icons';
+import { IconCheck, IconFile, IconUpload, IconWarning } from '../icons';
 
 type Phase = 'idle' | 'loading' | 'preview' | 'done';
 
@@ -146,6 +146,7 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
           <div>
             <h2 className="step-title">{dashboard.upload.step2Title}</h2>
             <input ref={fileRef} type="file" accept=".csv,.xlsx" className="visually-hidden"
+              aria-label={dashboard.upload.step2Title}
               onChange={(e) => onFile(e.target.files?.[0])} />
             <button className="dropzone" onClick={pickFile} disabled={!channel}>
               <IconUpload size={20} />
@@ -220,7 +221,7 @@ export function UploadPage({ mode = 'demo', onUploaded }: { mode?: 'demo' | 'liv
 
         {phase === 'done' && preview && (
           <li className="step done">
-            <span className="step-no num">✓</span>
+            <span className="step-no num"><IconCheck size={14} /></span>
             <div>
               <h2 className="step-title">Tersimpan</h2>
               <p className="done-note">
