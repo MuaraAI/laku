@@ -202,3 +202,42 @@ class TestStockAdjustmentGuard:
         rr = client.post("/v1/stock/movements",
                          json={"product_id": pid, "type": "adjustment", "qty": 5})
         assert rr.status_code == 200
+
+
+# ------------------------------------------------------------------ audit 8 Okt
+
+class TestClientIpPriority:
+    """Audit prod 8 Okt: topologi live = client -> Cloudflare -> Caddy -> uvicorn.
+    IP klien asli ada di CF-Connecting-IP; XFF terakhir = IP edge Cloudflare."""
+
+    def _mw(self):
+        from app.middleware.rate_limit import RateLimitMiddleware
+        return RateLimitMiddleware(None)
+
+    def _req(self, host="127.0.0.1", headers=None):
+        class FakeClient:
+            pass
+        FakeClient.host = host
+
+        class FakeRequest:
+            pass
+        FakeRequest.client = FakeClient()
+        FakeRequest.headers = headers or {}
+        return FakeRequest()
+
+    def test_cf_connecting_ip_wins(self):
+        req = self._req(headers={
+            "cf-connecting-ip": "203.0.113.7",
+            "x-forwarded-for": "198.51.100.1",  # edge Cloudflare
+        })
+        assert self._mw()._client_ip(req) == "203.0.113.7"
+
+    def test_xff_fallback_without_cf(self):
+        # jalur tanpa Cloudflare (mis. akses LAN langsung ke Caddy)
+        req = self._req(headers={"x-forwarded-for": "198.51.100.1, 10.0.0.1"})
+        assert self._mw()._client_ip(req) == "10.0.0.1"
+
+    def test_untrusted_cf_header_ignored(self):
+        # koneksi langsung dari luar: CF-Connecting-IP palsu TIDAK dipercaya
+        req = self._req(host="198.51.100.9", headers={"cf-connecting-ip": "1.2.3.4"})
+        assert self._mw()._client_ip(req) == "198.51.100.9"

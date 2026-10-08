@@ -31,6 +31,13 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         hop terakhir chain = yang ditambahkan proxy paling dekat. Koneksi
         langsung: pakai client.host, XFF diabaikan.
 
+        Audit prod 8 Okt: topologi live = client -> Cloudflare -> Caddy ->
+        uvicorn. XFF hop terakhir justru IP edge Cloudflare (semua user di
+        PoP yang sama berbagi bucket) — IP klien asli ada di header
+        CF-Connecting-IP yang diset Cloudflare (menimpa nilai client). Karena
+        header itu hanya dipercaya di koneksi trusted, spoofing tetap tidak
+        mungkin. Prioritas: CF-Connecting-IP > XFF terakhir > client.host.
+
         NB: TestClient memakai client.host "testclient" — dianggap trusted
         agar suite rate-limit lama (yang mensimulasikan jalur Caddy via XFF)
         tetap valid; unit test khusus _client_ip menguji jalur untrusted.
@@ -38,6 +45,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         client_host = request.client.host if request.client else "?"
         if client_host not in ("127.0.0.1", "::1", "testclient"):
             return client_host
+        cf_ip = request.headers.get("cf-connecting-ip", "").strip()
+        if cf_ip:
+            return cf_ip
         xff = [h.strip() for h in request.headers.get("x-forwarded-for", "").split(",")
                if h.strip()]
         return xff[-1] if xff else client_host
