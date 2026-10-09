@@ -10,7 +10,6 @@ jobs:
   backend:
     name: Backend Test Suite (FastAPI)
     runs-on: ubuntu-latest
-    if: github.repository == 'MuaraAI/laku'
 
     steps:
       - name: Checkout code
@@ -28,7 +27,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Run Backend Pytest Suite (188 tests)
+      - name: Run Backend Pytest Suite (193 tests)
         run: |
           cd backend
           python -m pytest tests/ -v
@@ -36,7 +35,6 @@ jobs:
   frontend:
     name: Frontend Quality & Build (Next.js 15)
     runs-on: ubuntu-latest
-    if: github.repository == 'MuaraAI/laku'
 
     steps:
       - name: Checkout code
