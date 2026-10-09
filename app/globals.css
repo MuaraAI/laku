@@ -57,7 +57,15 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
-/* Material Symbols Rounded */
+/* Material Symbols Rounded (Self-hosted woff2) */
+@font-face {
+  font-family: "Material Symbols Rounded";
+  font-style: normal;
+  font-weight: 100 700;
+  src: url("/fonts/material-symbols-rounded.woff2") format("woff2");
+  font-display: block;
+}
+
 .ms {
   font-family: "Material Symbols Rounded"; font-weight: normal; font-style: normal;
   font-size: 20px; line-height: 1; display: inline-block; white-space: nowrap; direction: ltr; flex: none;
