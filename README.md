@@ -16,7 +16,7 @@
 
 <br/>
 
-![Dashboard Restock Laku Preview](docs/screenshots/dashboard-restock.png)
+![Dashboard Restock Laku Preview](docs/screenshots/demo-dashboard.png)
 
 *Antarmuka Dashboard Laku — Perhitungan otomatis Reorder Point (ROP), Laju Penjualan Harian, dan Status Restock Kritis secara Real-Time.*
 
@@ -68,7 +68,7 @@ Laku mentransformasi file laporan penjualan (CSV/XLSX) yang sudah diunduh seller
 
 <div align="center">
 
-![Panel Mengapa Angka Ini](docs/screenshots/why-panel-formula.png)
+![Panel Mengapa Angka Ini](docs/screenshots/demo-dashboard-mengapa.png)
 
 *Panel Audit Formula — Setiap angka rekomendasi restock transparan dan dapat diverifikasi oleh seller.*
 
@@ -91,7 +91,7 @@ Data pembeli (nama lengkap, nomor telepon `08xx`, dan alamat jalan mentah) **dib
 
 <div align="center">
 
-![Peta Jaringan Logistik](docs/screenshots/hero-landing.png)
+![Peta Jaringan Logistik](docs/screenshots/landing-page-home.png)
 
 *Visualisasi Rute Logistik Nasional & Pemantauan Gudang Lokal Pontianak.*
 
